@@ -57,12 +57,20 @@
 
       try {
         if (mode === 'login') {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
+
+          if (!user.email_confirmed_at) {
+            message.style.color = 'orange';
+            message.textContent = 'Please verify your email before logging in.';
+            return;
+          }
+
           message.style.color = 'green';
           message.textContent = 'Login successful! Redirecting...';
-          // TODO: redirect to your main app page or dashboard
+          // Add your redirection URL here
           setTimeout(() => window.location.href = '/', 1500);
+
         } else {
           const { error } = await supabase.auth.signUp({ email, password });
           if (error) throw error;
