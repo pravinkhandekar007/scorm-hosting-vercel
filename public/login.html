@@ -2,89 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login / Sign Up</title>
+  <title>Log In / Sign Up</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    #authContainer { background: #fff; padding: 30px; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 8px; width: 320px; }
-    h2 { margin-top: 0; text-align: center; }
-    form { display: flex; flex-direction: column; }
-    input[type="email"], input[type="password"] { padding: 10px; margin: 10px 0; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
-    label { margin: 10px 0 5px; font-weight: bold; }
-    .radio-group { display: flex; justify-content: space-around; margin-bottom: 15px; }
-    button { padding: 10px; font-size: 1em; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background-color: #3b4a63; }
-    #message { margin-top: 15px; height: 20px; text-align: center; color: red; }
+    /* your styles here */
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h2 { text-align: center; }
+    form { max-width: 400px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+    input { padding: 10px; font-size: 16px; }
+    button { padding: 12px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #status { text-align: center; margin-top: 10px; font-weight: bold; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div id="authContainer">
-    <h2>User Login / Sign Up</h2>
-    <form id="authForm">
-      <label for="email">Email:</label>
-      <input type="email" id="email" placeholder="Enter your email" required />
-      
-      <label for="password">Password:</label>
-      <input type="password" id="password" placeholder="Enter your password" required minlength="6" />
-      
-      <div class="radio-group">
-        <label><input type="radio" name="mode" value="login" checked /> Login</label>
-        <label><input type="radio" name="mode" value="signup" /> Sign Up</label>
-      </div>
-      
-      <button type="submit">Submit</button>
-    </form>
-    <div id="message"></div>
-  </div>
+  <h2>Sign In / Sign Up</h2>
+  <form id="auth-form">
+    <input id="email"    type="email"    placeholder="Email" required />
+    <input id="password" type="password" placeholder="Password" required />
+    <button type="submit">Submit</button>
+  </form>
+  <div id="status"></div>
 
   <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co'; // Replace with your Supabase project URL
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // Replace with your Supabase anon key
+    const SUPABASE_URL      = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const status  = document.getElementById('status');
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const form = document.getElementById('authForm');
-    const message = document.getElementById('message');
-
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      message.style.color = 'red';
-      message.textContent = 'Processing...';
+      const email = e.target.email.value;
+      const pass  = e.target.password.value;
 
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const mode = form.mode.value;
+      status.textContent = 'Signing in…';
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
 
-      try {
-        if (mode === 'login') {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          
-          console.log('SignIn data:', data);
-          const user = data.user;
-          if (!user) {
-            message.textContent = 'Unexpected error: no user data returned.';
-            return;
-          }
-          if (!user.email_confirmed_at) {
-            message.style.color = 'orange';
-            message.textContent = 'Please verify your email before logging in.';
-            return;
-          }
+      if (error) {
+        status.textContent = `Error: ${error.message}`;
+      } else {
+        status.textContent = 'Success! Redirecting…';
 
-          message.style.color = 'green';
-          message.textContent = 'Login successful! Redirecting...';
-          // TODO: update redirect URL
-          setTimeout(() => window.location.href = '/', 1500);
+        const params = new URLSearchParams(window.location.search);
+        const course = params.get('course');
 
+        // Redirect to player only if there is a valid course param
+        if (course && course !== "null" && course !== "undefined") {
+          window.location.href = `player.html?course=${encodeURIComponent(course)}`;
         } else {
-          const { error } = await supabase.auth.signUp({ email, password });
-          if (error) throw error;
-          message.style.color = 'green';
-          message.textContent = 'Sign up successful! Please check your email to verify your account.';
+          // Otherwise redirect somewhere safer, e.g. upload page or home
+          window.location.href = 'upload.html';  
         }
-      } catch (err) {
-        message.textContent = err.message;
       }
     });
   </script>
