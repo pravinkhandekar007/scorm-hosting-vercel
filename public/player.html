@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SCORM Course Player</title>
+  <style>
+    body { margin:0; padding:20px; font-family:Arial,sans-serif; background:#f4f4f4; }
+    #container { max-width:1200px; margin:20px auto; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+    h2 { margin:0; padding:20px; background:#2c3e50; color:#fff; }
+    #message { padding:20px; text-align:center; }
+    iframe { width:100%; height:80vh; border:none; display:none; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h2>🎓 SCORM Course Player</h2>
+    <div id="message">Loading…</div>
+    <iframe id="courseFrame" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    (async () => {
+      const msg   = document.getElementById('message');
+      const frame = document.getElementById('courseFrame');
+      const params = new URLSearchParams(window.location.search);
+      const slug  = params.get('course');
+      if (!slug) {
+        msg.textContent = 'Error: Missing course slug.';
+        return;
+      }
+
+      // 1. Fetch course metadata from get-course function
+      msg.textContent = 'Fetching course metadata…';
+      let course;
+      try {
+        const res = await fetch(
+          `https://kfksfnzpudycqbcftrev.supabase.co/functions/v1/get-course/${slug}`,
+          {
+            headers: {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma3NmbnpwdWR5Y3FiY2Z0cmV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODg1MzcsImV4cCI6MjA3NDI2NDUzN30.l0ApEczfprHX9m73tiCWzO2cJRGBpic9RDJWQsw7qfs"
+            }
+          }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        course = await res.json();
+      } catch (err) {
+        msg.textContent = `Metadata load failed: ${err.message}`;
+        return;
+      }
+
+      // 2. Build proxy base URL for SCORM files
+      const proxyBaseUrl = 
+        `https://kfksfnzpudycqbcftrev.supabase.co/functions/v1/proxy-scorm/` +
+        `${course.package_path}/`;
+
+      // 3. Fetch and parse imsmanifest.xml through proxy
+      msg.textContent = 'Fetching manifest…';
+      let manifestText;
+      try {
+        const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
+        if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
+        manifestText = await mf.text();
+      } catch (err) {
+        msg.textContent = `Failed to load manifest: ${err.message}`;
+        return;
+      }
+
+      msg.textContent = 'Parsing manifest…';
+      let launchFile = course.launch_url || 'index.html';
+      try {
+        const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
+        const r   = xml.querySelector('resource[href]');
+        if (r) launchFile = r.getAttribute('href');
+      } catch {
+        // fallback to DB launch_url or 'index.html'
+      }
+
+      // 4. Load launch file in iframe via proxy URL
+      msg.textContent = 'Launching course…';
+      frame.src = proxyBaseUrl + launchFile;
+      frame.style.display = 'block';
+      msg.style.display = 'none';
+    })();
+  </script>
+</body>
+</html>
