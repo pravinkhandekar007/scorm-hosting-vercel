@@ -57,9 +57,15 @@
 
       try {
         if (mode === 'login') {
-          const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password });
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
-
+          
+          console.log('SignIn data:', data);
+          const user = data.user;
+          if (!user) {
+            message.textContent = 'Unexpected error: no user data returned.';
+            return;
+          }
           if (!user.email_confirmed_at) {
             message.style.color = 'orange';
             message.textContent = 'Please verify your email before logging in.';
@@ -68,7 +74,7 @@
 
           message.style.color = 'green';
           message.textContent = 'Login successful! Redirecting...';
-          // Add your redirection URL here
+          // TODO: update redirect URL
           setTimeout(() => window.location.href = '/', 1500);
 
         } else {
