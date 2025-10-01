@@ -151,7 +151,7 @@
             const result = JSON.parse(responseText);
             statusDiv.textContent = `Upload successful! Course Title: ${result.title}`;
             
-            const playerUrl = `scorm-player.html?course=${courseSlug}`;
+            const playerUrl = `player.html?course=${courseSlug}`;
             resultLinkDiv.innerHTML = `<p>Launch your course:</p><a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
 
         } catch (error) {
