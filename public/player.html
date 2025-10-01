@@ -15,71 +15,60 @@
   <div id="container">
     <h2>🎓 SCORM Course Player</h2>
     <div id="message">Loading…</div>
-    <iframe id="courseFrame" allowfullscreen></iframe>
+    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
   </div>
 
   <script>
     (async () => {
-      const msg   = document.getElementById('message');
+      const msg = document.getElementById('message');
       const frame = document.getElementById('courseFrame');
       const params = new URLSearchParams(window.location.search);
-      const slug  = params.get('course');
-      if (!slug) {
+      const courseSlug = params.get('course');
+
+      if (!courseSlug) {
         msg.textContent = 'Error: Missing course slug.';
         return;
       }
 
-      // 1. Fetch course metadata from get-course function
       msg.textContent = 'Fetching course metadata…';
-      let course;
+
       try {
-        const res = await fetch(
-          `https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course/${slug}`,
-          {
-            headers: {
-              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY"
-            }
-          }
-        );
+        // Replace with your Vercel get-course API URL (relative)
+        const res = await fetch(`/api/get-course?slug=${encodeURIComponent(courseSlug)}`);
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        course = await res.json();
-      } catch (err) {
-        msg.textContent = `Metadata load failed: ${err.message}`;
-        return;
-      }
 
-      // 2. Build proxy base URL for SCORM files
-      const proxyBaseUrl = 
-        `https://kfksfnzpudycqbcftrev.supabase.co/functions/v1/proxy-scorm/` +
-        `${course.package_path}/`;
+        const course = await res.json();
 
-      // 3. Fetch and parse imsmanifest.xml through proxy
-      msg.textContent = 'Fetching manifest…';
-      let manifestText;
-      try {
+        // Build the SCORM package base URL using your Vercel rewrites
+        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+
+        msg.textContent = 'Fetching manifest…';
+
         const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
         if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
-        manifestText = await mf.text();
+
+        const manifestText = await mf.text();
+
+        msg.textContent = 'Parsing manifest…';
+
+        let launchFile = course.launch_url || 'index.html';
+        try {
+          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
+          const resource = xml.querySelector('resource[href]');
+          if (resource) launchFile = resource.getAttribute('href');
+        } catch {
+          // fallback to DB launch_url or 'index.html'
+        }
+
+        msg.textContent = 'Launching course…';
+        frame.src = proxyBaseUrl + launchFile;
+        frame.style.display = 'block';
+        msg.style.display = 'none';
       } catch (err) {
-        msg.textContent = `Failed to load manifest: ${err.message}`;
-        return;
+        msg.textContent = `Failed to load course: ${err.message}`;
+        frame.style.display = 'none';
       }
-
-      msg.textContent = 'Parsing manifest…';
-      let launchFile = course.launch_url || 'index.html';
-      try {
-        const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
-        const r   = xml.querySelector('resource[href]');
-        if (r) launchFile = r.getAttribute('href');
-      } catch {
-        // fallback to DB launch_url or 'index.html'
-      }
-
-      // 4. Load launch file in iframe via proxy URL
-      msg.textContent = 'Launching course…';
-      frame.src = proxyBaseUrl + launchFile;
-      frame.style.display = 'block';
-      msg.style.display = 'none';
     })();
   </script>
 </body>
