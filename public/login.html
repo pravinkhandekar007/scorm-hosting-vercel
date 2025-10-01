@@ -39,7 +39,7 @@
 <script>
   const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co'; // Replace your Supabase project URL
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // Replace with your anon key
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const authForm = document.getElementById('authForm');
   const status = document.getElementById('status');
@@ -97,7 +97,7 @@
 
     try {
       if (currentMode === 'login') {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
         if (!data.user.email_confirmed_at) {
@@ -120,12 +120,12 @@
         }, 1500);
 
       } else if (currentMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
         if (error) throw error;
         status.style.color = 'green';
         status.textContent = 'Sign up successful! Please check your email to verify your account.';
       } else if (currentMode === 'reset') {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+        const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email);
         if (error) throw error;
         status.style.color = 'green';
         status.textContent = 'Password reset email sent! Check your inbox.';
