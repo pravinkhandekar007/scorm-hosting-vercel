@@ -16,6 +16,7 @@
     .error { color: #d32f2f; font-size: .95em; margin-bottom: .5em; }
     .message { color: #2e7d32; font-size: .95em; margin-bottom: .5em; }
   </style>
+  <!-- Load Supabase JS library first! -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.7.2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -38,12 +39,16 @@
       </div>
     </form>
   </div>
+  <!-- Place main script after Supabase JS is loaded -->
   <script>
-    // Initialize Supabase
-    const SUPABASE_URL = "https://mfooewemvofleynanjkb.supabase.co"; // change to your Supabase project URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY"; // change to your Supabase anon key
+    // Supabase project credentials (replace these placeholders)
+    const SUPABASE_URL = "https://your-project.supabase.co";    // Change to your actual project URL
+    const SUPABASE_ANON_KEY = "your-anon-key";                  // Change to your actual anon key
+
+    // Initialize Supabase client
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Get form controls
     const loginBtn = document.getElementById('loginBtn');
     const signUpBtn = document.getElementById('signUpBtn');
     const errorDiv = document.getElementById('error');
@@ -68,7 +73,7 @@
         errorDiv.textContent = error.message || "Login failed.";
       } else {
         messageDiv.textContent = "Successfully logged in!";
-        // Optionally redirect or show logged-in UI
+        // Optionally redirect or show logged-in UI here
       }
       loginBtn.disabled = false;
       signUpBtn.disabled = false;
@@ -97,6 +102,7 @@
       loginBtn.disabled = false;
       signUpBtn.disabled = false;
     };
+
   </script>
 </body>
 </html>
