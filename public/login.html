@@ -41,70 +41,78 @@
   </div>
 
   <script>
-    // Initialize Supabase client with a unique variable name
-    const SUPABASE_URL = "https://mfooewemvofleynanjkb.supabase.co"; // Replace with your Supabase URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY"; // Replace with your anon key
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.addEventListener('DOMContentLoaded', () => {
+      // Replace these with your own supabase project credentials
+      const SUPABASE_URL = "https://your-project.supabase.co";
+      const SUPABASE_ANON_KEY = "your-anon-key";
 
-    const loginBtn = document.getElementById('loginBtn');
-    const signUpBtn = document.getElementById('signUpBtn');
-    const errorDiv = document.getElementById('error');
-    const messageDiv = document.getElementById('message');
-
-    loginBtn.onclick = async function() {
-      errorDiv.textContent = '';
-      messageDiv.textContent = '';
-      loginBtn.disabled = true;
-      signUpBtn.disabled = true;
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      if (!email || !password) {
-        errorDiv.textContent = 'Please provide both email and password.';
-        loginBtn.disabled = false;
-        signUpBtn.disabled = false;
+      if (!window.supabase) {
+        console.error("Supabase library failed to load.");
         return;
       }
 
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        errorDiv.textContent = error.message || "Login failed.";
-      } else {
-        messageDiv.textContent = "Successfully logged in!";
-        // Optionally, redirect or update UI here
-      }
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      loginBtn.disabled = false;
-      signUpBtn.disabled = false;
-    };
+      const loginBtn = document.getElementById('loginBtn');
+      const signUpBtn = document.getElementById('signUpBtn');
+      const errorDiv = document.getElementById('error');
+      const messageDiv = document.getElementById('message');
 
-    signUpBtn.onclick = async function() {
-      errorDiv.textContent = '';
-      messageDiv.textContent = '';
-      loginBtn.disabled = true;
-      signUpBtn.disabled = true;
+      loginBtn.onclick = async function() {
+        errorDiv.textContent = '';
+        messageDiv.textContent = '';
+        loginBtn.disabled = true;
+        signUpBtn.disabled = true;
 
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
 
-      if (!email || !password) {
-        errorDiv.textContent = 'Please provide both email and password.';
+        if (!email || !password) {
+          errorDiv.textContent = 'Please provide both email and password.';
+          loginBtn.disabled = false;
+          signUpBtn.disabled = false;
+          return;
+        }
+
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          errorDiv.textContent = error.message || "Login failed.";
+        } else {
+          messageDiv.textContent = "Successfully logged in!";
+          // Optionally redirect or update UI here
+        }
+
         loginBtn.disabled = false;
         signUpBtn.disabled = false;
-        return;
-      }
+      };
 
-      const { error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) {
-        errorDiv.textContent = error.message || "Registration failed.";
-      } else {
-        messageDiv.textContent = "Check your email for the confirmation link.";
-      }
+      signUpBtn.onclick = async function() {
+        errorDiv.textContent = '';
+        messageDiv.textContent = '';
+        loginBtn.disabled = true;
+        signUpBtn.disabled = true;
 
-      loginBtn.disabled = false;
-      signUpBtn.disabled = false;
-    };
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+          errorDiv.textContent = 'Please provide both email and password.';
+          loginBtn.disabled = false;
+          signUpBtn.disabled = false;
+          return;
+        }
+
+        const { error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+          errorDiv.textContent = error.message || "Registration failed.";
+        } else {
+          messageDiv.textContent = "Check your email for the confirmation link.";
+        }
+
+        loginBtn.disabled = false;
+        signUpBtn.disabled = false;
+      };
+    });
   </script>
 </body>
 </html>
