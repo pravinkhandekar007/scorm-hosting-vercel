@@ -14,7 +14,13 @@
   ],
   "rewrites": [
     {
-      "source": "/api/get-course/:slug",
+      "source": "/api/get-course",
+      "has": [
+        {
+          "type": "query",
+          "key": "slug"
+        }
+      ],
       "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course?slug=:slug"
     },
     {
