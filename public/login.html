@@ -16,7 +16,7 @@
     .error { color: #d32f2f; font-size: 0.95em; margin-bottom: 0.5em; }
     .message { color: #2e7d32; font-size: 0.95em; margin-bottom: 0.5em; }
   </style>
-  <!-- Load Supabase JS library (version 2.6.0) -->
+  <!-- Supabase JS v2.6.0 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -42,16 +42,14 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      // Replace these with your own supabase project credentials
-      const SUPABASE_URL = "https://mfooewemvofleynanjkb.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY";
+      const SUPABASE_URL = "https://mfooewemvofleynanjkb.supabase.co";    // Replace with your Supabase project URL
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY";                  // Replace with your Supabase anon key
 
       if (!window.supabase) {
         console.error("Supabase library failed to load.");
         return;
       }
 
-      // Create Supabase client instance with unique name to avoid conflicts
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const loginBtn = document.getElementById('loginBtn');
@@ -80,7 +78,8 @@
           errorDiv.textContent = error.message || "Login failed.";
         } else {
           messageDiv.textContent = "Successfully logged in!";
-          // Optionally redirect or update UI here
+          // Redirect to upload page after successful login
+          window.location.href = "/upload.html";  // Change path as needed
         }
 
         loginBtn.disabled = false;
