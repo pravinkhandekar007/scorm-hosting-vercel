@@ -7,12 +7,22 @@
           "key": "Content-Security-Policy",
           "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;"
         },
-        { "key": "Cache-Control", "value": "public, max-age=3600" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
       ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/get-course",
+      "destination": "https://mfooewemvofleynanjkb.functions.supabase.co/get-course"
+    },
     {
       "source": "/scorm-content/:path*",
       "destination": "/api/serve-scorm?path=:path*"
