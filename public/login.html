@@ -16,8 +16,8 @@
     .error { color: #d32f2f; font-size: 0.95em; margin-bottom: 0.5em; }
     .message { color: #2e7d32; font-size: 0.95em; margin-bottom: 0.5em; }
   </style>
-  <!-- Load Supabase JS library first -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.7.2/dist/umd/supabase.min.js"></script>
+  <!-- Load Supabase JS library (version 2.6.0) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -51,6 +51,7 @@
         return;
       }
 
+      // Create Supabase client instance with unique name to avoid conflicts
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const loginBtn = document.getElementById('loginBtn');
