@@ -7,21 +7,15 @@
           "key": "Content-Security-Policy",
           "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;"
         },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/api/get-course",
-      "destination": "https://mfooewemvofleynanjkb.functions.supabase.co/get-course"
+      "source": "/api/get-course/:slug",
+      "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course?slug=:slug"
     },
     {
       "source": "/scorm-content/:path*",
