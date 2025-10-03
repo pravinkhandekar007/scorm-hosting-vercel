@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Login / Sign Up</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
         .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -22,70 +23,51 @@
         .toggle-link a { color: #007bff; text-decoration: none; }
         .toggle-link a:hover { text-decoration: underline; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h2 id="form-title">Login</h2>
         <div id="message"></div>
-        
         <form id="auth-form">
             <div class="form-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" required>
             </div>
-            
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" required>
             </div>
-            
             <button type="submit" class="btn" id="submit-btn">Login</button>
             <button type="button" class="btn btn-secondary" id="toggle-btn">Switch to Sign Up</button>
         </form>
-        
         <div class="toggle-link">
-            <a href="upload.html">Go to Upload Page</a>
+            <a href="dashboard.html">Go to Dashboard</a>
         </div>
     </div>
-
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+
         let isLoginMode = true;
         const messageDiv = document.getElementById('message');
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
         const toggleBtn = document.getElementById('toggle-btn');
-        
-        // Handle authentication tokens from URL hash (email verification)
+
         async function handleAuthCallback() {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             const accessToken = hashParams.get('access_token');
             const refreshToken = hashParams.get('refresh_token');
-            
             if (accessToken && refreshToken) {
                 try {
-                    const { data, error } = await supabase.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: refreshToken
-                    });
-                    
+                    const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
                     if (error) throw error;
-                    
-                    showMessage('Email verified and logged in successfully!', 'success');
-                    
-                    // Clear the hash from URL
+                    showMessage('Email verified, logged in successfully!', 'success');
                     window.history.replaceState(null, null, window.location.pathname);
-                    
-                    // Redirect to upload page after 2 seconds
                     setTimeout(() => {
-                        window.location.href = 'upload.html';
+                        window.location.href = 'dashboard.html';
                     }, 2000);
-                    
                     return true;
                 } catch (error) {
                     showMessage('Error processing verification: ' + error.message, 'error');
@@ -93,17 +75,17 @@
             }
             return false;
         }
-        
+
         function showMessage(text, type = 'info') {
             messageDiv.className = `message ${type}`;
             messageDiv.textContent = text;
             messageDiv.style.display = 'block';
         }
-        
+
         function hideMessage() {
             messageDiv.style.display = 'none';
         }
-        
+
         function toggleMode() {
             isLoginMode = !isLoginMode;
             if (isLoginMode) {
@@ -117,59 +99,45 @@
             }
             hideMessage();
         }
-        
+
         async function handleSubmit(e) {
             e.preventDefault();
             hideMessage();
-            
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
+
             try {
                 if (isLoginMode) {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-                    
+                    const { error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    
                     showMessage('Login successful!', 'success');
-                    setTimeout(() => window.location.href = 'upload.html', 1500);
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 } else {
-                    const { data, error } = await supabase.auth.signUp({
-                        email,
-                        password
-                    });
-                    
+                    const { data, error } = await supabase.auth.signUp({ email, password });
                     if (error) throw error;
-                    
                     if (data.user && !data.session) {
-                        showMessage('Please check your email and click the verification link to complete registration.', 'info');
+                        showMessage('Please check your email to verify your account.', 'info');
                     } else {
                         showMessage('Sign up successful!', 'success');
-                        setTimeout(() => window.location.href = 'upload.html', 1500);
+                        setTimeout(() => window.location.href = 'dashboard.html', 1500);
                     }
                 }
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
             }
         }
-        
-        // Event listeners
+
         document.getElementById('auth-form').addEventListener('submit', handleSubmit);
         toggleBtn.addEventListener('click', toggleMode);
-        
-        // Handle auth callback on page load
+
         document.addEventListener('DOMContentLoaded', async () => {
             const isAuthCallback = await handleAuthCallback();
-            
             if (!isAuthCallback) {
-                // Check if user is already logged in
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
                     showMessage('You are already logged in. Redirecting...', 'success');
-                    setTimeout(() => window.location.href = 'upload.html', 1500);
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 }
             }
         });
