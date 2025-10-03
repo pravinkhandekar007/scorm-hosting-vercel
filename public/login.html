@@ -1,118 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Login | Supabase Auth</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: sans-serif; background: #f4f4f4; }
-    .container { max-width: 400px; margin: 5% auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 1px 8px rgba(0,0,0,0.08); }
-    .form-group { margin-bottom: 1.2em; }
-    label { display: block; font-size: 1em; margin-bottom: 0.3em; }
-    input[type="email"], input[type="password"] { width: 100%; padding: 0.7em; border-radius: 4px; border: 1px solid #ddd; }
-    .actions { display: flex; gap: 0.5em; }
-    button { background: #6366f1; color: #fff; border: none; cursor: pointer; padding: 0.8em 1.8em; border-radius: 4px; font-weight: 600; }
-    button[disabled] { background: #bbb; cursor: not-allowed; }
-    .error { color: #d32f2f; font-size: 0.95em; margin-bottom: 0.5em; }
-    .message { color: #2e7d32; font-size: 0.95em; margin-bottom: 0.5em; }
-  </style>
-  <!-- Supabase JS v2.6.0 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Login / Sign Up</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1e1e1e; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
+        .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; }
+        .toggle-link { text-align: center; margin-top: 15px; }
+        .toggle-link a { color: #007bff; text-decoration: none; }
+        .toggle-link a:hover { text-decoration: underline; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h2 style="text-align:center;">Login or Register</h2>
-    <div id="error" class="error"></div>
-    <div id="message" class="message"></div>
-    <form id="authForm" autocomplete="on">
-      <div class="form-group">
-        <label for="email">Email address</label>
-        <input id="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input id="password" type="password" required autocomplete="current-password" />
-      </div>
-      <div class="actions">
-        <button type="button" id="loginBtn">Sign In</button>
-        <button type="button" id="signUpBtn">Sign Up</button>
-      </div>
-    </form>
-  </div>
+    <div class="container">
+        <h2 id="form-title">Login</h2>
+        <div id="message"></div>
+        
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <button type="submit" class="btn" id="submit-btn">Login</button>
+            <button type="button" class="btn btn-secondary" id="toggle-btn">Switch to Sign Up</button>
+        </form>
+        
+        <div class="toggle-link">
+            <a href="upload.html">Go to Upload Page</a>
+        </div>
+    </div>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const SUPABASE_URL = "https://mfooewemvofleynanjkb.supabase.co";    // Replace with your Supabase project URL
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY";                  // Replace with your Supabase anon key
-
-      if (!window.supabase) {
-        console.error("Supabase library failed to load.");
-        return;
-      }
-
-      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      const loginBtn = document.getElementById('loginBtn');
-      const signUpBtn = document.getElementById('signUpBtn');
-      const errorDiv = document.getElementById('error');
-      const messageDiv = document.getElementById('message');
-
-      loginBtn.onclick = async function() {
-        errorDiv.textContent = '';
-        messageDiv.textContent = '';
-        loginBtn.disabled = true;
-        signUpBtn.disabled = true;
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-
-        if (!email || !password) {
-          errorDiv.textContent = 'Please provide both email and password.';
-          loginBtn.disabled = false;
-          signUpBtn.disabled = false;
-          return;
+    <script>
+        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let isLoginMode = true;
+        const messageDiv = document.getElementById('message');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const toggleBtn = document.getElementById('toggle-btn');
+        
+        // Handle authentication tokens from URL hash (email verification)
+        async function handleAuthCallback() {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken && refreshToken) {
+                try {
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showMessage('Email verified and logged in successfully!', 'success');
+                    
+                    // Clear the hash from URL
+                    window.history.replaceState(null, null, window.location.pathname);
+                    
+                    // Redirect to upload page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'upload.html';
+                    }, 2000);
+                    
+                    return true;
+                } catch (error) {
+                    showMessage('Error processing verification: ' + error.message, 'error');
+                }
+            }
+            return false;
         }
-
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          errorDiv.textContent = error.message || "Login failed.";
-        } else {
-          messageDiv.textContent = "Successfully logged in!";
-          // Redirect to upload page after successful login
-          window.location.href = "/upload.html";  // Change path as needed
+        
+        function showMessage(text, type = 'info') {
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
         }
-
-        loginBtn.disabled = false;
-        signUpBtn.disabled = false;
-      };
-
-      signUpBtn.onclick = async function() {
-        errorDiv.textContent = '';
-        messageDiv.textContent = '';
-        loginBtn.disabled = true;
-        signUpBtn.disabled = true;
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-
-        if (!email || !password) {
-          errorDiv.textContent = 'Please provide both email and password.';
-          loginBtn.disabled = false;
-          signUpBtn.disabled = false;
-          return;
+        
+        function hideMessage() {
+            messageDiv.style.display = 'none';
         }
-
-        const { error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) {
-          errorDiv.textContent = error.message || "Registration failed.";
-        } else {
-          messageDiv.textContent = "Check your email for the confirmation link.";
+        
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                formTitle.textContent = 'Login';
+                submitBtn.textContent = 'Login';
+                toggleBtn.textContent = 'Switch to Sign Up';
+            } else {
+                formTitle.textContent = 'Sign Up';
+                submitBtn.textContent = 'Sign Up';
+                toggleBtn.textContent = 'Switch to Login';
+            }
+            hideMessage();
         }
-
-        loginBtn.disabled = false;
-        signUpBtn.disabled = false;
-      };
-    });
-  </script>
+        
+        async function handleSubmit(e) {
+            e.preventDefault();
+            hideMessage();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                if (isLoginMode) {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showMessage('Login successful!', 'success');
+                    setTimeout(() => window.location.href = 'upload.html', 1500);
+                } else {
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    if (data.user && !data.session) {
+                        showMessage('Please check your email and click the verification link to complete registration.', 'info');
+                    } else {
+                        showMessage('Sign up successful!', 'success');
+                        setTimeout(() => window.location.href = 'upload.html', 1500);
+                    }
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('auth-form').addEventListener('submit', handleSubmit);
+        toggleBtn.addEventListener('click', toggleMode);
+        
+        // Handle auth callback on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthCallback = await handleAuthCallback();
+            
+            if (!isAuthCallback) {
+                // Check if user is already logged in
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    showMessage('You are already logged in. Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'upload.html', 1500);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
