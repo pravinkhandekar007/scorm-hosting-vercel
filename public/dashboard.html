@@ -1,51 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My SCORM Courses</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <meta charset="UTF-8">
+    <title>SCORM Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
+        h1 { color: #2c3e50; margin: 0; }
+        .user-info { color: #6c757d; }
+        .nav-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
+        .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px; transition: background-color 0.3s; }
+        .btn:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .courses-section { margin-top: 20px; }
+        .course-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #007bff; }
+        .course-title { font-weight: bold; color: #2c3e50; }
+        .course-actions { display: flex; gap: 10px; }
+        .btn-small { padding: 8px 15px; font-size: 14px; }
+        #loading { text-align: center; color: #6c757d; }
+        .empty-state { text-align: center; padding: 40px; color: #6c757d; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <h2>My Uploaded Courses</h2>
-  <div id="courses">Loading...</div>
-
-  <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function showCourses() {
-      const { data: { session } } = await supabase.auth.getSession();
-      const container = document.getElementById('courses');
-
-      if (!session) {
-        container.innerHTML = 'Please <a href="login.html">log in</a> to view your courses.';
-        return;
-      }
-
-      const res = await fetch(`/api/list-courses`, {
-        headers: { "Authorization": `Bearer ${session.access_token}` }
-      });
-      const json = await res.json();
-      if (json.error) {
-        container.textContent = 'Error: ' + json.error;
-        return;
-      }
-
-      if (json.courses.length === 0) {
-        container.textContent = 'No courses uploaded yet.';
-        return;
-      }
-
-      container.innerHTML = json.courses.map(c => `
-        <div>
-          <strong>${c.title}</strong>
-          <a href="player.html?course=${encodeURIComponent(c.course_slug)}" target="_blank">Launch</a>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 SCORM Dashboard</h1>
+            <div class="user-info">
+                <span id="user-email">Loading...</span>
+                <button class="btn btn-secondary" onclick="logout()" style="margin-left: 15px;">Logout</button>
+            </div>
         </div>
-      `).join('');
-    }
 
-    document.addEventListener('DOMContentLoaded', showCourses);
-  </script>
+        <div class="nav-buttons">
+            <a href="upload.html" class="btn btn-success">📤 Upload New Course</a>
+            <button class="btn" onclick="refreshCourses()">🔄 Refresh List</button>
+        </div>
+
+        <div class="courses-section">
+            <h2>My Uploaded Courses</h2>
+            <div id="loading">Loading your courses...</div>
+            <div id="courses-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function checkAuthAndLoadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display user email
+            document.getElementById('user-email').textContent = session.user.email;
+            
+            // Load courses
+            await loadCourses();
+        }
+
+        async function loadCourses() {
+            const loadingDiv = document.getElementById('loading');
+            const coursesDiv = document.getElementById('courses-list');
+            
+            loadingDiv.style.display = 'block';
+            coursesDiv.innerHTML = '';
+
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                const response = await fetch('/api/list-courses', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+
+                const result = await response.json();
+                loadingDiv.style.display = 'none';
+
+                if (result.error) {
+                    coursesDiv.innerHTML = `<div class="empty-state">Error: ${result.error}</div>`;
+                    return;
+                }
+
+                if (!result.courses || result.courses.length === 0) {
+                    coursesDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>No courses uploaded yet.</p>
+                            <a href="upload.html" class="btn btn-success">Upload Your First Course</a>
+                        </div>`;
+                    return;
+                }
+
+                coursesDiv.innerHTML = result.courses.map(course => `
+                    <div class="course-item">
+                        <div>
+                            <div class="course-title">${course.title || course.course_slug}</div>
+                            <small style="color: #6c757d;">Slug: ${course.course_slug}</small>
+                        </div>
+                        <div class="course-actions">
+                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}" 
+                               target="_blank" class="btn btn-small">▶️ Launch</a>
+                            <button class="btn btn-secondary btn-small" 
+                                    onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${error.message}</div>`;
+            }
+        }
+
+        async function refreshCourses() {
+            await loadCourses();
+        }
+
+        function copyCourseLink(courseSlug) {
+            const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Course link copied to clipboard!');
+            });
+        }
+
+        async function logout() {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Logout error:', error);
+            }
+            window.location.href = 'login.html';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', checkAuthAndLoadData);
+    </script>
 </body>
 </html>
