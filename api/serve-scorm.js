@@ -1,7 +1,9 @@
-import Cors from 'micro-cors';
-import { download } from '@vercel/blob';
+import { createClient } from '@supabase/supabase-js';
 
-const cors = Cors();
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
 const MIME_TYPES = {
   html: 'text/html',
   htm: 'text/html',
@@ -21,41 +23,48 @@ const MIME_TYPES = {
 
 export const config = {
   api: {
-    bodyParser: false
-  }
+    bodyParser: false,
+  },
 };
 
-export default cors(async (req, res) => {
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization, apikey, content-type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    // Handle preflight
+    res.status(204).end();
+    return;
+  }
+
   const { path } = req.query;
-  if (!path) {
-    return res.status(400).json({ error: 'Missing path parameter' });
+  if (!path || typeof path !== 'string') {
+    res.status(400).json({ error: 'Missing or invalid path parameter' });
+    return;
   }
 
   try {
-    // Download file from Vercel Blob
-    const data = await download(path);
-    if (!data) {
-      return res.status(404).json({ error: 'File Not Found' });
+    // Download file from Supabase Storage bucket "scorm-packages"
+    const { data, error } = await supabase.storage.from('scorm-packages').download(path);
+
+    if (error || !data) {
+      res.status(404).json({ error: 'File Not Found' });
+      return;
     }
 
-    // Determine content type
+    // Determine content type based on file extension
     const ext = path.split('.').pop().toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-    // Set headers
     res.setHeader('Content-Type', contentType);
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;"
-    );
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.setHeader('Access-Control-Allow-Origin', '*');
 
-    // Stream buffer
-    const buffer = await data.arrayBuffer();
-    res.send(Buffer.from(buffer));
+    // Convert the ReadableStream to Buffer and send
+    const arrayBuffer = await data.arrayBuffer();
+    res.send(Buffer.from(arrayBuffer));
   } catch (err) {
-    console.error('Serve error', err);
-    res.status(500).json({ error: 'Failed to Serve File' });
+    console.error('Error serving SCORM file:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-});
+}
