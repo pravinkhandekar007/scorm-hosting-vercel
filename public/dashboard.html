@@ -1,37 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>My SCORM Courses</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <h2>My Uploaded Courses</h2>
-  <div id="courses"></div>
+  <div id="courses">Loading...</div>
+
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     async function showCourses() {
       const { data: { session } } = await supabase.auth.getSession();
+      const container = document.getElementById('courses');
+
       if (!session) {
-        document.getElementById('courses').innerHTML = 
-          'Please <a href="login.html">login</a> to view your courses.';
+        container.innerHTML = 'Please <a href="login.html">log in</a> to view your courses.';
         return;
       }
-      const resp = await fetch('/api/list-courses', {
+
+      const res = await fetch(`/api/list-courses`, {
         headers: { "Authorization": `Bearer ${session.access_token}` }
       });
-      const result = await resp.json();
-      if (result.error) return document.getElementById('courses').textContent = "Error: " + result.error;
-      const html = result.courses.map(
-        c => `<div>
-          <b>${c.title}</b>
+      const json = await res.json();
+      if (json.error) {
+        container.textContent = 'Error: ' + json.error;
+        return;
+      }
+
+      if (json.courses.length === 0) {
+        container.textContent = 'No courses uploaded yet.';
+        return;
+      }
+
+      container.innerHTML = json.courses.map(c => `
+        <div>
+          <strong>${c.title}</strong>
           <a href="player.html?course=${encodeURIComponent(c.course_slug)}" target="_blank">Launch</a>
-        </div>`
-      ).join('');
-      document.getElementById('courses').innerHTML = html || "No courses found.";
+        </div>
+      `).join('');
     }
+
     document.addEventListener('DOMContentLoaded', showCourses);
   </script>
 </body>
