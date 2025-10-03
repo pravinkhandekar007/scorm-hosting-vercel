@@ -35,20 +35,16 @@
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session || !session.access_token) {
-        msg.textContent = 'Error: User not authenticated. Please log in.';
-        return;
-      }
-
       msg.textContent = 'Fetching course metadata…';
 
+      const { data: { session } } = await supabase.auth.getSession();
+
       try {
-        const res = await fetch(`/api/get-course?slug=${encodeURIComponent(courseSlug)}`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
-        });
+        const headers = {};
+        // If your Edge Function requires authentication, uncomment the line below:
+        // if (session && session.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+
+        const res = await fetch(`/api/get-course?slug=${encodeURIComponent(courseSlug)}`, { headers });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -80,9 +76,9 @@
         frame.style.display = 'block';
         msg.style.display = 'none';
       } catch (err) {
+        console.error(err);
         msg.textContent = `Failed to load course: ${err.message}`;
         frame.style.display = 'none';
-        console.error(err);
       }
     })();
   </script>
