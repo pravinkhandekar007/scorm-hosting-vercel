@@ -41,10 +41,13 @@
 
       try {
         const headers = {};
-        // If your Edge Function requires authentication, uncomment the line below:
-        // if (session && session.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+        if (session && session.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
 
-        const res = await fetch(`/api/get-course?slug=${encodeURIComponent(courseSlug)}`, { headers });
+        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
+          headers,
+        });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
