@@ -106,6 +106,8 @@
                                target="_blank" class="btn btn-small">▶️ Launch</a>
                             <button class="btn btn-secondary btn-small"
                                     onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
+                            <button class="btn btn-danger btn-small" 
+                                    onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
                         </div>
                     </div>
                 `).join('');
