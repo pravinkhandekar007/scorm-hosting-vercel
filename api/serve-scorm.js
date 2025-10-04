@@ -22,19 +22,16 @@ const MIME_TYPES = {
 };
 
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false }
 };
 
 export default async function handler(req, res) {
-  // Set CORS headers
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'authorization, apikey, content-type');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
   if (req.method === 'OPTIONS') {
-    // Handle preflight
     res.status(204).end();
     return;
   }
@@ -46,25 +43,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Download file from Supabase Storage bucket "scorm-packages"
     const { data, error } = await supabase.storage.from('scorm-packages').download(path);
 
     if (error || !data) {
-      res.status(404).json({ error: 'File Not Found' });
+      // Enhanced error logging
+      console.error('[serve-scorm] Download error:', { path, error });
+      res.status(404).json({
+        error: 'File Not Found',
+        details: error ? error.message : 'Supabase returned no data',
+        path
+      });
       return;
     }
 
-    // Determine content type based on file extension
+    // Content type
     const ext = path.split('.').pop().toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=3600');
 
-    // Convert the ReadableStream to Buffer and send
-    const arrayBuffer = await data.arrayBuffer();
-    res.send(Buffer.from(arrayBuffer));
+    const buf = Buffer.from(await data.arrayBuffer());
+    res.send(buf);
   } catch (err) {
-    console.error('Error serving SCORM file:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('[serve-scorm] Exception:', { path, error: err.message });
+    res.status(500).json({
+      error: 'Failed to Serve File',
+      details: err.message,
+      path
+    });
   }
 }
