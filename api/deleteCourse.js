@@ -17,8 +17,8 @@ async function deleteCourse(courseSlug) {
     const result = await response.json();
 
     if (response.ok) {
+      await loadCourses();  // refresh list before alert
       alert("Course deleted successfully.");
-      loadCourses(); // refresh the list
     } else {
       alert(`Delete failed: ${result.error || "Unknown error"}`);
     }
