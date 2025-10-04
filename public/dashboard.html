@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>SCORM Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
@@ -16,6 +16,8 @@
         .btn-success:hover { background-color: #218838; }
         .btn-secondary { background-color: #6c757d; }
         .btn-secondary:hover { background-color: #5a6268; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #c82333; }
         .courses-section { margin-top: 20px; }
         .course-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #007bff; }
         .course-title { font-weight: bold; color: #2c3e50; }
@@ -51,47 +53,44 @@
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        
+
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function checkAuthAndLoadData() {
             const { data: { session } } = await supabase.auth.getSession();
-            
+
             if (!session) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Display user email
             document.getElementById('user-email').textContent = session.user.email;
-            
-            // Load courses
+
             await loadCourses();
         }
 
         async function loadCourses() {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
-            
+
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                
-                const response = await fetch('/api/list-courses', {
-                    headers: { 'Authorization': `Bearer ${session.access_token}` }
-                });
 
-                const result = await response.json();
+                const { data: courses, error } = await supabase.from('courses')
+                    .select('course_slug, title')
+                    .order('created_at', { ascending: false });
+
                 loadingDiv.style.display = 'none';
 
-                if (result.error) {
-                    coursesDiv.innerHTML = `<div class="empty-state">Error: ${result.error}</div>`;
+                if (error) {
+                    coursesDiv.innerHTML = `<div class="empty-state">Error: ${error.message}</div>`;
                     return;
                 }
 
-                if (!result.courses || result.courses.length === 0) {
+                if (!courses || courses.length === 0) {
                     coursesDiv.innerHTML = `
                         <div class="empty-state">
                             <p>No courses uploaded yet.</p>
@@ -100,17 +99,16 @@
                     return;
                 }
 
-                coursesDiv.innerHTML = result.courses.map(course => `
+                coursesDiv.innerHTML = courses.map(course => `
                     <div class="course-item">
-                        <div>
-                            <div class="course-title">${course.title || course.course_slug}</div>
-                            <small style="color: #6c757d;">Slug: ${course.course_slug}</small>
-                        </div>
+                        <div class="course-title">${course.title}</div>
                         <div class="course-actions">
-                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}" 
+                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                target="_blank" class="btn btn-small">▶️ Launch</a>
-                            <button class="btn btn-secondary btn-small" 
+                            <button class="btn btn-secondary btn-small"
                                     onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
+                            <button class="btn btn-danger btn-small"
+                                    onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
                         </div>
                     </div>
                 `).join('');
@@ -132,6 +130,35 @@
             });
         }
 
+        async function deleteCourse(courseSlug) {
+            if (!confirm("Are you sure you want to delete this course?")) return;
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert("Login required to delete courses.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(courseSlug)}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`
+                    }
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Course deleted successfully.");
+                    loadCourses(); // refresh list after deletion
+                } else {
+                    alert(`Delete failed: ${result.error || "Unknown error"}`);
+                }
+            } catch (error) {
+                alert("Delete error: " + error.message);
+            }
+        }
+
         async function logout() {
             const { error } = await supabase.auth.signOut();
             if (error) {
@@ -140,7 +167,6 @@
             window.location.href = 'login.html';
         }
 
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', checkAuthAndLoadData);
     </script>
 </body>
