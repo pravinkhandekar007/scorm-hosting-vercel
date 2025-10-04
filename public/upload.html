@@ -1,161 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SCORM Course Uploader</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #1e1e1e; }
-    label { display: block; margin-top: 15px; font-weight: bold; }
-    input[type="text"], input[type="file"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    input[type="file"] { padding: 5px; }
-    button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; }
-    button:hover { background-color: #0056b3; }
-    #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
-    #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
-    #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
-    #logout-button:hover { background-color: #c82333; }
-    .nav-link { text-align: center; margin-bottom: 20px; }
-    .nav-link a { color: #007bff; text-decoration: none; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8" />
+<title>SCORM Course Uploader</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
+  .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  h2 { text-align: center; color: #1e1e1e; }
+  label { display: block; margin-top: 15px; font-weight: bold; }
+  input[type="text"], input[type="file"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+  input[type="file"] { padding: 5px; }
+  button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; }
+  button:hover { background-color: #0056b3; }
+  #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
+  #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
+  #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
+  #logout-button:hover { background-color: #c82333; }
+  .nav-link { text-align: center; margin-bottom: 20px; }
+  .nav-link a { color: #007bff; text-decoration: none; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="container">
-    <button id="logout-button" style="display:none;" onclick="logout()">Log Out</button>
-    <div class="nav-link">
-      <a href="dashboard.html">&larr; Back to Dashboard</a>
-    </div>
-    <h2>Upload SCORM Package</h2>
-    <div id="login-info">Please log in to proceed with the upload.</div>
-    <form id="upload-form">
-      <label for="course-title">Course Title:</label>
-      <input type="text" id="course-title" required />
-      
-      <label for="retention-period">Select retention period:</label>
-      <select id="retention-period" required>
-        <option value="0.0104">15 minutes</option>
-        <option value="1">1 day</option>
-        <option value="7">1 week</option>
-        <option value="30">1 month</option>
-        <option value="60">2 months</option>
-        <option value="90">3 months</option>
-        <option value="180">6 months</option>
-        <option value="360">12 months</option>
-      </select>
-
-      <label for="scorm-file">SCORM ZIP File (imsmanifest.xml inside):</label>
-      <input type="file" id="scorm-file" accept=".zip" required />
-      
-      <button type="button" onclick="uploadFile()" id="upload-button">Upload Course</button>
-    </form>
-    <div id="upload-status"></div>
-    <div id="result-link"></div>
+<div class="container">
+  <button id="logout-button" style="display:none;" onclick="logout()">Log Out</button>
+  <div class="nav-link">
+    <a href="dashboard.html">&larr; Back to Dashboard</a>
   </div>
+<h2>Upload SCORM Package</h2>
+<div id="login-info">Please log in to proceed with the upload.</div>
+<form id="upload-form">
+  <label for="course-title">Course Title:</label>
+  <input type="text" id="course-title" required />
 
-  <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+  <label for="retention-period">Select retention period:</label>
+  <select id="retention-period" required>
+    <option value="0.0417">1 hour</option>
+    <option value="1">1 day</option>
+    <option value="7">1 week</option>
+    <option value="30">1 month</option>
+    <option value="60">2 months</option>
+    <option value="90">3 months</option>
+    <option value="180">6 months</option>
+    <option value="360">12 months</option>
+  </select>
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <label for="scorm-file">SCORM ZIP File (imsmanifest.xml inside):</label>
+  <input type="file" id="scorm-file" accept=".zip" required />
 
-    async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
-      const infoDiv = document.getElementById('login-info');
-      const uploadButton = document.getElementById('upload-button');
-      const logoutButton = document.getElementById('logout-button');
+  <button type="button" onclick="uploadFile()" id="upload-button">Upload Course</button>
+</form>
+<div id="upload-status"></div>
+<div id="result-link"></div>
+</div>
 
-      if (user) {
-        infoDiv.textContent = `Logged in as: ${user.email}. Ready to upload.`;
-        uploadButton.disabled = false;
-        logoutButton.style.display = 'block';
-      } else {
-        infoDiv.innerHTML = 'You are not logged in. <a href="login.html">Click here to Log In/Sign Up.</a>';
-        uploadButton.disabled = true;
-        logoutButton.style.display = 'none';
-      }
+<script>
+const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function checkAuth() {
+  const { data: { user } } = await supabase.auth.getUser();
+  const infoDiv = document.getElementById('login-info');
+  const uploadButton = document.getElementById('upload-button');
+  const logoutButton = document.getElementById('logout-button');
+
+  if (user) {
+    infoDiv.textContent = `Logged in as: ${user.email}. Ready to upload.`;
+    uploadButton.disabled = false;
+    logoutButton.style.display = 'block';
+  } else {
+    infoDiv.innerHTML = 'You are not logged in. <a href="login.html">Click here to Log In/Sign Up.</a>';
+    uploadButton.disabled = true;
+    logoutButton.style.display = 'none';
+  }
+}
+
+async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error('Logout error:', error.message);
+  }
+  window.location.href = 'login.html';
+}
+
+async function uploadFile() {
+  const fileInput = document.getElementById('scorm-file');
+  const courseTitleInput = document.getElementById('course-title');
+  const file = fileInput.files[0];
+  const courseTitle = courseTitleInput.value.trim();
+  const retentionDays = document.getElementById('retention-period').value;
+
+  const statusDiv = document.getElementById('upload-status');
+  const resultLinkDiv = document.getElementById('result-link');
+
+  statusDiv.textContent = '';
+  resultLinkDiv.innerHTML = '';
+
+  if (!file || !courseTitle || !retentionDays) {
+    statusDiv.textContent = 'Please fill all required fields and select retention period.';
+    return;
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session || !session.access_token) {
+    statusDiv.textContent = 'Upload Failed: User must be logged in.';
+    return;
+  }
+
+  // Generate a course slug
+  const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
+  const courseSlug = 'course-' + courseUniqueId;
+  
+  try {
+    const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/octet-stream'
+      },
+      body: file
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error: ${response.status} - ${errorText}`);
     }
+    // Save course record with name
+    await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        course_slug: courseSlug,
+        title: courseTitle,
+        package_path: courseSlug,
+        launch_url: "index.html",
+        expires_at: new Date().toISOString()
+      })
+    });
+    statusDiv.textContent = `Upload successful! Course: ${courseTitle}`;
+    const playerUrl = `player.html?course=${courseSlug}`;
+    resultLinkDiv.innerHTML = `
+      <p>Upload completed successfully!</p>
+      <a href="${playerUrl}" target="_blank" class="btn">▶️ Launch Course</a>
+      <a href="dashboard.html" class="btn btn-secondary" style="margin-left: 10px;">📋 View All Courses</a>
+    `;
+  } catch (error) {
+    statusDiv.textContent = `Error: ${error.message}`;
+  }
+}
 
-    async function logout() {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error.message);
-      }
-      window.location.href = 'login.html';
-    }
-
-    async function uploadFile() {
-      const fileInput = document.getElementById('scorm-file');
-      const file = fileInput.files[0];
-      const courseTitle = document.getElementById('course-title').value.trim();
-      const retentionDays = document.getElementById('retention-period').value;
-
-      const statusDiv = document.getElementById('upload-status');
-      const resultLinkDiv = document.getElementById('result-link');
-
-      statusDiv.textContent = '';
-      resultLinkDiv.innerHTML = '';
-
-      if (!file || !courseTitle || !retentionDays) {
-        statusDiv.textContent = 'Please fill all required fields and select retention period.';
-        return;
-      }
-
-      const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
-      const courseSlug = 'course-' + courseUniqueId;
-
-      statusDiv.textContent = 'Authenticating...';
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session || !session.access_token) {
-        statusDiv.textContent = 'Upload Failed: User must be logged in.';
-        return;
-      }
-
-      statusDiv.textContent = `Uploading file "${file.name}"...`;
-
-      try {
-        // Use your custom edge function for upload; include retention_days as query parameter
-        const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}`;
-
-        const response = await fetch(uploadUrl, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/octet-stream'
-          },
-          body: file
-        });
-
-        const responseText = await response.text();
-
-        if (!response.ok) {
-          try {
-            const errorJson = JSON.parse(responseText);
-            statusDiv.textContent = `Upload failed: ${errorJson.error || response.statusText}`;
-            console.error("Function Error Details:", errorJson);
-          } catch {
-            statusDiv.textContent = `Upload failed: ${response.status} (${responseText})`;
-          }
-          return;
-        }
-
-        statusDiv.textContent = `Upload successful! Course Title: ${courseTitle}`;
-        const playerUrl = `player.html?course=${courseSlug}`;
-        resultLinkDiv.innerHTML = `
-          <p>Upload completed successfully!</p>
-          <a href="${playerUrl}" target="_blank" class="btn">▶️ Launch Course</a>
-          <a href="dashboard.html" class="btn btn-secondary" style="margin-left: 10px;">📋 View All Courses</a>
-        `;
-      } catch (error) {
-        statusDiv.textContent = `Upload Error: ${error.message}`;
-        console.error(error);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', checkAuth);
-  </script>
+document.addEventListener('DOMContentLoaded', checkAuth);
+</script>
 </body>
 </html>
