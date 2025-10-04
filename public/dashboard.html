@@ -51,47 +51,45 @@
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        
+
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function checkAuthAndLoadData() {
             const { data: { session } } = await supabase.auth.getSession();
-            
+
             if (!session) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Display user email
             document.getElementById('user-email').textContent = session.user.email;
-            
-            // Load courses
+
             await loadCourses();
         }
 
         async function loadCourses() {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
-            
+
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                
-                const response = await fetch('/api/list-courses', {
-                    headers: { 'Authorization': `Bearer ${session.access_token}` }
-                });
 
-                const result = await response.json();
+                // Fetch courses including title and slug
+                const { data: courses, error } = await supabase.from('courses')
+                    .select('course_slug, title')
+                    .order('created_at', { ascending: false });
+
                 loadingDiv.style.display = 'none';
 
-                if (result.error) {
-                    coursesDiv.innerHTML = `<div class="empty-state">Error: ${result.error}</div>`;
+                if (error) {
+                    coursesDiv.innerHTML = `<div class="empty-state">Error: ${error.message}</div>`;
                     return;
                 }
 
-                if (!result.courses || result.courses.length === 0) {
+                if (!courses || courses.length === 0) {
                     coursesDiv.innerHTML = `
                         <div class="empty-state">
                             <p>No courses uploaded yet.</p>
@@ -100,16 +98,16 @@
                     return;
                 }
 
-                coursesDiv.innerHTML = result.courses.map(course => `
+                coursesDiv.innerHTML = courses.map(course => `
                     <div class="course-item">
                         <div>
                             <div class="course-title">${course.title || course.course_slug}</div>
                             <small style="color: #6c757d;">Slug: ${course.course_slug}</small>
                         </div>
                         <div class="course-actions">
-                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}" 
+                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                target="_blank" class="btn btn-small">▶️ Launch</a>
-                            <button class="btn btn-secondary btn-small" 
+                            <button class="btn btn-secondary btn-small"
                                     onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
                         </div>
                     </div>
@@ -140,7 +138,6 @@
             window.location.href = 'login.html';
         }
 
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', checkAuthAndLoadData);
     </script>
 </body>
