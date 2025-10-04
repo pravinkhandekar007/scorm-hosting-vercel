@@ -100,10 +100,7 @@
 
                 coursesDiv.innerHTML = courses.map(course => `
                     <div class="course-item">
-                        <div>
-                            <div class="course-title">${course.title || course.course_slug}</div>
-                            <small style="color: #6c757d;">Slug: ${course.course_slug}</small>
-                        </div>
+                        <div class="course-title">${course.title}</div>
                         <div class="course-actions">
                             <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                target="_blank" class="btn btn-small">▶️ Launch</a>
