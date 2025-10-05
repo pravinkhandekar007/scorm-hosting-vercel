@@ -2,7 +2,7 @@ name: Scheduled Cleanup of Expired Courses
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # Runs daily at midnight UTC
+    - cron: "0 * * * *"   # Runs daily at midnight UTC
   workflow_dispatch:      # Allows manual trigger
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - name: Call Supabase Cleanup Function with Auth
         uses: fjogeleit/http-request-action@v1.4.0
         with:
-          url: "https://<YOUR_SUPABASE_PROJECT>.functions.supabase.co/cleanup-expired-courses"
+          url: "https:/mfooewemvofleynanjkb.functions.supabase.co/cleanup-expired-courses"
           method: GET
           headers: |
             Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
