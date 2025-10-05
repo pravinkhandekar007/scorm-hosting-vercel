@@ -8,8 +8,8 @@ jobs:
         with:
           url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses"
           method: GET
-          # 🚨 CHANGE 1: REMOVE bearerToken
-          # REMOVED: bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-          # 🚨 CHANGE 2: ADD headers WITH EXPLICIT AUTHORIZATION
-          headers: '{"Authorization": "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"}'
+          # Use the | (literal block) scalar for guaranteed JSON parsing
+          headers: |
+            {
+              "Authorization": "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
