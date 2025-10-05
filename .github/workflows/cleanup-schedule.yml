@@ -2,7 +2,7 @@ name: Scheduled Cleanup of Expired Courses
 
 on:
   schedule:
-    - cron: "0 * * * *"   # Runs daily at midnight UTC
+    - cron: "0 * * * *"   # Runs very hour
   workflow_dispatch:      # Allows manual trigger
 
 jobs:
