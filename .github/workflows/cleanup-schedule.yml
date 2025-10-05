@@ -15,5 +15,4 @@ jobs:
         with:
           url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses"
           method: GET
-          headers: |
-            Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
