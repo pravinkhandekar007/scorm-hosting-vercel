@@ -2,7 +2,7 @@ name: Scheduled Cleanup of Expired Courses
 
 on:
   schedule:
-    - cron: "0 * * * *"   # Runs every hour (adjust if needed)
+    - cron: "0 * * * *"   # Runs daily at midnight UTC. Adjust as needed.
   workflow_dispatch:      # Allows manual trigger from GitHub UI
 
 jobs:
@@ -13,6 +13,7 @@ jobs:
       - name: Call Supabase Cleanup Function
         uses: fjogeleit/http-request-action@v1.4.0
         with:
-          url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses"
+          url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses" # replace with your actual URL
           method: GET
-          bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # If your function requires a Bearer token, add headers like this:
+          # headers: '{ "Authorization": "Bearer YOUR_SECRET_TOKEN" }'
