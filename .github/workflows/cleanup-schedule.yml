@@ -2,7 +2,7 @@ name: Cleanup Expired Courses
 
 on:
   schedule:
-    # Runs every day at midnight UTC
+    # Runs every hour at minute 0 (midnight, 1am, 2am, etc.)
     - cron: '0 * * * *'
   workflow_dispatch:  # Allows manual trigger from GitHub UI
 
@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository (optional, if you need repo files)
+        uses: actions/checkout@v4
+
       - name: Call Supabase Cleanup Function
         uses: fjogeleit/http-request-action@v1.4.0
         with:
