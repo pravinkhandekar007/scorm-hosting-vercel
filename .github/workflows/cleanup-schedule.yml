@@ -1,10 +1,3 @@
-name: Scheduled Cleanup of Expired Courses
-
-on:
-  schedule:
-    - cron: "0 * * * *"   # Runs every hour (adjust if needed)
-  workflow_dispatch:      # Allows manual trigger from GitHub UI
-
 jobs:
   cleanup:
     runs-on: ubuntu-latest
@@ -15,4 +8,8 @@ jobs:
         with:
           url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses"
           method: GET
-          bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # 🚨 CHANGE 1: REMOVE bearerToken
+          # REMOVED: bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+          # 🚨 CHANGE 2: ADD headers WITH EXPLICIT AUTHORIZATION
+          headers: '{"Authorization": "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"}'
