@@ -1,0 +1,19 @@
+name: Scheduled Cleanup of Expired Courses
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # Runs every hour, adjust as needed
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Supabase Cleanup Function with Auth
+        uses: fjogeleit/http-request-action@v1.4.0
+        with:
+          url: "https://<YOUR_SUPABASE_PROJECT>.functions.supabase.co/cleanup-expired-courses"
+          method: GET
+          headers: |
+            Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
