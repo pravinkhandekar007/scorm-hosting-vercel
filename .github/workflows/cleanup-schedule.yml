@@ -8,21 +8,32 @@ on:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Call Supabase Cleanup Function
-        uses: fjogeleit/http-request-action@v1.16.5
-        with:
-          url: "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses"
-          method: POST
-          bearerToken: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          contentType: "application/json"
-          data: '{"action": "cleanup"}'
-          timeout: 300000
-          preventFailureOnNoResponse: false
-          
-      - name: Display Response
-        if: always()
         run: |
-          echo "HTTP Status: ${{ steps.0.outputs.status }}"
-          echo "Response: ${{ steps.0.outputs.response }}"
+          echo "🚀 Starting SCORM courses cleanup..."
+          
+          response=$(curl -w "%{http_code}" -s -o response_body.txt \
+            -X POST \
+            "https://mfooewemvofleynanjkb.supabase.co/functions/v1/cleanup-expired-courses" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "cleanup"}')
+          
+          echo "📊 HTTP Status Code: $response"
+          echo "📄 Response Body:"
+          cat response_body.txt
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Cleanup completed successfully"
+          elif [ "$response" = "404" ]; then
+            echo "❌ Edge function not found - check function name and URL"
+            exit 1
+          elif [ "$response" = "401" ]; then
+            echo "❌ Authorization failed - check service role key"
+            exit 1
+          else
+            echo "❌ Cleanup failed with HTTP status: $response"
+            exit 1
+          fi
