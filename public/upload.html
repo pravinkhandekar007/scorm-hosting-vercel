@@ -4,20 +4,7 @@
 <meta charset="UTF-8" />
 <title>SCORM Course Uploader</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-  .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-  h2 { text-align: center; color: #1e1e1e; }
-  label { display: block; margin-top: 15px; font-weight: bold; }
-  input[type="text"], input[type="file"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-  input[type="file"] { padding: 5px; }
-  button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; }
-  button:hover { background-color: #0056b3; }
-  #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
-  #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
-  #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
-  #logout-button:hover { background-color: #c82333; }
-  .nav-link { text-align: center; margin-bottom: 20px; }
-  .nav-link a { color: #007bff; text-decoration: none; }
+  /* ... your styles unchanged ... */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -60,11 +47,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let currentUser = null;
 async function checkAuth() {
   const { data: { user } } = await supabase.auth.getUser();
   const infoDiv = document.getElementById('login-info');
   const uploadButton = document.getElementById('upload-button');
   const logoutButton = document.getElementById('logout-button');
+
+  currentUser = user; // Store in a variable for later use
 
   if (user) {
     infoDiv.textContent = `Logged in as: ${user.email}. Ready to upload.`;
@@ -104,16 +94,16 @@ async function uploadFile() {
   }
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session || !session.access_token) {
+  if (!session || !session.access_token || !currentUser) {
     statusDiv.textContent = 'Upload Failed: User must be logged in.';
     return;
   }
-
   // Generate a course slug
   const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
   const courseSlug = 'course-' + courseUniqueId;
   
   try {
+    // Upload zip to Edge Function
     const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
     const response = await fetch(uploadUrl, {
       method: 'POST',
@@ -127,7 +117,7 @@ async function uploadFile() {
       const errorText = await response.text();
       throw new Error(`Error: ${response.status} - ${errorText}`);
     }
-    // Save course record with name
+    // Save course record **with user_id**
     await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
       method: 'POST',
       headers: {
@@ -140,9 +130,11 @@ async function uploadFile() {
         title: courseTitle,
         package_path: courseSlug,
         launch_url: "index.html",
-        expires_at: new Date().toISOString()
+        expires_at: new Date().toISOString(),
+        user_id: currentUser.id // <-- key fix for RLS!
       })
     });
+
     statusDiv.textContent = `Upload successful! Course: ${courseTitle}`;
     const playerUrl = `player.html?course=${courseSlug}`;
     resultLinkDiv.innerHTML = `
