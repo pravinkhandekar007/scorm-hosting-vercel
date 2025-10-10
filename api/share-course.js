@@ -4,7 +4,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Pure JS random string generator (no npm install required)
 function randomString(len = 16) {
   return Array(len).fill(0).map(() => Math.random().toString(36)[2] || 'x').join('');
 }
@@ -16,13 +15,15 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Universal body parsing (works for both cloud and local)
     let bodyObj = req.body;
     if (!bodyObj || !bodyObj.courseId) {
-      let bodyString = '';
-      for await (const chunk of req) bodyString += chunk;
-      bodyObj = JSON.parse(bodyString);
+      // Fallback for body parsing in cloud
+      let raw = '';
+      for await (const chunk of req) raw += chunk;
+      bodyObj = JSON.parse(raw);
     }
+
+    console.log("Received courseId:", bodyObj.courseId);
 
     const courseId = bodyObj.courseId;
     if (!courseId) {
@@ -32,20 +33,27 @@ module.exports = async (req, res) => {
 
     const publicId = randomString(16);
 
-    // Use .eq('course_slug', ...) or .eq('id', ...) depending on your database
+    // Use 'id' to match the UUID column in your table
     const { data, error } = await supabase
       .from('courses')
       .update({ public_id: publicId })
-      .eq('course_slug', courseId) // or .eq('id', courseId) if you use ID
+      .eq('id', courseId)
       .select('public_id');
 
-    if (error || !data || !data.length) {
-      res.status(500).json({ error: error?.message || 'Course not found' });
+    console.log("Supabase update response:", { data, error });
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    if (!data || !data.length) {
+      res.status(500).json({ error: 'Course not found or update failed' });
       return;
     }
 
     res.status(200).json({ publicId: data[0].public_id });
   } catch (err) {
+    console.log("API error:", err);
     res.status(400).json({ error: 'Invalid request: ' + err.message });
   }
 };
