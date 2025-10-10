@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
       dataObj = JSON.parse(bodyString);
     }
 
-    console.log("Received courseId (should be slug):", dataObj.courseId);
+    console.log("Received courseId (should be course_slug):", dataObj.courseId);
 
     const courseId = dataObj.courseId;
     if (!courseId) {
@@ -31,22 +31,21 @@ module.exports = async (req, res) => {
     }
 
     const publicId = randomString(16);
-    // The fix: match on course_slug, not id
+
+    // Use course_slug, not id
     const { data, error } = await supabase
       .from('courses')
       .update({ public_id: publicId })
       .eq('course_slug', courseId)
       .select('public_id');
 
-    console.log("Supabase update result:", { data, error });
+    console.log("Supabase update:", { data, error });
 
     if (error) {
-      console.log("Supabase error:", error);
       res.status(500).json({ error: error.message });
       return;
     }
     if (!data || !data.length) {
-      console.log("No course found with slug:", courseId);
       res.status(500).json({ error: 'Course not found or update failed' });
       return;
     }
