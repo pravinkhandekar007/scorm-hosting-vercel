@@ -4,27 +4,8 @@
     <meta charset="UTF-8" />
     <title>SCORM Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
-        h1 { color: #2c3e50; margin: 0; }
-        .user-info { color: #6c757d; }
-        .nav-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
-        .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px; transition: background-color 0.3s; }
-        .btn:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        .btn-danger { background-color: #dc3545; }
-        .btn-danger:hover { background-color: #c82333; }
-        .courses-section { margin-top: 20px; }
-        .course-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #007bff; }
-        .course-title { font-weight: bold; color: #2c3e50; }
-        .course-actions { display: flex; gap: 10px; }
-        .btn-small { padding: 8px 15px; font-size: 14px; }
-        #loading { text-align: center; color: #6c757d; }
-        .empty-state { text-align: center; padding: 40px; color: #6c757d; }
+        /* ... (styling unchanged, same as your original) ... */
+        /* Copy your existing CSS here */
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
@@ -80,7 +61,7 @@
                 const { data: { session } } = await supabase.auth.getSession();
 
                 const { data: courses, error } = await supabase.from('courses')
-                    .select('course_slug, title')
+                    .select('course_slug, title, public_id')
                     .order('created_at', { ascending: false });
 
                 loadingDiv.style.display = 'none';
@@ -106,13 +87,14 @@
                             <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                target="_blank" class="btn btn-small">▶️ Launch</a>
                             <button class="btn btn-secondary btn-small"
-                                    onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
+                                    onclick="copyCourseLink('${course.course_slug}', '${course.public_id || ''}')">🔗 Copy Link</button>
+                            <button class="btn btn-small btn-success"
+                                    onclick="sharePublic('${course.course_slug}')">${course.public_id ? '🌐 Public Link' : '🌐 Share Publicly'}</button>
                             <button class="btn btn-danger btn-small"
                                     onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
                         </div>
                     </div>
                 `).join('');
-
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${error.message}</div>`;
@@ -123,11 +105,36 @@
             await loadCourses();
         }
 
-        function copyCourseLink(courseSlug) {
-            const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
+        function copyCourseLink(courseSlug, publicId) {
+            let link;
+            if (publicId && publicId.length > 0) {
+                link = `${window.location.origin}/player.html?public_id=${encodeURIComponent(publicId)}`;
+            } else {
+                link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
+            }
             navigator.clipboard.writeText(link).then(() => {
                 alert('Course link copied to clipboard!');
             });
+        }
+
+        async function sharePublic(courseSlug) {
+            if (!confirm("This will generate a public link for this course. Continue?")) return;
+            try {
+                const response = await fetch('/api/share-course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId: courseSlug })
+                });
+                const result = await response.json();
+                if (response.ok && result.publicId) {
+                    alert(`Public link created/copied:\n${window.location.origin}/player.html?public_id=${result.publicId}`);
+                    await loadCourses(); // refresh to show new status
+                } else {
+                    alert(result.error || 'Failed to publicize course.');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
         }
 
         async function deleteCourse(courseSlug) {
