@@ -193,12 +193,11 @@
                             <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                target="_blank" class="btn btn-small btn-success"><i class="fa-solid fa-play"></i>Launch</a>
                             <button class="btn btn-small btn-secondary"
-                                    onclick="copyCourseLink('${course.course_slug}', '${course.public_id || ''}')"><i class="fa-solid fa-link"></i>Copy Link</button>
-                            <button class="btn btn-small btn-info"
+                                    onclick="copyPrivateLink('${course.course_slug}')"><i class="fa-solid fa-link"></i>Private Link</button>
+                            <button class="btn btn-small"
                                     style="background:#1890ff;"
-                                    onclick="sharePublic('${course.course_slug}')">
-                                    <i class="fa-solid fa-globe"></i>
-                                    ${course.public_id ? 'Get Public Link' : 'Share Publicly'}
+                                    onclick="copyPublicLink('${course.public_id}')">
+                                    <i class="fa-solid fa-globe"></i>Public Link
                             </button>
                             <button class="btn btn-small btn-danger"
                                     onclick="deleteCourse('${course.course_slug}')"><i class="fa-solid fa-trash"></i>Delete</button>
@@ -215,36 +214,22 @@
             await loadCourses();
         }
 
-        function copyCourseLink(courseSlug, publicId) {
-            let link;
-            if (publicId && publicId.length > 0) {
-                link = `${window.location.origin}/player.html?public_id=${encodeURIComponent(publicId)}`;
-            } else {
-                link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
-            }
+        function copyPrivateLink(courseSlug) {
+            const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
             navigator.clipboard.writeText(link).then(() => {
-                alert('Course link copied to clipboard!');
+                alert('Private course link copied to clipboard!');
             });
         }
 
-        async function sharePublic(courseSlug) {
-            if (!confirm("This will generate a public link for this course. Continue?")) return;
-            try {
-                const response = await fetch('/api/share-course', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ courseId: courseSlug })
-                });
-                const result = await response.json();
-                if (response.ok && result.publicId) {
-                    alert(`Public link created/copied:\n${window.location.origin}/player.html?public_id=${result.publicId}`);
-                    await loadCourses(); // refresh to show new status
-                } else {
-                    alert(result.error || 'Failed to publicize course.');
-                }
-            } catch (err) {
-                alert('Error: ' + err.message);
+        function copyPublicLink(publicId) {
+            if (!publicId) {
+                alert('Public ID not available for this course.');
+                return;
             }
+            const link = `${window.location.origin}/player.html?public_id=${encodeURIComponent(publicId)}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Public share link copied to clipboard!\nAnyone with this link can access the course.');
+            });
         }
 
         async function deleteCourse(courseSlug) {
