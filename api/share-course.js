@@ -1,10 +1,13 @@
 const { createClient } = require('@supabase/supabase-js');
-const { nanoid } = require('nanoid'); // Ensure nanoid is installed: npm install nanoid
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+// Pure JS random string generator (no npm install required)
+function randomString(len = 16) {
+  return Array(len).fill(0).map(() => Math.random().toString(36)[2] || 'x').join('');
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -13,22 +16,30 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Vercel/Netlify parse JSON body for you if content-type is application/json
-    const { courseId } = req.body;
+    // Universal body parsing (works for both cloud and local)
+    let bodyObj = req.body;
+    if (!bodyObj || !bodyObj.courseId) {
+      let bodyString = '';
+      for await (const chunk of req) bodyString += chunk;
+      bodyObj = JSON.parse(bodyString);
+    }
 
+    const courseId = bodyObj.courseId;
     if (!courseId) {
       res.status(400).json({ error: 'Missing courseId in request body' });
       return;
     }
 
-    // If your primary key is 'course_slug', not 'id', update this line:
+    const publicId = randomString(16);
+
+    // Use .eq('course_slug', ...) or .eq('id', ...) depending on your database
     const { data, error } = await supabase
       .from('courses')
-      .update({ public_id: nanoid(16) })
-      .eq('course_slug', courseId) // or .eq('id', courseId) if ID is used!
+      .update({ public_id: publicId })
+      .eq('course_slug', courseId) // or .eq('id', courseId) if you use ID
       .select('public_id');
 
-    if (error || !data || data.length === 0) {
+    if (error || !data || !data.length) {
       res.status(500).json({ error: error?.message || 'Course not found' });
       return;
     }
