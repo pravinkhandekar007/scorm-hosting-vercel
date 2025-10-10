@@ -60,6 +60,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Generate random public ID
+function generatePublicId(len = 16) {
+  return Array(len).fill(0).map(() => Math.random().toString(36)[2] || 'x').join('');
+}
+
 async function checkAuth() {
   const { data: { user } } = await supabase.auth.getUser();
   const infoDiv = document.getElementById('login-info');
@@ -109,11 +114,14 @@ async function uploadFile() {
     return;
   }
 
-  // Generate a course slug
+  // Generate a course slug and public ID
   const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
   const courseSlug = 'course-' + courseUniqueId;
+  const publicId = generatePublicId(16);
   
   try {
+    statusDiv.textContent = 'Uploading course...';
+    
     const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
     const response = await fetch(uploadUrl, {
       method: 'POST',
@@ -127,8 +135,11 @@ async function uploadFile() {
       const errorText = await response.text();
       throw new Error(`Error: ${response.status} - ${errorText}`);
     }
-    // Save course record with name
-    await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
+    
+    statusDiv.textContent = 'Saving course metadata...';
+    
+    // Save course record with name AND public_id
+    const courseResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -140,15 +151,24 @@ async function uploadFile() {
         title: courseTitle,
         package_path: courseSlug,
         launch_url: "index.html",
+        public_id: publicId,
         expires_at: new Date().toISOString()
       })
     });
+    
+    if (!courseResponse.ok) {
+      throw new Error('Failed to save course metadata');
+    }
+    
     statusDiv.textContent = `Upload successful! Course: ${courseTitle}`;
     const playerUrl = `player.html?course=${courseSlug}`;
+    const publicUrl = `player.html?public_id=${publicId}`;
+    
     resultLinkDiv.innerHTML = `
-      <p>Upload completed successfully!</p>
-      <a href="${playerUrl}" target="_blank" class="btn">▶️ Launch Course</a>
-      <a href="dashboard.html" class="btn btn-secondary" style="margin-left: 10px;">📋 View All Courses</a>
+      <p><strong>Upload completed successfully!</strong></p>
+      <p><strong>Private Link:</strong> <a href="${playerUrl}" target="_blank" class="btn">▶️ Launch Course</a></p>
+      <p><strong>Public Share Link:</strong> <br><input type="text" value="${window.location.origin}/${publicUrl}" readonly style="width: 100%; margin-top: 5px;" onclick="this.select();"></p>
+      <a href="dashboard.html" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">📋 View All Courses</a>
     `;
   } catch (error) {
     statusDiv.textContent = `Error: ${error.message}`;
