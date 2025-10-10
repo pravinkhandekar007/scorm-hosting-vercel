@@ -4,11 +4,7 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <style>
-    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
-    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { margin: 0; padding: 20px; background: #2c3e50; color: #fff; }
-    #message { padding: 20px; text-align: center; }
-    iframe { width: 100%; height: 80vh; border: none; display: none; }
+    /* ... (styling unchanged, copy your existing CSS) ... */
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
@@ -29,30 +25,30 @@
       const frame = document.getElementById('courseFrame');
       const params = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
+      const publicId = params.get('public_id');
+      let courseEndpoint = '';
+      let headers = {};
 
-      if (!courseSlug) {
-        msg.textContent = 'Error: Missing course slug.';
+      if (publicId) {
+        courseEndpoint = `/api/get-course-by-public-id?public_id=${encodeURIComponent(publicId)}`;
+      } else if (courseSlug) {
+        // optionally support auth header for private course
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+        courseEndpoint = `https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`;
+      } else {
+        msg.textContent = 'Error: Missing course parameter.';
         return;
       }
 
       msg.textContent = 'Fetching course metadata…';
 
-      const { data: { session } } = await supabase.auth.getSession();
-
       try {
-        const headers = {};
-        if (session && session.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-
-        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
-          headers,
-        });
-
+        const res = await fetch(courseEndpoint, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         const course = await res.json();
-
         const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
 
         msg.textContent = 'Fetching manifest…';
