@@ -12,12 +12,42 @@
   input[type="file"] { padding: 5px; }
   button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; }
   button:hover { background-color: #0056b3; }
+  button:disabled { background-color: #6c757d; cursor: not-allowed; }
   #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
   #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
   #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
   #logout-button:hover { background-color: #c82333; }
   .nav-link { text-align: center; margin-bottom: 20px; }
   .nav-link a { color: #007bff; text-decoration: none; }
+  .btn { 
+    display: inline-block; 
+    padding: 10px 15px; 
+    background-color: #007bff; 
+    color: white; 
+    text-decoration: none; 
+    border-radius: 4px; 
+    margin: 5px; 
+    transition: background-color 0.3s;
+  }
+  .btn:hover { background-color: #0056b3; }
+  .btn-secondary { background-color: #6c757d; }
+  .btn-secondary:hover { background-color: #545b62; }
+  .link-input { 
+    width: 100%; 
+    margin-top: 5px; 
+    padding: 8px; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    background-color: #f8f9fa; 
+    font-size: 14px;
+  }
+  .success-section {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -60,11 +90,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Generate random public ID
-function generatePublicId(len = 16) {
-  return Array(len).fill(0).map(() => Math.random().toString(36)[2] || 'x').join('');
-}
-
 async function checkAuth() {
   const { data: { user } } = await supabase.auth.getUser();
   const infoDiv = document.getElementById('login-info');
@@ -99,6 +124,7 @@ async function uploadFile() {
 
   const statusDiv = document.getElementById('upload-status');
   const resultLinkDiv = document.getElementById('result-link');
+  const uploadButton = document.getElementById('upload-button');
 
   statusDiv.textContent = '';
   resultLinkDiv.innerHTML = '';
@@ -114,14 +140,18 @@ async function uploadFile() {
     return;
   }
 
-  // Generate a course slug and public ID
+  // Generate a course slug
   const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
   const courseSlug = 'course-' + courseUniqueId;
-  const publicId = generatePublicId(16);
+  
+  // Disable upload button during upload
+  uploadButton.disabled = true;
+  uploadButton.textContent = 'Uploading...';
   
   try {
-    statusDiv.textContent = 'Uploading course...';
+    statusDiv.textContent = 'Uploading and processing course...';
     
+    // Let the backend handle BOTH file upload AND database insertion
     const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
     const response = await fetch(uploadUrl, {
       method: 'POST',
@@ -131,48 +161,69 @@ async function uploadFile() {
       },
       body: file
     });
+    
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error: ${response.status} - ${errorText}`);
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
     }
     
-    statusDiv.textContent = 'Saving course metadata...';
-    
-    // Save course record with name AND public_id
-    const courseResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        course_slug: courseSlug,
-        title: courseTitle,
-        package_path: courseSlug,
-        launch_url: "index.html",
-        public_id: publicId,
-        expires_at: new Date().toISOString()
-      })
-    });
-    
-    if (!courseResponse.ok) {
-      throw new Error('Failed to save course metadata');
-    }
+    const result = await response.json();
+    console.log('Upload result:', result);
     
     statusDiv.textContent = `Upload successful! Course: ${courseTitle}`;
-    const playerUrl = `player.html?course=${courseSlug}`;
-    const publicUrl = `player.html?public_id=${publicId}`;
+    
+    // Build URLs from the backend response
+    const privateUrl = result.player_url || `player.html?course=${courseSlug}`;
+    const publicUrl = result.public_url || `player.html?public_id=${result.public_id}`;
     
     resultLinkDiv.innerHTML = `
-      <p><strong>Upload completed successfully!</strong></p>
-      <p><strong>Private Link:</strong> <a href="${playerUrl}" target="_blank" class="btn">▶️ Launch Course</a></p>
-      <p><strong>Public Share Link:</strong> <br><input type="text" value="${window.location.origin}/${publicUrl}" readonly style="width: 100%; margin-top: 5px;" onclick="this.select();"></p>
-      <a href="dashboard.html" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">📋 View All Courses</a>
+      <div class="success-section">
+        <p><strong>🎉 Upload completed successfully!</strong></p>
+        <p><strong>Course:</strong> ${courseTitle}</p>
+        
+        <div style="margin: 15px 0;">
+          <label><strong>Private Link (requires login):</strong></label>
+          <input type="text" class="link-input" value="${window.location.origin}/${privateUrl}" readonly onclick="this.select();">
+          <a href="${privateUrl}" target="_blank" class="btn">▶️ Launch Course</a>
+        </div>
+        
+        <div style="margin: 15px 0;">
+          <label><strong>Public Share Link (no login required):</strong></label>
+          <input type="text" class="link-input" value="${window.location.origin}/${publicUrl}" readonly onclick="this.select();">
+          <button class="btn" onclick="copyToClipboard('${window.location.origin}/${publicUrl}')">📋 Copy Public Link</button>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <a href="dashboard.html" class="btn btn-secondary">📋 View All Courses</a>
+          <button class="btn" onclick="resetForm()">📤 Upload Another Course</button>
+        </div>
+      </div>
     `;
   } catch (error) {
+    console.error('Upload error:', error);
     statusDiv.textContent = `Error: ${error.message}`;
+  } finally {
+    // Re-enable upload button
+    uploadButton.disabled = false;
+    uploadButton.textContent = 'Upload Course';
   }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Public link copied to clipboard!\nAnyone with this link can access the course without logging in.');
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert('Failed to copy link. Please select and copy manually.');
+  });
+}
+
+function resetForm() {
+  document.getElementById('course-title').value = '';
+  document.getElementById('scorm-file').value = '';
+  document.getElementById('retention-period').selectedIndex = 3; // Default to 1 month
+  document.getElementById('upload-status').textContent = '';
+  document.getElementById('result-link').innerHTML = '';
 }
 
 document.addEventListener('DOMContentLoaded', checkAuth);
