@@ -15,17 +15,16 @@ module.exports = async (req, res) => {
   }
 
   try {
-    let bodyObj = req.body;
-    if (!bodyObj || !bodyObj.courseId) {
-      // Fallback for body parsing in cloud
-      let raw = '';
-      for await (const chunk of req) raw += chunk;
-      bodyObj = JSON.parse(raw);
+    let dataObj = req.body;
+    if (!dataObj || !dataObj.courseId) {
+      let bodyString = '';
+      for await (const chunk of req) bodyString += chunk;
+      dataObj = JSON.parse(bodyString);
     }
 
-    console.log("Received courseId:", bodyObj.courseId);
+    console.log("Received courseId (slug):", dataObj.courseId);
 
-    const courseId = bodyObj.courseId;
+    const courseId = dataObj.courseId;
     if (!courseId) {
       res.status(400).json({ error: 'Missing courseId in request body' });
       return;
@@ -33,11 +32,11 @@ module.exports = async (req, res) => {
 
     const publicId = randomString(16);
 
-    // Use 'id' to match the UUID column in your table
+    // CRITICAL: Match 'course_slug', NOT 'id'
     const { data, error } = await supabase
       .from('courses')
       .update({ public_id: publicId })
-      .eq('id', courseId)
+      .eq('course_slug', courseId)
       .select('public_id');
 
     console.log("Supabase update response:", { data, error });
