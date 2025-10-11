@@ -3,85 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+  <!-- Load Supabase UMD bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
   <style>
-    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
-    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { margin: 0; padding: 20px; background: #2c3e50; color: #fff; }
-    #message { padding: 20px; text-align: center; }
-    iframe { width: 100%; height: 80vh; border: none; display: none; }
+    body { margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(120deg,#e0eafc,#cfdef3);}
+    #container {max-width:1200px;margin:28px auto;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(44,62,80,0.10);padding:0 0 34px;}
+    h2 {margin:0;padding:22px 34px;background:#34495e;color:#fff;font-size:1.54rem;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:10px;}
+    #message {padding:32px 0 8px;text-align:center;color:#808890;font-size:1.18rem;}
+    .iframe-wrapper {width:100%;height:78vh;display:flex;align-items:center;justify-content:center;margin-top:0;}
+    iframe {width:98%;height:99%;border:none;background:#f9f9ff;box-shadow:0 2px 28px rgba(52,73,94,0.08);border-radius:8px;display:none;}
+    @media(max-width:900px){#container{max-width:98vw;}h2{padding:16px 7px;}.iframe-wrapper{height:55vh;}iframe{width:100%;height:99%;}}
+    @media(max-width:620px){.iframe-wrapper{height:45vh;}}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="container">
-    <h2>🎓 SCORM Course Player</h2>
+    <h2><i class="fa-solid fa-play"></i> SCORM Course Player</h2>
     <div id="message">Loading…</div>
-    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    <div class="iframe-wrapper">
+      <!-- SCORM needs allow-same-origin for API handshake -->
+      <iframe
+        id="courseFrame"
+        sandbox="allow-scripts allow-same-origin"
+        allowfullscreen>
+      </iframe>
+    </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sIjoidXNlcmluZyIsImlhdCI6MTc1OTI5NTAyNiwiZXhwIjoxNzY3NzMxMDI2fQ.Lv4n0XaJK6rA2StD6Zc5tk1XWfu3jvU1OABbq4fJIGg';
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     (async () => {
       const msg = document.getElementById('message');
       const frame = document.getElementById('courseFrame');
       const params = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
+      const publicId = params.get('public_id');
+      let endpoint = '', headers = {};
 
-      if (!courseSlug) {
-        msg.textContent = 'Error: Missing course slug.';
+      if (publicId) {
+        endpoint = `/api/get-course-by-public-id?public_id=${encodeURIComponent(publicId)}`;
+        msg.textContent = 'Loading public course…';
+      } else if (courseSlug) {
+        msg.textContent = 'Checking authentication…';
+        const { data:{ session } } = await sbClient.auth.getSession();
+        if (!session) {
+          msg.textContent = 'Authentication required. Redirecting…';
+          return setTimeout(() => window.location.href = 'login.html', 2000);
+        }
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+        endpoint = `/api/get-course?slug=${encodeURIComponent(courseSlug)}`;
+        msg.textContent = 'Loading private course…';
+      } else {
+        msg.textContent = 'Error: Missing course parameter.';
         return;
       }
 
-      msg.textContent = 'Fetching course metadata…';
-
-      const { data: { session } } = await supabase.auth.getSession();
-
       try {
-        const headers = {};
-        if (session && session.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-
-        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
-          headers,
-        });
-
+        const res = await fetch(endpoint, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         const course = await res.json();
+        if (course.error) throw new Error(course.error);
 
-        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+        const base = `/scorm-content/${course.package_path}/`;
+        msg.textContent = 'Loading course content…';
 
-        msg.textContent = 'Fetching manifest…';
-
-        const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
-
-        const manifestText = await mf.text();
-
-        msg.textContent = 'Parsing manifest…';
-
-        let launchFile = course.launch_url || 'index.html';
+        let launch = course.launch_url || 'index.html';
         try {
-          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
-          const resource = xml.querySelector('resource[href]');
-          if (resource) launchFile = resource.getAttribute('href');
-        } catch {
-          // fallback to DB launch_url or 'index.html'
-        }
+          const mf = await fetch(base + 'imsmanifest.xml');
+          if (mf.ok) {
+            const xml = await mf.text();
+            const doc = new DOMParser().parseFromString(xml, 'application/xml');
+            const resElt = doc.querySelector('resource[href]');
+            if (resElt) launch = resElt.getAttribute('href');
+          }
+        } catch {}
 
-        msg.textContent = 'Launching course…';
-
-        frame.src = proxyBaseUrl + launchFile;
+        msg.textContent = 'Starting course…';
+        frame.src = base + launch;
         frame.style.display = 'block';
         msg.style.display = 'none';
       } catch (err) {
-        console.error(err);
+        console.error('Course loading error:', err);
         msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
       }
     })();
   </script>

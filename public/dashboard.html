@@ -3,50 +3,138 @@
 <head>
     <meta charset="UTF-8" />
     <title>SCORM Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
-        h1 { color: #2c3e50; margin: 0; }
-        .user-info { color: #6c757d; }
-        .nav-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
-        .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px; transition: background-color 0.3s; }
-        .btn:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        .btn-danger { background-color: #dc3545; }
-        .btn-danger:hover { background-color: #c82333; }
-        .courses-section { margin-top: 20px; }
-        .course-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #007bff; }
-        .course-title { font-weight: bold; color: #2c3e50; }
-        .course-actions { display: flex; gap: 10px; }
-        .btn-small { padding: 8px 15px; font-size: 14px; }
-        #loading { text-align: center; color: #6c757d; }
-        .empty-state { text-align: center; padding: 40px; color: #6c757d; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(44, 62, 80, 0.14);
+            padding: 40px 40px 30px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1.5px solid #eaecef;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+        h1 {
+            color: #34495e;
+            margin: 0;
+            font-size: 2.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-info {
+            color: #6c757d;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 26px;
+        }
+        .btn {
+            background: #2980b9;
+            color: white;
+            padding: 11px 18px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 7px rgba(44,62,80,0.07);
+        }
+        .btn:hover { background: #21618c; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #229954!important; }
+        .btn-secondary { background: #7b8491;}
+        .btn-secondary:hover { background: #626d7a!important;}
+        .btn-danger { background: #e74c3c;}
+        .btn-danger:hover {background: #c0392b!important;}
+        .courses-section { margin-top: 15px;}
+        h2 { color: #34495e; font-size: 1.3rem; margin-bottom: 20px;}
+        .courses-list {
+            display: grid;
+            gap: 16px;
+        }
+        .course-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            background: #fafbfc;
+            border-radius: 7px;
+            box-shadow: 0 2px 8px rgba(52,73,94,0.04);
+            padding: 18px 25px;
+            border-left: 5px solid #2980b9;
+        }
+        .course-title {
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 1.05rem;
+        }
+        .course-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-small {
+            padding: 6.5px 14.5px;
+            font-size: 0.96rem;
+        }
+        #loading { text-align: center; color: #6c757d; font-size:1.1rem;}
+        .empty-state {
+            background: #f3f6fc;
+            border-radius: 9px;
+            padding: 40px;
+            color: #8c99aa;
+            text-align: center;
+            font-size: 1.06rem;
+        }
+        @media (max-width: 660px){
+            .container { padding: 18px 7px;}
+            .course-item {grid-template-columns: 1fr;}
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 SCORM Dashboard</h1>
+            <h1><span><i class="fa-solid fa-graduation-cap"></i></span>SCORM Dashboard</h1>
             <div class="user-info">
+                <i class="fa-solid fa-user"></i>
                 <span id="user-email">Loading...</span>
-                <button class="btn btn-secondary" onclick="logout()" style="margin-left: 15px;">Logout</button>
+                <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
             </div>
         </div>
 
         <div class="nav-buttons">
-            <a href="upload.html" class="btn btn-success">📤 Upload New Course</a>
-            <button class="btn" onclick="refreshCourses()">🔄 Refresh List</button>
+            <a href="upload.html" class="btn btn-success"><i class="fa-solid fa-upload"></i>Upload New Course</a>
+            <button class="btn btn-small" onclick="refreshCourses()"><i class="fa-solid fa-arrows-rotate"></i>Refresh List</button>
         </div>
 
         <div class="courses-section">
             <h2>My Uploaded Courses</h2>
             <div id="loading">Loading your courses...</div>
-            <div id="courses-list"></div>
+            <div class="courses-list" id="courses-list"></div>
         </div>
     </div>
 
@@ -72,7 +160,6 @@
         async function loadCourses() {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
-
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
@@ -80,7 +167,7 @@
                 const { data: { session } } = await supabase.auth.getSession();
 
                 const { data: courses, error } = await supabase.from('courses')
-                    .select('course_slug, title')
+                    .select('course_slug, title, public_id')
                     .order('created_at', { ascending: false });
 
                 loadingDiv.style.display = 'none';
@@ -101,18 +188,22 @@
 
                 coursesDiv.innerHTML = courses.map(course => `
                     <div class="course-item">
-                        <div class="course-title">${course.title}</div>
+                        <div class="course-title"><i class="fa-solid fa-file-lines"></i> ${course.title}</div>
                         <div class="course-actions">
                             <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
-                               target="_blank" class="btn btn-small">▶️ Launch</a>
-                            <button class="btn btn-secondary btn-small"
-                                    onclick="copyCourseLink('${course.course_slug}')">🔗 Copy Link</button>
-                            <button class="btn btn-danger btn-small"
-                                    onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
+                               target="_blank" class="btn btn-small btn-success"><i class="fa-solid fa-play"></i>Launch</a>
+                            <button class="btn btn-small btn-secondary"
+                                    onclick="copyPrivateLink('${course.course_slug}')"><i class="fa-solid fa-link"></i>Private Link</button>
+                            <button class="btn btn-small"
+                                    style="background:#1890ff;"
+                                    onclick="copyPublicLink('${course.public_id}')">
+                                    <i class="fa-solid fa-globe"></i>Public Link
+                            </button>
+                            <button class="btn btn-small btn-danger"
+                                    onclick="deleteCourse('${course.course_slug}')"><i class="fa-solid fa-trash"></i>Delete</button>
                         </div>
                     </div>
                 `).join('');
-
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${error.message}</div>`;
@@ -123,10 +214,21 @@
             await loadCourses();
         }
 
-        function copyCourseLink(courseSlug) {
+        function copyPrivateLink(courseSlug) {
             const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
             navigator.clipboard.writeText(link).then(() => {
-                alert('Course link copied to clipboard!');
+                alert('Private course link copied to clipboard!');
+            });
+        }
+
+        function copyPublicLink(publicId) {
+            if (!publicId) {
+                alert('Public ID not available for this course.');
+                return;
+            }
+            const link = `${window.location.origin}/player.html?public_id=${encodeURIComponent(publicId)}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Public share link copied to clipboard!\nAnyone with this link can access the course.');
             });
         }
 
@@ -142,9 +244,7 @@
             try {
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(courseSlug)}`, {
                     method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${session.access_token}`
-                    }
+                    headers: { Authorization: `Bearer ${session.access_token}` }
                 });
                 const result = await response.json();
 
@@ -161,9 +261,7 @@
 
         async function logout() {
             const { error } = await supabase.auth.signOut();
-            if (error) {
-                console.error('Logout error:', error);
-            }
+            if (error) { console.error('Logout error:', error); }
             window.location.href = 'login.html';
         }
 
