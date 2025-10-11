@@ -7,177 +7,238 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background: #C0C0C0; /* light grey background */
+    background: #C0C0C0; /* light grey */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
   }
   .main-wrapper {
     width: 100%;
     max-width: 1200px;
+    margin: 0 auto;
   }
   .banner {
     width: 100%;
-    background: linear-gradient(to right, #00205B, #00857D);
+    background: linear-gradient(to right, #00857D, #00205B);
     color: #fff;
     text-align: center;
     font-size: 2rem;
     font-weight: 700;
     padding: 26px 0 20px 0;
+    letter-spacing: 1px;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 2px 8px rgba(80,100,255,0.09);
   }
   .container {
     display: flex;
     background: #fdfdfd;
-    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-    max-height: 600px;
-    min-height: 400px;
     border-radius: 0 0 20px 20px;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
     overflow: hidden;
+    min-height: 440px;
   }
-  .left-side {
-    flex: 1;
+  .left-panel {
+    width: 40%;
     min-width: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-  }
-  .left-side form {
-    width: 70%;
-  }
-  /* Login form styles (unchanged from earlier) */
-  #login-form {
+    padding: 50px 40px 40px 40px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
   }
-  #login-form label {
+  .left-panel h1 {
+    margin-bottom: 30px;
     font-weight: 600;
-    margin-bottom: 6px;
+    color: #0073e6;
+    font-size: 1.8rem;
+    text-align: center;
   }
-  #login-form input {
-    padding: 10px 12px;
-    margin-bottom: 18px;
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    text-align: left;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-size: 15px;
+    font-size: 16px;
+    margin-bottom: 22px;
     box-sizing: border-box;
     background: #fafafa;
+    transition: border-color 0.3s;
   }
-  #login-form input:focus {
+  input[type="email"]:focus, input[type="password"]:focus {
     border-color: #0073e6;
     outline: none;
   }
-  #login-form button {
-    padding: 12px;
-    font-size: 16px;
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
     font-weight: 600;
     background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
     border: none;
-    border-radius: 8px;
-    color: #fff;
+    border-radius: 10px;
+    color: white;
     cursor: pointer;
     transition: background 0.3s;
   }
-  #login-form button:hover:enabled {
+  button:hover:not(:disabled) {
     background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
   }
-  #login-form button:disabled {
-    background: #98c4ee;
+  button:disabled {
+    background: #99c2f0;
+    cursor: default;
   }
-  .footer-links {
+  .form-footer {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
     text-align: center;
-    margin-top: 18px;
   }
-  .footer-links a {
+  .form-footer a {
     color: #7853fa;
     text-decoration: none;
     font-weight: 600;
-    margin: 0 10px;
   }
-  /* Right-side styles */
-  .right-side {
-    flex: 1;
-    min-width: 400px;
+  .error-message {
+    color: #cc0000;
+    font-weight: 600;
+    margin-bottom: 20px;
+    min-height: 20px;
+    text-align: center;
+  }
+  .right-panel {
+    width: 60%;
+    min-width: 420px;
+    background: url('https://mfooewemvofleynanjkb.supabase.co/storage/v1/object/public/assets/background.png') center center/cover no-repeat;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: start;
-    overflow-y: auto;
-  }
-  .image-container {
-    width: 100%;
-    height: 300px;
-    background-image: url('https://mfooewemvofleynanjkb.supabase.co/storage/v1/object/public/assets/background.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 12px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    justify-content: space-between;
+    padding: 40px 40px 30px 40px;
+    box-sizing: border-box;
+    border-left: 1px solid #ddd;
   }
   .description {
-    margin-top: 20px;
-    padding: 20px;
-    text-align: justify;
-    background-color: rgba(255,255,255,0.9);
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 14px;
+    padding: 22px;
+    color: #204060;
+    font-size: 1rem;
+    line-height: 1.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+    text-align: left;
   }
-  /* Responsive adjustments */
-  @media(max-width: 900px) {
+  @media (max-width: 1000px) {
     .container {
       flex-direction: column;
-      border-radius: 0;
+      min-height: auto;
     }
-    .left-side, .right-side {
-      min-width: 100%;
+    .left-panel, .right-panel {
+      width: 100%;
+      min-width: 0;
+      padding: 30px 20px;
+      border: none;
     }
-    .image-container {
-      height: 200px;
+    .right-panel {
+      margin-top: 20px;
     }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="main-wrapper">
-  <div class="banner">Welcome to PlayScorm</div>
-  <div class="container">
-    <!-- Left side: Login form -->
-    <div class="left-side">
-      <form id="login-form" autocomplete="off">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" placeholder="you@example.com" required />
+  <div class="main-wrapper">
+    <div class="banner">Welcome to PlayScorm</div>
+    <div class="container">
+      <div class="left-panel">
+        <h1>Login to Your Account</h1>
+        <div id="error-message" class="error-message"></div>
+        <form id="login-form" autocomplete="off">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
 
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Your password" required />
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your password" required />
 
-        <button type="submit" id="login-button" disabled>Sign In</button>
-      </form>
-      <div class="footer-links">
-        <a href="signup.html">Sign Up</a>
-        <a href="forgot-password.html">Forgot Password?</a>
+          <button type="submit" id="login-button" disabled>Sign In</button>
+        </form>
+        <div class="form-footer">
+          New to PlayScorm? <a href="signup.html">Sign Up</a><br />
+          <a href="forgot-password.html">Forgot Password?</a>
+        </div>
       </div>
-    </div>
-    
-    <!-- Right side: Image with description -->
-    <div class="right-side">
-      <div class="image-container"></div>
-      <div class="description">
-        <h2>About PlayScorm</h2>
-        <p>
-          PlayScorm is a cutting-edge cloud eLearning platform. Upload, manage, and launch your SCORM courses seamlessly. Designed with security, speed, and scalability, PlayScorm lets trainers and organizations create engaging courses and share knowledge confidently. Experience next-level online learning today!
-        </p>
-        <p>
-          Built with advanced cloud infrastructure, secure authentication, and a user-friendly interface, PlayScorm simplifies eLearning deployment for enterprises, trainers, and educators worldwide.
-        </p>
+      <div class="right-panel" aria-hidden="true">
+        <!-- Image is set as background above -->
+        <div class="description">
+          <h2>About PlayScorm</h2>
+          <p>
+            PlayScorm is a modern, cloud-based eLearning platform designed to easily upload, manage, and launch SCORM courses with seamless user experience.
+          </p>
+          <p>
+            Built with security, speed, and scalability in mind, PlayScorm leverages cutting edge technologies such as Supabase, edge functions, and serverless architectures for unmatched uptime and low latency.
+          </p>
+          <p>
+            Whether you’re a trainer looking to build immersive courses or an organization wanting to share knowledge securely, PlayScorm offers intuitive course management, user authentication, and detailed analytics.
+          </p>
+          <p>
+            Experience the future of SCORM delivery and online learning with PlayScorm today.
+          </p>
+        </div>
       </div>
     </div>
   </div>
-</div>
-<!-- Include your login script here -->
-<script>
-  // Your existing login script code
-</script>
+
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginButton = document.getElementById('login-button');
+    const errorMessage = document.getElementById('error-message');
+
+    function validateInputs() {
+      loginButton.disabled = !(emailInput.value.trim() && passwordInput.value.trim());
+    }
+
+    emailInput.addEventListener('input', validateInputs);
+    passwordInput.addEventListener('input', validateInputs);
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.textContent = '';
+      loginButton.disabled = true;
+      loginButton.textContent = 'Signing in...';
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          errorMessage.textContent = error.message;
+          loginButton.disabled = false;
+          loginButton.textContent = 'Sign In';
+          return;
+        }
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        errorMessage.textContent = 'Unexpected error occurred.';
+        loginButton.disabled = false;
+        loginButton.textContent = 'Sign In';
+      }
+    });
+
+    validateInputs();
+  </script>
 </body>
 </html>
