@@ -6,35 +6,37 @@
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4fb;
     margin: 0; padding: 0;
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #7853fa 0%, #008fd5 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .main-wrapper {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
   }
   .banner {
     width: 100%;
-    background: #0073e6;
-    color: white;
+    background: linear-gradient(90deg, #7853fa 57%, #30bbfd 100%);
+    color: #fff;
+    text-align: center;
     font-size: 2rem;
     font-weight: 700;
-    text-align: center;
-    padding: 28px 0 22px 0;
+    padding: 26px 0 20px 0;
     letter-spacing: 1px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 2px 8px rgba(80,100,255,0.09);
   }
   .container {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.12);
     display: flex;
-    max-width: 900px;
-    width: 100%;
+    background: #fdfdfd;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
     overflow: hidden;
-    flex-direction: row;
-    position: relative;
-    margin-top: 0;
+    min-height: 440px;
   }
   .left-panel {
     flex: 1;
@@ -51,6 +53,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    border-radius: 0 0 20px 20px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 0px 0px transparent;
   }
   .right-panel h1 {
     margin-bottom: 25px;
@@ -71,14 +76,15 @@
     width: 100%;
     padding: 10px 12px;
     margin-bottom: 18px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 15px;
     box-sizing: border-box;
     transition: border-color 0.3s;
+    background: #fafafa;
   }
   input[type="email"]:focus, input[type="password"]:focus {
-    border-color: #0073e6;
+    border-color: #7853fa;
     outline: none;
   }
   button {
@@ -86,29 +92,30 @@
     padding: 12px;
     font-size: 16px;
     font-weight: 600;
-    background: #0073e6;
+    background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
     border: none;
     border-radius: 8px;
     color: white;
     cursor: pointer;
     transition: background 0.3s;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(80,100,255,0.06);
   }
   button:hover:not(:disabled) {
-    background: #005bb5;
+    background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
   }
   button:disabled {
-    background: #99c2f0;
+    background: #98c4ee;
     cursor: default;
   }
   .form-footer {
-    margin-top: 6px;
+    margin-top: 10px;
     font-size: 14px;
     color: #666;
     text-align: center;
   }
   .form-footer a {
-    color: #0073e6;
+    color: #7853fa;
     text-decoration: none;
     font-weight: 600;
   }
@@ -120,12 +127,13 @@
     text-align: center;
   }
   @media (max-width: 900px) {
-    .container {
+    .main-wrapper {
       max-width: 98vw;
+      margin: 12px auto;
     }
     .banner {
-      font-size: 1.3rem;
-      padding: 16px 0;
+      font-size: 1.29rem;
+      padding: 15px 0;
     }
   }
   @media (max-width: 650px) {
@@ -133,25 +141,26 @@
       flex-direction: column;
       max-width: 98vw;
       min-width: 0;
-      border-radius: 8px;
+      border-radius: 0 0 14px 14px;
     }
     .left-panel {
-      min-height: 180px;
+      min-height: 140px;
       min-width: 100%;
       border-radius: 0;
     }
     .right-panel {
       padding: 32px 16px 24px 16px;
+      border-radius: 0 0 14px 14px;
     }
     .banner {
-      border-radius: 8px 8px 0 0;
+      border-radius: 14px 14px 0 0;
     }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div style="width:100%;max-width:900px;margin:0 auto;">
+  <div class="main-wrapper">
     <div class="banner">Welcome to PlayScorm</div>
     <div class="container">
       <div class="left-panel" aria-hidden="true"></div>
@@ -208,7 +217,6 @@
           loginButton.textContent = 'Sign In';
           return;
         }
-        // On successful login, redirect to dashboard
         window.location.href = 'dashboard.html';
       } catch (err) {
         errorMessage.textContent = 'Unexpected error occurred.';
