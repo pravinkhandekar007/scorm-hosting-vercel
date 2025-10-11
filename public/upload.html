@@ -108,16 +108,18 @@ async function uploadFile() {
     return;
   }
 
-  const { data: { session, user } } = await supabase.auth.getSession();
+  // Fetch session and user correctly
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!session?.access_token || !user) {
     statusDiv.textContent = 'Upload Failed: User must be logged in.';
     return;
   }
 
-  const courseUniqueId = Date.now() + '-' + crypto.randomUUID();
-  const courseSlug = 'course-' + courseUniqueId;
+  const courseSlug = 'course-' + Date.now() + '-' + crypto.randomUUID();
 
   try {
+    // Upload SCORM ZIP
     const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
     const response = await fetch(uploadUrl, {
       method: 'POST',
@@ -129,7 +131,7 @@ async function uploadFile() {
     });
     if (!response.ok) throw new Error(`Upload error ${response.status}`);
 
-    // Insert course record with user_id
+    // Insert course record with user_id for RLS
     await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
       method: 'POST',
       headers: {
