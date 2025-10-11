@@ -57,7 +57,7 @@
 
   <div id="upload-status"></div>
   <div id="result-links" class="action-buttons" style="display:none;">
-    <a href="#" id="launch-link" class="btn">▶️ Launch Course</a>
+    <a href="#" id="launch-link" class="btn" target="_blank" rel="noopener noreferrer">▶️ Launch Course</a>
     <a href="dashboard.html" id="viewall-link" class="btn btn-secondary">📋 View All Courses</a>
     <button type="button" id="upload-another-button" class="btn">📤 Upload Another Course</button>
   </div>
@@ -108,7 +108,6 @@ async function uploadFile() {
     return;
   }
 
-  // Fetch session and user correctly
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
   if (!session?.access_token || !user) {
@@ -119,8 +118,9 @@ async function uploadFile() {
   const courseSlug = 'course-' + Date.now() + '-' + crypto.randomUUID();
 
   try {
-    // Upload SCORM ZIP
-    const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodeURIComponent(courseTitle)}`;
+    const encodedCourseTitle = encodeURIComponent(courseTitle);
+
+    const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodedCourseTitle}`;
     const response = await fetch(uploadUrl, {
       method: 'POST',
       headers: {
@@ -129,7 +129,10 @@ async function uploadFile() {
       },
       body: file
     });
-    if (!response.ok) throw new Error(`Upload error ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload error ${response.status} - ${errorText}`);
+    }
 
     // Insert course record with user_id for RLS
     await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
