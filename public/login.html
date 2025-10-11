@@ -7,6 +7,189 @@
   body {
     margin: 0;
     min-height: 100vh;
+    background: #C0C0C0; /* light grey background */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .main-wrapper {
+    width: 100%;
+    max-width: 1200px;
+  }
+  .banner {
+    width: 100%;
+    background: linear-gradient(to righ, #00205B, #00857D);
+    color: #fff;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 26px 0 20px 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+  }
+  .container {
+    display: flex;
+    background: #fdfdfd;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+    max-height: 600px;
+    min-height: 400px;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+  }
+  .left-side {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .left-side form {
+    width: 70%;
+  }
+  /* Login form styles (unchanged from earlier) */
+  #login-form {
+    display: flex;
+    flex-direction: column;
+  }
+  #login-form label {
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  #login-form input {
+    padding: 10px 12px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    box-sizing: border-box;
+    background: #fafafa;
+  }
+  #login-form input:focus {
+    border-color: #0073e6;
+    outline: none;
+  }
+  #login-form button {
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #login-form button:hover:enabled {
+    background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
+  }
+  #login-form button:disabled {
+    background: #98c4ee;
+  }
+  .footer-links {
+    text-align: center;
+    margin-top: 18px;
+  }
+  .footer-links a {
+    color: #7853fa;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 10px;
+  }
+  /* Right-side styles */
+  .right-side {
+    flex: 1;
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    overflow-y: auto;
+  }
+  .image-container {
+    width: 100%;
+    height: 300px;
+    background-image: url('https://mfooewemvofleynanjkb.supabase.co/storage/v1/object/public/assets/background.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+  }
+  .description {
+    margin-top: 20px;
+    padding: 20px;
+    text-align: justify;
+    background-color: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  /* Responsive adjustments */
+  @media(max-width: 900px) {
+    .container {
+      flex-direction: column;
+      border-radius: 0;
+    }
+    .left-side, .right-side {
+      min-width: 100%;
+    }
+    .image-container {
+      height: 200px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="main-wrapper">
+  <div class="banner">Welcome to PlayScorm</div>
+  <div class="container">
+    <!-- Left side: Login form -->
+    <div class="left-side">
+      <form id="login-form" autocomplete="off">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Your password" required />
+
+        <button type="submit" id="login-button" disabled>Sign In</button>
+      </form>
+      <div class="footer-links">
+        <a href="signup.html">Sign Up</a>
+        <a href="forgot-password.html">Forgot Password?</a>
+      </div>
+    </div>
+    
+    <!-- Right side: Image with description -->
+    <div class="right-side">
+      <div class="image-container"></div>
+      <div class="description">
+        <h2>About PlayScorm</h2>
+        <p>
+          PlayScorm is a cutting-edge cloud eLearning platform. Upload, manage, and launch your SCORM courses seamlessly. Designed with security, speed, and scalability, PlayScorm lets trainers and organizations create engaging courses and share knowledge confidently. Experience next-level online learning today!
+        </p>
+        <p>
+          Built with advanced cloud infrastructure, secure authentication, and a user-friendly interface, PlayScorm simplifies eLearning deployment for enterprises, trainers, and educators worldwide.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Include your login script here -->
+<script>
+  // Your existing login script code
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Login - PlayScorm</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
     background: #C0C0C0; /* light grey */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
