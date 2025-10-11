@@ -4,66 +4,17 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-  <!-- Load UMD bundle for Supabase before any inline script -->
+  <!-- Load UMD bundle for Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
-    }
-    #container {
-      max-width: 1200px;
-      margin: 28px auto;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(44,62,80,0.10);
-      padding: 0 0 34px;
-    }
-    h2 {
-      margin: 0;
-      padding: 22px 34px;
-      background: #34495e;
-      color: #fff;
-      font-size: 1.54rem;
-      border-radius: 16px 16px 0 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #message {
-      padding: 32px 0 8px 0;
-      text-align: center;
-      color: #808890;
-      font-size: 1.18rem;
-    }
-    .iframe-wrapper {
-      width: 100%;
-      height: 78vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 0;
-    }
-    iframe {
-      width: 98%;
-      height: 99%;
-      border: none;
-      background: #f9f9ff;
-      box-shadow: 0 2px 28px rgba(52,73,94,0.08);
-      border-radius: 8px;
-      display: none;
-    }
-    @media (max-width: 900px){
-      #container {max-width:98vw;}
-      h2 {padding:16px 7px;}
-      .iframe-wrapper {height:55vh;}
-      iframe {width:100%; height:99%;}
-    }
-    @media (max-width: 620px){
-      .iframe-wrapper {height:45vh;}
-    }
+    body { margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(120deg,#e0eafc,#cfdef3);}
+    #container {max-width:1200px;margin:28px auto;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(44,62,80,0.10);padding:0 0 34px;}
+    h2 {margin:0;padding:22px 34px;background:#34495e;color:#fff;font-size:1.54rem;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:10px;}
+    #message {padding:32px 0 8px;text-align:center;color:#808890;font-size:1.18rem;}
+    .iframe-wrapper {width:100%;height:78vh;display:flex;align-items:center;justify-content:center;margin-top:0;}
+    iframe {width:98%;height:99%;border:none;background:#f9f9ff;box-shadow:0 2px 28px rgba(52,73,94,0.08);border-radius:8px;display:none;}
+    @media(max-width:900px){#container{max-width:98vw;}h2{padding:16px 7px;}.iframe-wrapper{height:55vh;}iframe{width:100%;height:99%;}}
+    @media(max-width:620px){.iframe-wrapper{height:45vh;}}
   </style>
 </head>
 <body>
@@ -71,18 +22,17 @@
     <h2><i class="fa-solid fa-play"></i> SCORM Course Player</h2>
     <div id="message">Loading…</div>
     <div class="iframe-wrapper">
-      <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      <!-- remove allow-same-origin to prevent sandbox escape -->
+      <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-forms"></iframe>
     </div>
   </div>
 
   <script>
-    // Verify supabase global
-    console.log('supabase global:', typeof supabase, window.supabase);
-
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sIjoidXNlcmluZyIsImlhdCI6MTc1OTI5NTAyNiwiZXhwIjoxNzY3NzMxMDI2fQ.Lv4n0XaJK6rA2StD6Zc5tk1XWfu3jvU1OABbq4fJIGg';
-    // Create the client from the UMD global
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Use a different variable name for the client instance
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     (async () => {
       const msg = document.getElementById('message');
@@ -90,66 +40,53 @@
       const params = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
       const publicId = params.get('public_id');
-      let courseEndpoint = '';
-      let headers = {};
+      let courseEndpoint = '', headers = {};
 
       if (publicId) {
-        // Public access flow
         courseEndpoint = `/api/get-course-by-public-id?public_id=${encodeURIComponent(publicId)}`;
         msg.textContent = 'Loading public course…';
       } else if (courseSlug) {
-        // Private access flow
         msg.textContent = 'Checking authentication…';
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await sbClient.auth.getSession();
         if (!session) {
-          msg.textContent = 'Authentication required. Redirecting to login…';
-          setTimeout(() => window.location.href = 'login.html', 2000);
-          return;
+          msg.textContent = 'Authentication required. Redirecting…';
+          return setTimeout(() => window.location.href = 'login.html', 2000);
         }
         headers['Authorization'] = `Bearer ${session.access_token}`;
         courseEndpoint = `/api/get-course?slug=${encodeURIComponent(courseSlug)}`;
         msg.textContent = 'Loading private course…';
       } else {
-        msg.textContent = 'Error: Missing course parameter.';
-        return;
+        return void (msg.textContent = 'Error: Missing course parameter.');
       }
 
       try {
         const res = await fetch(courseEndpoint, { headers });
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Fetch error:', res.status, errorText);
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const course = await res.json();
         if (course.error) throw new Error(course.error);
 
-        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+        const base = `/scorm-content/${course.package_path}/`;
         msg.textContent = 'Loading course content…';
 
-        // Determine launch file
         let launchFile = course.launch_url || 'index.html';
         try {
-          const mfRes = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-          if (mfRes.ok) {
-            const xmlText = await mfRes.text();
-            const xml = new DOMParser().parseFromString(xmlText, 'application/xml');
-            const resource = xml.querySelector('resource[href]');
-            if (resource) launchFile = resource.getAttribute('href');
+          const mf = await fetch(base + 'imsmanifest.xml');
+          if (mf.ok) {
+            const xml = await mf.text();
+            const doc = new DOMParser().parseFromString(xml, 'application/xml');
+            const resElt = doc.querySelector('resource[href]');
+            if (resElt) launchFile = resElt.getAttribute('href');
           }
-        } catch {
-          console.log('Manifest fetch failed, using default launch file');
-        }
+        } catch {}
 
         msg.textContent = 'Starting course…';
-        frame.src = proxyBaseUrl + launchFile;
+        frame.src = base + launchFile;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
       } catch (err) {
         console.error('Course loading error:', err);
         msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
       }
     })();
   </script>
