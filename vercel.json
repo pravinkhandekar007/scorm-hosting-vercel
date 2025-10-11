@@ -18,6 +18,10 @@
       "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course"
     },
     {
+      "source": "/api/get-course-by-public-id",
+      "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course-by-public-id"
+    },
+    {
       "source": "/api/list-courses",
       "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/list-courses"
     },
