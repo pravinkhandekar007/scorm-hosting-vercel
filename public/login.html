@@ -8,48 +8,66 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f0f4fb;
     margin: 0; padding: 0;
-    display: flex; justify-content: center; align-items: flex-start;
-    min-height: 100vh;
-    padding: 40px 20px;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh;
   }
   .container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 24px rgba(0,0,0,0.12);
-    max-width: 400px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    display: flex;
+    max-width: 900px;
     width: 100%;
     overflow: hidden;
-    text-align: center;
   }
-  .image-wrapper {
-    width: 100%;
-    height: 220px;
-    background: url('https://mfooewemvofleynanjkb.supabase.co/storage/v1/object/public/assets/background.png') no-repeat center center/contain;
-    border-bottom: 1px solid #eee;
+  .left-panel {
+    flex: 1;
+    background: url('https://mfooewemvofleynanjkb.supabase.co/storage/v1/object/public/assets/background.png') center center/cover no-repeat;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+    padding: 40px;
   }
-  h1 {
-    margin: 28px 0 14px 0;
-    font-weight: 700;
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 0;
+  }
+  .left-content {
+    position: relative;
+    z-index: 1;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .left-content h1 {
+    margin-bottom: 20px;
+  }
+  .right-panel {
+    flex: 1;
+    padding: 40px 30px;
+  }
+  .right-panel h1 {
+    margin-bottom: 25px;
+    font-weight: 600;
     color: #0073e6;
-  }
-  p.description {
-    margin: 0 20px 30px 20px;
-    font-size: 1em;
-    color: #333;
-    line-height: 1.5;
+    text-align: center;
   }
   label {
     display: block;
     text-align: left;
-    margin: 10px 20px 6px 20px;
+    margin-bottom: 6px;
     font-weight: 600;
     color: #333;
     font-size: 14px;
   }
   input[type="email"], input[type="password"] {
-    width: calc(100% - 40px);
-    margin: 0 20px 20px 20px;
+    width: 100%;
     padding: 10px 12px;
+    margin-bottom: 20px;
     border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 15px;
@@ -61,11 +79,10 @@
     outline: none;
   }
   button {
-    width: calc(100% - 40px);
-    margin: 20px;
+    width: 100%;
     padding: 12px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
     background: #0073e6;
     border: none;
     border-radius: 8px;
@@ -81,9 +98,10 @@
     cursor: default;
   }
   .form-footer {
-    margin: 12px 20px 30px 20px;
+    margin-top: 18px;
     font-size: 14px;
     color: #666;
+    text-align: center;
   }
   .form-footer a {
     color: #0073e6;
@@ -92,50 +110,60 @@
   }
   .error-message {
     color: #cc0000;
-    font-weight: 700;
-    margin: 0 20px 10px 20px;
-    min-height: 24px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    min-height: 18px;
     text-align: center;
   }
-  @media (max-width: 432px) {
-    body {
-      padding: 30px 16px;
+  @media (max-width: 768px) {
+    body, .container {
+      flex-direction: column;
+      height: auto;
     }
-    .container {
-      max-width: 100%;
-      border-radius: 8px;
+    .left-panel, .right-panel {
+      flex: none;
+      width: 100%;
+      padding: 30px;
     }
-    .image-wrapper {
-      height: 180px;
+    .left-panel {
+      min-height: 200px;
+      background-position: center center;
     }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="container" role="main" aria-label="Login to LMS portal">
-    <div class="image-wrapper" aria-hidden="true"></div>
-    <h1>Welcome Back</h1>
-    <p class="description">Upload, manage, and play your SCORM courses effortlessly using our LMS platform.</p>
-    <div id="error-message" class="error-message" role="alert"></div>
-    <form id="login-form" autocomplete="off" aria-describedby="form-help">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" placeholder="you@example.com" required aria-required="true" />
+  <div class="container">
+    <div class="left-panel" role="img" aria-label="LMS learning illustration">
+      <div class="left-content" tabindex="0">
+        <h1>Welcome to Your Learning Management System</h1>
+        <p>Upload, manage, and play your SCORM courses effortlessly. Experience seamless eLearning with modern tools, community support, and easy course distribution.</p>
+        <p>Get started by logging into your account or sign up if you are new!</p>
+      </div>
+    </div>
+    <div class="right-panel">
+      <h1>Login to Your Account</h1>
+      <div id="error-message" class="error-message"></div>
+      <form id="login-form" autocomplete="off">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
 
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="Your password" required aria-required="true" />
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Your password" required />
 
-      <button type="submit" id="login-button" disabled>Sign In</button>
-    </form>
-    <div id="form-help" class="form-footer">
-      New to LMS? <a href="signup.html">Sign Up</a><br/>
-      <a href="forgot-password.html">Forgot Password?</a>
+        <button type="submit" id="login-button" disabled>Sign In</button>
+      </form>
+      <div class="form-footer">
+        New to LMS? <a href="signup.html">Sign Up</a><br/>
+        <a href="forgot-password.html">Forgot Password?</a>
+      </div>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // Replace with your anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // Use your anon key here
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const emailInput = document.getElementById('email');
@@ -167,6 +195,7 @@
           loginButton.textContent = 'Sign In';
           return;
         }
+        // On successful login, redirect to dashboard
         window.location.href = 'dashboard.html';
       } catch (err) {
         errorMessage.textContent = 'Unexpected error occurred.';
@@ -175,7 +204,7 @@
       }
     });
 
-    validateInputs();
+    validateInputs(); // enable button if inputs valid on load
   </script>
 </body>
 </html>
