@@ -1,146 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login / Sign Up</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1e1e1e; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
-        .btn:hover { background-color: #0056b3; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; }
-        .toggle-link { text-align: center; margin-top: 15px; }
-        .toggle-link a { color: #007bff; text-decoration: none; }
-        .toggle-link a:hover { text-decoration: underline; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Login - LMS Portal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4fb;
+      margin: 0; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+    .login-container h1 {
+      margin-bottom: 25px;
+      font-weight: 600;
+      color: #0073e6;
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+    input[type="email"]:focus, input[type="password"]:focus {
+      border-color: #0073e6;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #0073e6;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background: #005bb5;
+    }
+    button:disabled {
+      background: #99c2f0;
+      cursor: default;
+    }
+    .form-footer {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #666;
+    }
+    .form-footer a {
+      color: #0073e6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .error-message {
+      color: #cc0000;
+      font-weight: 600;
+      margin-bottom: 18px;
+      height: 18px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <h2 id="form-title">Login</h2>
-        <div id="message"></div>
-        <form id="auth-form">
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="btn" id="submit-btn">Login</button>
-            <button type="button" class="btn btn-secondary" id="toggle-btn">Switch to Sign Up</button>
-        </form>
-        <div class="toggle-link">
-            <a href="dashboard.html">Go to Dashboard</a>
-        </div>
+  <div class="login-container">
+    <h1>Welcome Back</h1>
+    <div id="error-message" class="error-message"></div>
+    <form id="login-form" autocomplete="off">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Your password" required />
+
+      <button type="submit" id="login-button" disabled>Sign In</button>
+    </form>
+    <div class="form-footer">
+      New to LMS? <a href="signup.html">Sign Up</a><br/>
+      <a href="forgot-password.html">Forgot Password?</a>
     </div>
-    <script>
-        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </div>
 
-        let isLoginMode = true;
-        const messageDiv = document.getElementById('message');
-        const formTitle = document.getElementById('form-title');
-        const submitBtn = document.getElementById('submit-btn');
-        const toggleBtn = document.getElementById('toggle-btn');
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // Use your anon key here
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function handleAuthCallback() {
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            if (accessToken && refreshToken) {
-                try {
-                    const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-                    if (error) throw error;
-                    showMessage('Email verified, logged in successfully!', 'success');
-                    window.history.replaceState(null, null, window.location.pathname);
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 2000);
-                    return true;
-                } catch (error) {
-                    showMessage('Error processing verification: ' + error.message, 'error');
-                }
-            }
-            return false;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginButton = document.getElementById('login-button');
+    const errorMessage = document.getElementById('error-message');
+
+    function validateInputs() {
+      loginButton.disabled = !(emailInput.value.trim() && passwordInput.value.trim());
+    }
+
+    emailInput.addEventListener('input', validateInputs);
+    passwordInput.addEventListener('input', validateInputs);
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.textContent = '';
+      loginButton.disabled = true;
+      loginButton.textContent = 'Signing in...';
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          errorMessage.textContent = error.message;
+          loginButton.disabled = false;
+          loginButton.textContent = 'Sign In';
+          return;
         }
+        // On successful login, redirect to dashboard or home
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        errorMessage.textContent = 'Unexpected error occurred.';
+        loginButton.disabled = false;
+        loginButton.textContent = 'Sign In';
+      }
+    });
 
-        function showMessage(text, type = 'info') {
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = text;
-            messageDiv.style.display = 'block';
-        }
-
-        function hideMessage() {
-            messageDiv.style.display = 'none';
-        }
-
-        function toggleMode() {
-            isLoginMode = !isLoginMode;
-            if (isLoginMode) {
-                formTitle.textContent = 'Login';
-                submitBtn.textContent = 'Login';
-                toggleBtn.textContent = 'Switch to Sign Up';
-            } else {
-                formTitle.textContent = 'Sign Up';
-                submitBtn.textContent = 'Sign Up';
-                toggleBtn.textContent = 'Switch to Login';
-            }
-            hideMessage();
-        }
-
-        async function handleSubmit(e) {
-            e.preventDefault();
-            hideMessage();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                if (isLoginMode) {
-                    const { error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    showMessage('Login successful!', 'success');
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                } else {
-                    const { data, error } = await supabase.auth.signUp({ email, password });
-                    if (error) throw error;
-                    if (data.user && !data.session) {
-                        showMessage('Please check your email to verify your account.', 'info');
-                    } else {
-                        showMessage('Sign up successful!', 'success');
-                        setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                    }
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        document.getElementById('auth-form').addEventListener('submit', handleSubmit);
-        toggleBtn.addEventListener('click', toggleMode);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAuthCallback = await handleAuthCallback();
-            if (!isAuthCallback) {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    showMessage('You are already logged in. Redirecting...', 'success');
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                }
-            }
-        });
-    </script>
+    validateInputs(); // enable button if inputs valid on load
+  </script>
 </body>
 </html>
