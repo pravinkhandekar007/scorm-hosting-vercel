@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-  <!-- Load UMD bundle for Supabase -->
+  <!-- Load Supabase UMD bundle -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
   <style>
     body { margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(120deg,#e0eafc,#cfdef3);}
@@ -22,16 +22,18 @@
     <h2><i class="fa-solid fa-play"></i> SCORM Course Player</h2>
     <div id="message">Loading…</div>
     <div class="iframe-wrapper">
-      <!-- remove allow-same-origin to prevent sandbox escape -->
-      <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-forms"></iframe>
+      <!-- SCORM needs allow-same-origin for API handshake -->
+      <iframe
+        id="courseFrame"
+        sandbox="allow-scripts allow-same-origin"
+        allowfullscreen>
+      </iframe>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sIjoidXNlcmluZyIsImlhdCI6MTc1OTI5NTAyNiwiZXhwIjoxNzY3NzMxMDI2fQ.Lv4n0XaJK6rA2StD6Zc5tk1XWfu3jvU1OABbq4fJIGg';
-
-    // Use a different variable name for the client instance
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     (async () => {
@@ -40,27 +42,28 @@
       const params = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
       const publicId = params.get('public_id');
-      let courseEndpoint = '', headers = {};
+      let endpoint = '', headers = {};
 
       if (publicId) {
-        courseEndpoint = `/api/get-course-by-public-id?public_id=${encodeURIComponent(publicId)}`;
+        endpoint = `/api/get-course-by-public-id?public_id=${encodeURIComponent(publicId)}`;
         msg.textContent = 'Loading public course…';
       } else if (courseSlug) {
         msg.textContent = 'Checking authentication…';
-        const { data: { session } } = await sbClient.auth.getSession();
+        const { data:{ session } } = await sbClient.auth.getSession();
         if (!session) {
           msg.textContent = 'Authentication required. Redirecting…';
           return setTimeout(() => window.location.href = 'login.html', 2000);
         }
         headers['Authorization'] = `Bearer ${session.access_token}`;
-        courseEndpoint = `/api/get-course?slug=${encodeURIComponent(courseSlug)}`;
+        endpoint = `/api/get-course?slug=${encodeURIComponent(courseSlug)}`;
         msg.textContent = 'Loading private course…';
       } else {
-        return void (msg.textContent = 'Error: Missing course parameter.');
+        msg.textContent = 'Error: Missing course parameter.';
+        return;
       }
 
       try {
-        const res = await fetch(courseEndpoint, { headers });
+        const res = await fetch(endpoint, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const course = await res.json();
         if (course.error) throw new Error(course.error);
@@ -68,22 +71,21 @@
         const base = `/scorm-content/${course.package_path}/`;
         msg.textContent = 'Loading course content…';
 
-        let launchFile = course.launch_url || 'index.html';
+        let launch = course.launch_url || 'index.html';
         try {
           const mf = await fetch(base + 'imsmanifest.xml');
           if (mf.ok) {
             const xml = await mf.text();
             const doc = new DOMParser().parseFromString(xml, 'application/xml');
             const resElt = doc.querySelector('resource[href]');
-            if (resElt) launchFile = resElt.getAttribute('href');
+            if (resElt) launch = resElt.getAttribute('href');
           }
         } catch {}
 
         msg.textContent = 'Starting course…';
-        frame.src = base + launchFile;
+        frame.src = base + launch;
         frame.style.display = 'block';
         msg.style.display = 'none';
-
       } catch (err) {
         console.error('Course loading error:', err);
         msg.textContent = `Failed to load course: ${err.message}`;
