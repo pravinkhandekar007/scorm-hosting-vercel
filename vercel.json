@@ -4,22 +4,11 @@
       "source": "/scorm-content/(.*)",
       "headers": [
         {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "key": "Content-Security-Policy",
+          "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;"
         },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Permissions-Policy",
-          "value": "fullscreen=(self)"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],
@@ -29,8 +18,8 @@
       "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course"
     },
     {
-      "source": "/api/get-course-by-public-id",
-      "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-course-by-public-id"
+      "source": "/api/list-courses",
+      "destination": "https://mfooewemvofleynanjkb.supabase.co/functions/v1/list-courses"
     },
     {
       "source": "/scorm-content/:path*",

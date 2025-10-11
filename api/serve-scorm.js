@@ -1,9 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Use ANON key for public access to storage
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 const MIME_TYPES = {
   html: 'text/html',
@@ -47,6 +46,7 @@ export default async function handler(req, res) {
     const { data, error } = await supabase.storage.from('scorm-packages').download(path);
 
     if (error || !data) {
+      // Enhanced error logging
       console.error('[serve-scorm] Download error:', { path, error });
       res.status(404).json({
         error: 'File Not Found',
