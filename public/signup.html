@@ -156,23 +156,25 @@
 
         signupBtn.disabled = true;
         try {
+          // Note: supabase.auth.signUp returns { data, error }
           const { data, error } = await supabase.auth.signUp(
             { email, password },
-            { redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html' }
+            {
+              redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html',
+              // you can also add options like shouldCreateUser: true if relevant
+            }
           );
 
           if (error) {
             msg.textContent = error.message;
             msg.classList.add("error");
-          } else if (data?.user?.email) {
+          } else {
+            // Supabase auto-sends the confirmation email with your redirectTo URL
             msg.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
             msg.classList.add("success");
             form.reset();
-          } else {
-            msg.textContent = 'Signup initiated. Please check your email to verify.';
-            msg.classList.add("success");
           }
-        } catch {
+        } catch (e) {
           msg.textContent = 'Unexpected error occurred. Please try again.';
           msg.classList.add("error");
         } finally {
