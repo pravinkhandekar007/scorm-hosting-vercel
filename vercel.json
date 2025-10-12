@@ -24,6 +24,21 @@
     {
       "source": "/scorm-content/:path*",
       "destination": "/api/serve-scorm?path=:path*"
+    },
+    
+    
+    
+    
+    // 💡 FIX: Explicitly serve the static HTML file for the email verification path
+    {
+      "source": "/email-verified.html",
+      "destination": "/email-verified.html"
+    },
+    // 💡 FIX: Add a general fallback for all other routes to your main app file (e.g., index.html)
+    // This assumes your main app entry point is 'index.html'. Adjust if the file name is different.
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
