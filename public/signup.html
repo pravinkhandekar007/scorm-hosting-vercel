@@ -157,9 +157,7 @@
         try {
           const { error, data } = await supabase.auth.signUp(
             { email, password },
-            {
-              redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html',
-            }
+            { redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html'}
           );
 
           if (error) {
