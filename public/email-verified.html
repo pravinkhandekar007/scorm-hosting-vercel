@@ -4,71 +4,84 @@
   <meta charset="UTF-8" />
   <title>Email Verified – PlayScorm</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #eef2f7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      margin: 0;
       min-height: 100vh;
+      background: #C0C0C0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    .main-wrapper {
       width: 100%;
-      max-width: 400px;
-      overflow: hidden;
+      max-width: 900px;
     }
-    .card-header {
-      background: linear-gradient(90deg, #7853fa, #008fd5);
-      padding: 24px;
-      text-align: center;
-    }
-    .card-header h1 {
+    .banner {
+      width: 100%;
+      background: linear-gradient(to right, #00205B, #00857D);
       color: #fff;
-      font-size: 1.75rem;
+      text-align: center;
+      font-size: 2rem;
       font-weight: 700;
+      padding: 26px 0 20px 0;
+      letter-spacing: 1px;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
     }
-    .card-body {
-      padding: 32px;
+    .container {
+      background: #fdfdfd;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+      padding: 40px;
+      max-width: 400px;
+      margin: auto;
       text-align: center;
     }
-    #message {
-      font-size: 1rem;
+    h1 {
       color: #333;
+      margin-bottom: 18px;
+      font-size: 1.8rem;
+    }
+    .success-message {
+      color: #2e7d32;
+      font-size: 1rem;
       margin-bottom: 24px;
       min-height: 24px;
     }
-    #message.error {
-      color: #d32f2f;
+    .error-message {
+      color: #cc0000;
+      font-size: 1rem;
+      margin-bottom: 24px;
+      min-height: 24px;
     }
-    a {
+    .btn {
       display: inline-block;
-      padding: 12px 24px;
+      padding: 14px 28px;
       background: linear-gradient(90deg, #7853fa, #008fd5);
       color: #fff;
       font-weight: 700;
       border-radius: 8px;
       text-decoration: none;
       transition: opacity 0.2s;
+      margin-top: 10px;
+      font-size: 1rem;
     }
-    a:hover {
+    .btn:hover {
       opacity: 0.9;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="card">
-    <div class="card-header"><h1>Email Verified</h1></div>
-    <div class="card-body">
-      <div id="message">Verifying your email…</div>
-      <a id="login-link" href="login.html" style="display:none;">Go to Login</a>
+  <div class="main-wrapper">
+    <div class="banner">Email Verified</div>
+    <div class="container">
+      <h1>Success!</h1>
+      <div id="msg" class="success-message">Verifying your email…</div>
+      <a id="login-link" class="btn" href="login.html" style="display:none;">Go to Login</a>
     </div>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const supabase = window.supabase.createClient(
@@ -76,32 +89,28 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
       );
 
-      const msg  = document.getElementById('message');
+      const msg = document.getElementById('msg');
       const link = document.getElementById('login-link');
 
-      // Extract tokens from URL hash (same as reset-password flow)
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
+      // The confirmation link from Supabase will include tokens as hash
+      const params = new URLSearchParams(window.location.hash.slice(1));
       const at = params.get('access_token');
       const rt = params.get('refresh_token');
 
       if (!at || !rt) {
-        msg.textContent = 'Invalid verification link.';
-        msg.classList.add('error');
+        msg.className = 'error-message';
+        msg.textContent = 'Invalid or missing verification token.';
         return;
       }
 
-      // Establish session so the user is confirmed
-      const { error } = await supabase.auth.setSession({
-        access_token: at,
-        refresh_token: rt,
-      });
-
+      // Establish session so email is marked verified
+      const { error } = await supabase.auth.setSession({ access_token: at, refresh_token: rt });
       if (error) {
+        msg.className = 'error-message';
         msg.textContent = error.message;
-        msg.classList.add('error');
       } else {
-        msg.textContent = 'Success! Your email is now verified.';
+        msg.className = 'success-message';
+        msg.textContent = 'Your email is verified. You may now log in to your account!';
         link.style.display = 'inline-block';
       }
     });
