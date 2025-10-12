@@ -2,17 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Email Verified - PlayScorm</title>
-  <!-- (Your existing banner and container styles here) -->
+  <title>Email Verified – PlayScorm</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: linear-gradient(90deg, #7853fa, #008fd5);
+      padding: 24px;
+      text-align: center;
+    }
+    .card-header h1 {
+      color: #fff;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+    .card-body {
+      padding: 32px;
+      text-align: center;
+    }
+    #message {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 24px;
+    }
+    #message.error {
+      color: #d32f2f;
+    }
+    a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(90deg, #7853fa, #008fd5);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    a:hover {
+      opacity: 0.9;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="main-wrapper">
-    <div class="banner">Email Verified</div>
-    <div class="container">
-      <h1>Success!</h1>
-      <p>Your email has been verified. You may now log in to your account.</p>
-      <a href="login.html">Go to Login</a>
+  <div class="card">
+    <div class="card-header"><h1>Email Verification</h1></div>
+    <div class="card-body">
+      <div id="message">Verifying your email...</div>
+      <a id="login-link" href="login.html" style="display:none;">Go to Login</a>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const supabase = window.supabase.createClient(
+        'https://mfooewemvofleynanjkb.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
+      );
+
+      const msg = document.getElementById('message');
+      const link = document.getElementById('login-link');
+
+      // Read token and type from URL hash or query (depending on email template)
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const type  = urlParams.get('type');
+
+      if (type !== 'signup' || !token) {
+        msg.textContent = 'Invalid verification link.';
+        msg.classList.add('error');
+        return;
+      }
+
+      // Call Supabase verify endpoint by setting session
+      const { error } = await supabase.auth.verifyOtp({ token, type: 'signup' });
+
+      if (error) {
+        msg.textContent = error.message;
+        msg.classList.add('error');
+      } else {
+        msg.textContent = 'Success! Your email is verified.';
+        link.style.display = 'inline-block';
+      }
+    });
+  </script>
 </body>
 </html>
