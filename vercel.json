@@ -24,14 +24,6 @@
     {
       "source": "/scorm-content/:path*",
       "destination": "/api/serve-scorm?path=:path*"
-    },
-    {
-      "source": "/email-verified.html",
-      "destination": "/email-verified.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
