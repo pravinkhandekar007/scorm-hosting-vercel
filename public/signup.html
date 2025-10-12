@@ -167,13 +167,12 @@
           } else if (data?.user?.email) {
             msg.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
             msg.classList.add("success");
-            // Optionally clear form inputs here
             form.reset();
           } else {
             msg.textContent = 'Signup initiated. Please check your email to verify.';
             msg.classList.add("success");
           }
-        } catch (err) {
+        } catch {
           msg.textContent = 'Unexpected error occurred. Please try again.';
           msg.classList.add("error");
         } finally {
