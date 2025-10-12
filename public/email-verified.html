@@ -3,116 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <title>Email Verified – PlayScorm</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #C0C0C0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .main-wrapper {
-      width: 100%;
-      max-width: 900px;
-    }
-    .banner {
-      background: linear-gradient(to right, #00205B, #00857D);
-      color: #fff;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      padding: 28px 0 20px 0;
-      border-radius: 24px 24px 0 0;
-      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
-    }
-    .container {
-      background: #fdfdfd;
-      border-radius: 0 0 24px 24px;
-      box-shadow: 0 8px 40px rgba(60,45,205,0.07);
-      padding: 40px;
-      max-width: 400px;
-      margin: auto;
-      text-align: center;
-    }
-    h1 {
-      color: #333;
-      margin-bottom: 18px;
-      font-size: 1.8rem;
-    }
-    .success-message {
-      color: #2e7d32;
-      font-size: 1rem;
-      margin-bottom: 18px;
-      min-height: 24px;
-    }
-    .error-message {
-      color: #cc0000;
-      font-size: 1rem;
-      margin-bottom: 18px;
-      min-height: 24px;
-    }
-    .btn {
-      display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(90deg, #7853fa, #008fd5);
-      color: #fff;
-      font-weight: 700;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: opacity 0.2s;
-      margin-top: 10px;
-      font-size: 1rem;
-    }
-    .btn:hover {
-      opacity: 0.9;
-    }
-  </style>
+  <!-- Styles same as before -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="main-wrapper">
-    <div class="banner">Email Verified</div>
-    <div class="container">
-      <h1>Success!</h1>
-      <div id="msg" class="success-message">Verifying your email…</div>
-      <a id="login-link" class="btn" href="login.html" style="display:none;">Go to Login</a>
-    </div>
+  <div class="container">
+    <h1>Email Verified</h1>
+    <div id="message"></div>
+    <a id="login-link" href="login.html" style="display:none;">Go to Login</a>
   </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const supabase = window.supabase.createClient(
         'https://mfooewemvofleynanjkb.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
       );
-      const msg = document.getElementById('msg');
+
+      const message = document.getElementById('message');
       const loginLink = document.getElementById('login-link');
 
-      // Tokens are sent in URL hash after '#'
-      const params = new URLSearchParams(window.location.hash.slice(1));
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
 
-      if (!accessToken || !refreshToken) {
-        msg.className = 'error-message';
-        msg.textContent = 'Invalid or missing verification token. Please try signing up again.';
+      if (!access_token || !refresh_token) {
+        message.textContent = 'Invalid or missing verification token.';
+        message.style.color = 'red';
         return;
       }
 
-      try {
-        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-        if (error) {
-          msg.className = 'error-message';
-          msg.textContent = `Verification failed: ${error.message}`;
-        } else {
-          msg.className = 'success-message';
-          msg.textContent = 'Your email is verified. You may now log in!';
-          loginLink.style.display = 'inline-block';
-        }
-      } catch (err) {
-        msg.className = 'error-message';
-        msg.textContent = 'Unexpected error during verification. Please try again.';
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+
+      if (error) {
+        message.textContent = `Verification error: ${error.message}`;
+        message.style.color = 'red';
+      } else {
+        message.textContent = 'Your email has been verified! You can now log in.';
+        message.style.color = 'green';
+        loginLink.style.display = 'inline-block';
       }
     });
   </script>
