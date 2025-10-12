@@ -39,6 +39,7 @@
       font-size: 1rem;
       color: #333;
       margin-bottom: 24px;
+      min-height: 24px;
     }
     #message.error {
       color: #d32f2f;
@@ -61,9 +62,9 @@
 </head>
 <body>
   <div class="card">
-    <div class="card-header"><h1>Email Verification</h1></div>
+    <div class="card-header"><h1>Email Verified</h1></div>
     <div class="card-body">
-      <div id="message">Verifying your email...</div>
+      <div id="message">Verifying your email…</div>
       <a id="login-link" href="login.html" style="display:none;">Go to Login</a>
     </div>
   </div>
@@ -75,28 +76,32 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
       );
 
-      const msg = document.getElementById('message');
+      const msg  = document.getElementById('message');
       const link = document.getElementById('login-link');
 
-      // Read token and type from URL hash or query (depending on email template)
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const type  = urlParams.get('type');
+      // Extract tokens from URL hash (same as reset-password flow)
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const at = params.get('access_token');
+      const rt = params.get('refresh_token');
 
-      if (type !== 'signup' || !token) {
+      if (!at || !rt) {
         msg.textContent = 'Invalid verification link.';
         msg.classList.add('error');
         return;
       }
 
-      // Call Supabase verify endpoint by setting session
-      const { error } = await supabase.auth.verifyOtp({ token, type: 'signup' });
+      // Establish session so the user is confirmed
+      const { error } = await supabase.auth.setSession({
+        access_token: at,
+        refresh_token: rt,
+      });
 
       if (error) {
         msg.textContent = error.message;
         msg.classList.add('error');
       } else {
-        msg.textContent = 'Success! Your email is verified.';
+        msg.textContent = 'Success! Your email is now verified.';
         link.style.display = 'inline-block';
       }
     });
