@@ -133,10 +133,12 @@
         'https://mfooewemvofleynanjkb.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
       );
+
       const form = document.getElementById('signup-form');
       const emailInput = document.getElementById('email');
       const pwdInput = document.getElementById('password');
       const msg = document.getElementById('message');
+      const signupBtn = form.querySelector('#signup-button');
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -152,21 +154,30 @@
           return;
         }
 
-        form.querySelector('#signup-button').disabled = true;
+        signupBtn.disabled = true;
+        try {
+          const { data, error } = await supabase.auth.signUp(
+            { email, password },
+            { redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html' }
+          );
 
-        const { error } = await supabase.auth.signUp(
-          { email, password },
-          { redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html' }
-        );
-
-        form.querySelector('#signup-button').disabled = false;
-
-        if (error) {
-          msg.textContent = error.message;
+          if (error) {
+            msg.textContent = error.message;
+            msg.classList.add("error");
+          } else if (data?.user?.email) {
+            msg.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+            msg.classList.add("success");
+            // Optionally clear form inputs here
+            form.reset();
+          } else {
+            msg.textContent = 'Signup initiated. Please check your email to verify.';
+            msg.classList.add("success");
+          }
+        } catch (err) {
+          msg.textContent = 'Unexpected error occurred. Please try again.';
           msg.classList.add("error");
-        } else {
-          msg.textContent = 'Signup successful! Please check your email to confirm your account.';
-          msg.classList.add("success");
+        } finally {
+          signupBtn.disabled = false;
         }
       });
     });
