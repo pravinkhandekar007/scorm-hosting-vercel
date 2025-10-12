@@ -129,54 +129,50 @@
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const supabase = window.supabase.createClient(
-        'https://mfooewemvofleynanjkb.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'
-      );
+      const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
       const emailInput = document.getElementById('email');
       const pwdInput = document.getElementById('password');
-      const msg = document.getElementById('message');
-      const signupBtn = form.querySelector('#signup-button');
+      const message = document.getElementById('message');
+      const signupBtn = document.getElementById('signup-button');
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        msg.textContent = '';
-        msg.className = 'message';
+        message.textContent = '';
+        message.className = 'message';
 
         const email = emailInput.value.trim();
         const password = pwdInput.value;
 
         if (!email || password.length < 6) {
-          msg.textContent = 'Valid email and password (min 6 chars) required.';
-          msg.classList.add("error");
+          message.textContent = 'Valid email and password (min 6 chars) required.';
+          message.classList.add("error");
           return;
         }
 
         signupBtn.disabled = true;
         try {
-          // Note: supabase.auth.signUp returns { data, error }
-          const { data, error } = await supabase.auth.signUp(
+          const { error, data } = await supabase.auth.signUp(
             { email, password },
             {
               redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html',
-              // you can also add options like shouldCreateUser: true if relevant
             }
           );
 
           if (error) {
-            msg.textContent = error.message;
-            msg.classList.add("error");
+            message.textContent = error.message;
+            message.classList.add("error");
           } else {
-            // Supabase auto-sends the confirmation email with your redirectTo URL
-            msg.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-            msg.classList.add("success");
+            message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+            message.classList.add("success");
             form.reset();
           }
-        } catch (e) {
-          msg.textContent = 'Unexpected error occurred. Please try again.';
-          msg.classList.add("error");
+        } catch (err) {
+          message.textContent = 'Unexpected error occurred. Please try again.';
+          message.classList.add("error");
         } finally {
           signupBtn.disabled = false;
         }
