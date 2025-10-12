@@ -25,20 +25,5 @@
       "source": "/scorm-content/:path*",
       "destination": "/api/serve-scorm?path=:path*"
     }
-  ],
-  {
-  "rewrites": [
-    // 👈 This is the crucial rule that ensures the static HTML file is served
-    {
-      "source": "/email-verified.html",
-      "destination": "/email-verified.html"
-    },
-    // This is the common SPA fallback rule (if your app uses client-side routing)
-    {
-      "source": "/(.*)",
-      "destination": "/index.html" 
-      // If your root file is named something else, use that name (e.g., /app.html)
-    }
   ]
 }
-
