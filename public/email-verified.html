@@ -3,14 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <title>Email Verified – PlayScorm</title>
-  <!-- Styles same as before -->
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #C0C0C0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .main-wrapper {
+      width: 100%;
+      max-width: 600px;
+    }
+    .banner {
+      width: 100%;
+      background: linear-gradient(to right, #00205B, #00857D);
+      color: #fff;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      padding: 28px 0 20px;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+    }
+    .container {
+      background: #fdfdfd;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 24px;
+      font-size: 1.8rem;
+    }
+    #message {
+      font-size: 1rem;
+      min-height: 24px;
+      margin-bottom: 24px;
+      font-weight: 600;
+    }
+    #message.success {
+      color: #2e7d32;
+    }
+    #message.error {
+      color: #cc0000;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(90deg, #7853fa, #008fd5);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.3s;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Email Verified</h1>
-    <div id="message"></div>
-    <a id="login-link" href="login.html" style="display:none;">Go to Login</a>
+  <div class="main-wrapper">
+    <div class="banner">Email Verified</div>
+    <div class="container">
+      <h1>Verification Status</h1>
+      <div id="message"></div>
+      <a id="login-link" class="btn" href="login.html" style="display:none;">Go to Login</a>
+    </div>
   </div>
 
   <script>
@@ -30,7 +99,7 @@
 
       if (!access_token || !refresh_token) {
         message.textContent = 'Invalid or missing verification token.';
-        message.style.color = 'red';
+        message.className = 'error';
         return;
       }
 
@@ -38,10 +107,10 @@
 
       if (error) {
         message.textContent = `Verification error: ${error.message}`;
-        message.style.color = 'red';
+        message.className = 'error';
       } else {
         message.textContent = 'Your email has been verified! You can now log in.';
-        message.style.color = 'green';
+        message.className = 'success';
         loginLink.style.display = 'inline-block';
       }
     });
