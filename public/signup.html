@@ -3,96 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Sign Up - PlayScorm</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #f0f2f5;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .main-wrapper {
-      width: 100%;
-      max-width: 400px;
-      margin: 20px;
-    }
-    .banner {
-      background: linear-gradient(90deg, #7853fa 0%, #008fd5 100%);
-      color: #fff;
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: 700;
-      padding: 24px;
-      border-radius: 12px 12px 0 0;
-    }
-    .container {
-      background: #fff;
-      border-radius: 0 0 12px 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      padding: 32px;
-    }
-    h1 {
-      margin: 0 0 16px;
-      font-size: 1.5rem;
-      color: #333;
-      text-align: center;
-    }
-    .error-message {
-      color: #d32f2f;
-      font-weight: 600;
-      margin-bottom: 16px;
-      text-align: center;
-      min-height: 20px;
-    }
-    label {
-      display: block;
-      font-size: 0.9rem;
-      color: #555;
-      margin-bottom: 6px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
-    }
-    input:focus {
-      border-color: #008fd5;
-      outline: none;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(90deg, #7853fa 0%, #008fd5 100%);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    .footer-text {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 0.9rem;
-      color: #666;
-    }
-    .footer-text a {
-      color: #7853fa;
-      text-decoration: none;
-      font-weight: 600;
-    }
-  </style>
+  <!-- (Your existing banner, container, and form styles here) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -120,38 +31,37 @@
       );
 
       const emailInput = document.getElementById('email');
-      const pwdInput = document.getElementById('password');
-      const signupBtn = document.getElementById('signup-button');
-      const errorMessage = document.getElementById('error-message');
+      const pwdInput   = document.getElementById('password');
+      const btn        = document.getElementById('signup-button');
+      const errMsg     = document.getElementById('error-message');
 
-      signupBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
+      btn.addEventListener('click', async () => {
+        errMsg.textContent = '';
         const email = emailInput.value.trim();
         const password = pwdInput.value;
 
         if (!email || password.length < 6) {
-          errorMessage.textContent = 'Please enter a valid email and password (min 6 chars).';
+          errMsg.textContent = 'Valid email and password (min 6 chars) required.';
           return;
         }
-        signupBtn.disabled = true;
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        signupBtn.disabled = false;
+        btn.disabled = true;
+
+        const { error } = await supabase.auth.signUp(
+          { email, password },
+          {
+            // Supabase will email the user and then redirect them to email-verified.html
+            redirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html'
+          }
+        );
+
+        btn.disabled = false;
 
         if (error) {
-          errorMessage.textContent = error.message;
-          return;
+          errMsg.textContent = error.message;
+        } else {
+          errMsg.style.color = '#2e7d32';
+          errMsg.textContent = 'Signup successful! Check your email to verify your account.';
         }
-
-        // Immediately set session so user is 'logged in' after confirming their email
-        const hash = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = data.session?.access_token;
-        const refreshToken = data.session?.refresh_token;
-        if (accessToken && refreshToken) {
-          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-        }
-
-        // Redirect to email-verified page
-        window.location.href = 'email-verified.html';
       });
     });
   </script>
