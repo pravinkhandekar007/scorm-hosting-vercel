@@ -157,15 +157,14 @@
 
         signupBtn.disabled = true;
         try {
-          // CORRECTED CALL: Using emailRedirectTo inside the options object for clarity
-          const { error, data } = await supabase.auth.signUp(
-            { email, password },
-            { 
-                options: { 
-                    emailRedirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html' 
-                }
+          // CORRECTED: Using the proper syntax for emailRedirectTo
+          const { error, data } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: 'https://scorm-hosting-vercel.vercel.app/email-verified.html'
             }
-          );
+          });
 
           if (error) {
             message.textContent = error.message;
