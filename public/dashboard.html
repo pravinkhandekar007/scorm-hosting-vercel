@@ -82,34 +82,39 @@
         const token = params.get('token');
 
         if (token) {
-          // Public view mode: load course without authentication
+          // Public view mode: fetch course publicly
           document.getElementById('dashboard-ui').style.display = 'none';
           document.getElementById('public-viewer').style.display = 'block';
 
           try {
-            const { data: course, error } = await supabase
+            console.log('Fetching course with token:', token);
+            const { data: course, error: fetchErr } = await supabase
               .from('courses')
               .select('*')
               .eq('public_token', token)
               .eq('is_public', true)
-              .maybeSingle();
+              .single();
 
-            if (error) throw error;
-            if (!course) throw new Error('Course not found or not public');
+            if (fetchErr) {
+              console.error('Fetch error:', fetchErr);
+              throw new Error('Course not found or not public: ' + fetchErr.message);
+            }
 
+            console.log('Course found:', course);
             document.getElementById('pv-loading').style.display = 'none';
-            document.getElementById('pv-title').textContent = course.title;
+            document.getElementById('pv-title').textContent = course.title || 'Untitled Course';
             document.getElementById('pv-description').textContent = course.description || '';
             document.getElementById('pv-player').src = course.file_url;
           } catch (err) {
             console.error('Public view error:', err);
             document.getElementById('pv-loading').style.display = 'none';
-            const e = document.getElementById('pv-error');
-            e.textContent = 'Error: ' + err.message;
-            e.style.display = 'block';
+            const errorEl = document.getElementById('pv-error');
+            errorEl.textContent = 'Error: ' + err.message;
+            errorEl.style.display = 'block';
           }
+
         } else {
-          // Dashboard mode - require login and load courses
+          // Dashboard mode: authenticated view
           await checkAuthAndLoadData();
         }
       });
@@ -137,7 +142,6 @@
             .order('created_at', { ascending: false });
 
           loadingDiv.style.display = 'none';
-
           if (error) throw error;
 
           if (!courses.length) {
@@ -167,7 +171,6 @@
               </div>
             </div>
           `).join('');
-
         } catch (err) {
           loadingDiv.style.display = 'none';
           coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${err.message}</div>`;
@@ -176,15 +179,13 @@
 
       window.refreshCourses = loadCourses;
       window.copyURL = slug => {
-        const link = `${location.origin}/player.html?course=${encodeURIComponent(slug)}`;
-        navigator.clipboard.writeText(link).then(() => alert('Course link copied!'));
+        navigator.clipboard.writeText(`${location.origin}/player.html?course=${encodeURIComponent(slug)}`)
+          .then(() => alert('Course link copied!'));
       };
-
       window.copyPublicLink = token => {
-        const url = `${location.origin}/dashboard.html?token=${token}`;
-        navigator.clipboard.writeText(url).then(() => alert('Public link copied!'));
+        navigator.clipboard.writeText(`${location.origin}/dashboard.html?token=${token}`)
+          .then(() => alert('Public link copied!'));
       };
-
       window.generatePublicLink = async slug => {
         try {
           const { data, error } = await supabase
@@ -193,9 +194,7 @@
             .eq('course_slug', slug)
             .select('public_token')
             .single();
-
           if (error) throw error;
-
           const url = `${location.origin}/dashboard.html?token=${data.public_token}`;
           navigator.clipboard.writeText(url);
           alert('Public link copied!');
@@ -204,7 +203,6 @@
           alert('Error: ' + err.message);
         }
       };
-
       window.revokePublicAccess = async slug => {
         if (!confirm('Revoke public access?')) return;
         try {
@@ -212,23 +210,17 @@
             .from('courses')
             .update({ is_public: false })
             .eq('course_slug', slug);
-
           if (error) throw error;
-
           alert('Public access revoked');
           loadCourses();
         } catch (err) {
           alert('Error: ' + err.message);
         }
       };
-
       window.deleteCourse = async slug => {
         if (!confirm('Delete this course?')) return;
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          alert('Login required.');
-          return;
-        }
+        if (!session) return alert('Login required.');
         try {
           const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(slug)}`, {
             method: 'DELETE',
@@ -244,7 +236,6 @@
           alert('Error: ' + err.message);
         }
       };
-
       window.logout = async () => {
         await supabase.auth.signOut();
         location.href = 'login.html';
