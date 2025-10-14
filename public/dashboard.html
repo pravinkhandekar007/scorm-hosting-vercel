@@ -71,11 +71,23 @@
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbWV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
         if (typeof window.supabase === 'undefined') {
             console.error('Supabase library not loaded');
             alert('Error loading application.');
         } else {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabase = window.supabase.createClient(
+              SUPABASE_URL,
+              SUPABASE_ANON_KEY,
+              {
+                global: {
+                  headers: {
+                    apikey: SUPABASE_ANON_KEY,
+                    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                  }
+                }
+              }
+            );
 
             document.addEventListener('DOMContentLoaded', async () => {
                 const params = new URLSearchParams(window.location.search);
@@ -87,7 +99,6 @@
                     document.getElementById('public-viewer').style.display = 'block';
 
                     try {
-                        // Fetch public course using maybeSingle()
                         const { data: course, error: fetchErr } = await supabase
                             .from('courses')
                             .select('*')
@@ -95,13 +106,8 @@
                             .eq('is_public', true)
                             .maybeSingle();
 
-                        if (fetchErr) {
-                            console.error('Fetch error:', fetchErr);
-                            throw new Error('Course not found or not public: ' + fetchErr.message);
-                        }
-                        if (!course) {
-                            throw new Error('Course not found or not public');
-                        }
+                        if (fetchErr) throw new Error(fetchErr.message);
+                        if (!course) throw new Error('Course not found or not public');
 
                         document.getElementById('pv-loading').style.display = 'none';
                         document.getElementById('pv-title').textContent = course.title || 'Untitled Course';
