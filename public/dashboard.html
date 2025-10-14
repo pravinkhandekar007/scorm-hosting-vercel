@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>SCORM Dashboard</title>
+    <!-- Keep Supabase v2 -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js" as="script">
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -28,18 +30,18 @@
         /* Public viewer styles */
         #public-viewer { display: none; text-align: center; }
         #pv-loading { margin-top: 50px; color: #6c757d; }
-        #pv-error { margin-top: 50px; color: red; }
+        #pv-error { margin-top: 50px; color: red; display: none; }
         #pv-title { margin-top: 20px; color: #2c3e50; }
         #pv-description { color: #555; }
         #pv-player { width: 100%; height: 600px; border: 1px solid #ddd; margin-top: 20px; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js" defer></script>
 </head>
 <body>
     <!-- Public Viewer Section -->
     <div id="public-viewer">
         <div id="pv-loading">Loading course…</div>
-        <div id="pv-error" style="display:none;"></div>
+        <div id="pv-error"></div>
         <h1 id="pv-title"></h1>
         <p id="pv-description"></p>
         <iframe id="pv-player" src="about:blank"></iframe>
@@ -75,30 +77,62 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
+            
             if (token) {
-                // Public mode
+                // Public mode - hide dashboard, show viewer
                 document.getElementById('dashboard-ui').style.display = 'none';
-                const pv = document.getElementById('public-viewer');
-                pv.style.display = 'block';
+                document.getElementById('public-viewer').style.display = 'block';
+                
                 try {
-                    const { error: authErr } = await supabase.auth.signInAnonymously();
-                    if (authErr) throw authErr;
+                    console.log('Attempting anonymous sign-in...');
+                    
+                    // Check if already signed in anonymously
+                    const { data: { session } } = await supabase.auth.getSession();
+                    
+                    if (!session) {
+                        // Sign in anonymously
+                        const { data: authData, error: authErr } = await supabase.auth.signInAnonymously();
+                        if (authErr) {
+                            console.error('Auth error:', authErr);
+                            throw new Error('Authentication failed: ' + authErr.message);
+                        }
+                        console.log('Anonymous sign-in successful:', authData);
+                    }
+                    
+                    console.log('Fetching course with token:', token);
+                    
+                    // Fetch the public course
                     const { data: course, error: fetchErr } = await supabase
                         .from('courses')
                         .select('*')
                         .eq('public_token', token)
                         .eq('is_public', true)
                         .single();
-                    if (fetchErr) throw fetchErr;
+                        
+                    if (fetchErr) {
+                        console.error('Fetch error:', fetchErr);
+                        throw new Error('Course not found or not public: ' + fetchErr.message);
+                    }
+                    
+                    console.log('Course found:', course);
+                    
+                    // Display the course
                     document.getElementById('pv-loading').style.display = 'none';
-                    document.getElementById('pv-title').textContent = course.title;
+                    document.getElementById('pv-title').textContent = course.title || 'Untitled Course';
                     document.getElementById('pv-description').textContent = course.description || '';
-                    document.getElementById('pv-player').src = course.file_url;
+                    
+                    if (course.file_url) {
+                        document.getElementById('pv-player').src = course.file_url;
+                    } else {
+                        throw new Error('Course file URL not found');
+                    }
+                    
                 } catch (err) {
+                    console.error('Public view error:', err);
                     document.getElementById('pv-loading').style.display = 'none';
-                    const e = document.getElementById('pv-error');
-                    e.textContent = 'Error: ' + err.message;
-                    e.style.display = 'block';
+                    const errorEl = document.getElementById('pv-error');
+                    errorEl.textContent = 'Error: ' + err.message;
+                    errorEl.style.display = 'block';
                 }
             } else {
                 // Dashboard mode
@@ -182,6 +216,11 @@
         function copyURL(courseSlug) {
             const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
             navigator.clipboard.writeText(link).then(() => alert('Course link copied to clipboard!'));
+        }
+
+        function copyPublicLink(publicToken) {
+            const url = `${window.location.origin}/dashboard.html?token=${publicToken}`;
+            navigator.clipboard.writeText(url).then(() => alert('Public link copied to clipboard!'));
         }
 
         async function generatePublicLink(courseSlug) {
