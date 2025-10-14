@@ -31,7 +31,10 @@
         #pv-error { margin-top: 50px; color: red; display: none; }
         #pv-title { margin-top: 20px; color: #2c3e50; }
         #pv-description { color: #555; }
-        #pv-player { width: 100%; height: 600px; border: 1px solid #ddd; margin-top: 20px; }
+        #pv-player { width: 100%;
+  height: calc(100vh - 160px);  /* fill most of the viewport, accounting for header and padding */
+  border: none; 
+                    margin-top: 20px; }
     </style>
 </head>
 <body>
