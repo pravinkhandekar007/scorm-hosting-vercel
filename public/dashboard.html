@@ -31,7 +31,12 @@
         #pv-error { margin-top: 50px; color: red; display: none; }
         #pv-title { margin-top: 20px; color: #2c3e50; }
         #pv-description { color: #555; }
-        #pv-player { width: 100%; height: 600px; border: 1px solid #ddd; margin-top: 20px; }
+        #pv-player {
+            width: 100%;
+            height: calc(100vh - 160px);
+            border: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -69,57 +74,37 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbWV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
         if (typeof window.supabase === 'undefined') {
             console.error('Supabase library not loaded');
             alert('Error loading application. Please refresh the page.');
         } else {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
+
             document.addEventListener('DOMContentLoaded', async () => {
                 const params = new URLSearchParams(window.location.search);
                 const token = params.get('token');
-                
+
                 if (token) {
-                    // Public mode - hide dashboard, show viewer
                     document.getElementById('dashboard-ui').style.display = 'none';
                     document.getElementById('public-viewer').style.display = 'block';
-                    
+
                     try {
-                        console.log('Fetching course with token:', token);
-                        
-                        // Fetch the public course directly (no auth needed for public courses)
                         const { data: course, error: fetchErr } = await supabase
                             .from('courses')
                             .select('*')
                             .eq('public_token', token)
                             .eq('is_public', true)
                             .maybeSingle();
-                            
-                        if (fetchErr) {
-                            console.error('Fetch error:', fetchErr);
-                            throw new Error('Course not found or not public: ' + fetchErr.message);
-                        }
-                        
-                        if (!course) {
-                            throw new Error('Course not found or not public');
-                        }
-                        
-                        console.log('Course found:', course);
-                        
-                        // Display the course
+
+                        if (fetchErr) throw new Error(fetchErr.message);
+                        if (!course) throw new Error('Course not found or not public');
+
                         document.getElementById('pv-loading').style.display = 'none';
-                        document.getElementById('pv-title').textContent = course.title || 'Untitled Course';
+                        document.getElementById('pv-title').textContent = course.title;
                         document.getElementById('pv-description').textContent = course.description || '';
-                        
-                        // Use the course_slug to load via player.html (same as Launch button)
-                        if (course.course_slug) {
-                            document.getElementById('pv-player').src = `player.html?course=${encodeURIComponent(course.course_slug)}`;
-                        } else {
-                            throw new Error('Course slug not found');
-                        }
-                        
+                        document.getElementById('pv-player').src = `player.html?course=${encodeURIComponent(course.course_slug)}`;
                     } catch (err) {
                         console.error('Public view error:', err);
                         document.getElementById('pv-loading').style.display = 'none';
@@ -128,7 +113,6 @@
                         errorEl.style.display = 'block';
                     }
                 } else {
-                    // Dashboard mode
                     checkAuthAndLoadData();
                 }
             });
@@ -148,17 +132,20 @@
                 const coursesDiv = document.getElementById('courses-list');
                 loadingDiv.style.display = 'block';
                 coursesDiv.innerHTML = '';
+
                 try {
                     const { data: courses, error } = await supabase
                         .from('courses')
                         .select('course_slug, title, is_public, public_token')
                         .order('created_at', { ascending: false });
+
                     loadingDiv.style.display = 'none';
+
                     if (error) {
                         coursesDiv.innerHTML = `<div class="empty-state">Error: ${error.message}</div>`;
                         return;
                     }
-                    if (!courses || courses.length === 0) {
+                    if (!courses.length) {
                         coursesDiv.innerHTML = `
                             <div class="empty-state">
                                 <p>No courses uploaded yet.</p>
@@ -166,120 +153,89 @@
                             </div>`;
                         return;
                     }
-                    coursesDiv.innerHTML = courses.map(course => `
+
+                    coursesDiv.innerHTML = courses.map(c => `
                         <div class="course-item">
-                            <div class="course-title">${course.title}</div>
+                            <div class="course-title">${c.title}</div>
                             <div class="course-actions">
-                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
-                                   target="_blank" class="btn btn-small">▶️ Launch</a>
-                                <button class="btn btn-secondary btn-small"
-                                        onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
-                                <button class="btn btn-danger btn-small"
-                                        onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
+                                <a href="player.html?course=${encodeURIComponent(c.course_slug)}" target="_blank" class="btn btn-small">▶️ Launch</a>
+                                <button class="btn btn-secondary btn-small" onclick="copyURL('${c.course_slug}')">🔗 Copy URL</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCourse('${c.course_slug}')">🗑️ Delete</button>
                                 <div style="margin-left:10px;">
-                                    ${course.is_public
+                                    ${c.is_public
                                         ? `<span style="color:green;">🌐 Public</span>
-                                           <button class="btn btn-small btn-success"
-                                                   onclick="copyPublicLink('${course.public_token}')">
-                                                   Copy Public Link
-                                           </button>
-                                           <button class="btn btn-small btn-danger"
-                                                   onclick="revokePublicAccess('${course.course_slug}')">
-                                                   Revoke Public
-                                           </button>`
-                                        : `<button class="btn btn-small btn-success"
-                                                   onclick="generatePublicLink('${course.course_slug}')">
-                                                   Make Public
-                                           </button>`
+                                           <button class="btn btn-small btn-success" onclick="copyPublicLink('${c.public_token}')">Copy Public Link</button>
+                                           <button class="btn btn-small btn-danger" onclick="revokePublicAccess('${c.course_slug}')">Revoke Public</button>`
+                                        : `<button class="btn btn-small btn-success" onclick="generatePublicLink('${c.course_slug}')">Make Public</button>`
                                     }
                                 </div>
                             </div>
                         </div>
                     `).join('');
-                } catch (error) {
+                } catch (err) {
                     loadingDiv.style.display = 'none';
-                    coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${error.message}</div>`;
+                    coursesDiv.innerHTML = `<div class="empty-state">Error loading courses: ${err.message}</div>`;
                 }
             }
 
-            window.refreshCourses = async function() {
-                await loadCourses();
-            }
-
-            window.copyURL = function(courseSlug) {
-                const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
-                navigator.clipboard.writeText(link).then(() => alert('Course link copied to clipboard!'));
-            }
-
-            window.copyPublicLink = function(publicToken) {
-                const url = `${window.location.origin}/dashboard.html?token=${publicToken}`;
-                navigator.clipboard.writeText(url).then(() => alert('Public link copied to clipboard!'));
-            }
-
-            window.generatePublicLink = async function(courseSlug) {
+            window.refreshCourses = loadCourses;
+            window.copyURL = slug => {
+                navigator.clipboard.writeText(`${location.origin}/player.html?course=${encodeURIComponent(slug)}`).then(() => alert('Course link copied!'));
+            };
+            window.copyPublicLink = token => {
+                navigator.clipboard.writeText(`${location.origin}/dashboard.html?token=${token}`).then(() => alert('Public link copied!'));
+            };
+            window.generatePublicLink = async slug => {
                 try {
                     const { data, error } = await supabase
                         .from('courses')
                         .update({ is_public: true, public_created_at: new Date().toISOString() })
-                        .eq('course_slug', courseSlug)
+                        .eq('course_slug', slug)
                         .select('public_token')
                         .single();
                     if (error) throw error;
-                    const url = `${window.location.origin}/dashboard.html?token=${data.public_token}`;
+                    const url = `${location.origin}/dashboard.html?token=${data.public_token}`;
                     navigator.clipboard.writeText(url);
-                    alert('Public link copied to clipboard!');
+                    alert('Public link copied!');
                     loadCourses();
                 } catch (err) {
                     alert('Error: ' + err.message);
                 }
-            }
-
-            window.revokePublicAccess = async function(courseSlug) {
+            };
+            window.revokePublicAccess = async slug => {
                 if (!confirm('Revoke public access?')) return;
                 try {
                     const { error } = await supabase
                         .from('courses')
                         .update({ is_public: false })
-                        .eq('course_slug', courseSlug);
+                        .eq('course_slug', slug);
                     if (error) throw error;
                     alert('Public access revoked');
                     loadCourses();
                 } catch (err) {
                     alert('Error: ' + err.message);
                 }
-            }
-
-            window.deleteCourse = async function(courseSlug) {
-                if (!confirm("Are you sure you want to delete this course?")) return;
+            };
+            window.deleteCourse = async slug => {
+                if (!confirm('Delete this course?')) return;
                 const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    alert("Login required to delete courses.");
-                    return;
-                }
+                if (!session) return alert('Login required.');
                 try {
-                    const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(courseSlug)}`, {
-                        method: "DELETE",
-                        headers: {
-                            Authorization: `Bearer ${session.access_token}`
-                        }
+                    const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(slug)}`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `Bearer ${session.access_token}` }
                     });
-                    const result = await response.json();
-                    if (response.ok) {
-                        alert("Course deleted successfully.");
-                        loadCourses();
-                    } else {
-                        alert(`Delete failed: ${result.error || "Unknown error"}`);
-                    }
-                } catch (error) {
-                    alert("Delete error: " + error.message);
+                    if (!response.ok) throw new Error((await response.json()).error || 'Delete failed');
+                    alert('Course deleted.');
+                    loadCourses();
+                } catch (err) {
+                    alert('Error: ' + err.message);
                 }
-            }
-
-            window.logout = async function() {
-                const { error } = await supabase.auth.signOut();
-                if (error) console.error('Logout error:', error);
-                window.location.href = 'login.html';
-            }
+            };
+            window.logout = async () => {
+                await supabase.auth.signOut();
+                location.href = 'login.html';
+            };
         }
     </script>
 </body>
