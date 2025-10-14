@@ -66,14 +66,11 @@
         </div>
     </div>
 
-    <!-- Load Supabase first, then your script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
     <script>
-        // Wait for Supabase to load
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
         
-        // Check if Supabase is loaded
         if (typeof window.supabase === 'undefined') {
             console.error('Supabase library not loaded');
             alert('Error loading application. Please refresh the page.');
@@ -90,34 +87,23 @@
                     document.getElementById('public-viewer').style.display = 'block';
                     
                     try {
-                        console.log('Attempting anonymous sign-in...');
-                        
-                        // Check if already signed in anonymously
-                        const { data: { session } } = await supabase.auth.getSession();
-                        
-                        if (!session) {
-                            // Sign in anonymously
-                            const { data: authData, error: authErr } = await supabase.auth.signInAnonymously();
-                            if (authErr) {
-                                console.error('Auth error:', authErr);
-                                throw new Error('Authentication failed: ' + authErr.message);
-                            }
-                            console.log('Anonymous sign-in successful:', authData);
-                        }
-                        
                         console.log('Fetching course with token:', token);
                         
-                        // Fetch the public course
+                        // Fetch the public course directly (no auth needed for public courses)
                         const { data: course, error: fetchErr } = await supabase
                             .from('courses')
                             .select('*')
                             .eq('public_token', token)
                             .eq('is_public', true)
-                            .single();
+                            .maybeSingle();
                             
                         if (fetchErr) {
                             console.error('Fetch error:', fetchErr);
                             throw new Error('Course not found or not public: ' + fetchErr.message);
+                        }
+                        
+                        if (!course) {
+                            throw new Error('Course not found or not public');
                         }
                         
                         console.log('Course found:', course);
@@ -127,10 +113,11 @@
                         document.getElementById('pv-title').textContent = course.title || 'Untitled Course';
                         document.getElementById('pv-description').textContent = course.description || '';
                         
-                        if (course.file_url) {
-                            document.getElementById('pv-player').src = course.file_url;
+                        // Use the course_slug to load via player.html (same as Launch button)
+                        if (course.course_slug) {
+                            document.getElementById('pv-player').src = `player.html?course=${encodeURIComponent(course.course_slug)}`;
                         } else {
-                            throw new Error('Course file URL not found');
+                            throw new Error('Course slug not found');
                         }
                         
                     } catch (err) {
