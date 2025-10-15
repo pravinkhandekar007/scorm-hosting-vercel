@@ -47,7 +47,7 @@
       try {
         // 1. Fetch Edge Function JWT
         msg.textContent = 'Fetching access token…';
-        const resp = await fetch('/.netlify/functions/issue-public-jwt', {
+        const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/issue-public-jwt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ public_id: publicId }),
