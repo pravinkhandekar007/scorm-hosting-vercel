@@ -40,13 +40,31 @@
       msgElem.textContent = 'Fetching course metadata…';
 
       try {
-        // Fetch course metadata via edge function (uses anon key & RLS)
-        const res = await fetch(
-          `https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const course = await res.json();
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Prepare headers
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        // Add auth header if user is logged in
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
 
+        // Fetch course metadata via edge function
+        const res = await fetch(
+          `https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`,
+          { headers }
+        );
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+
+        const course = await res.json();
         titleElem.textContent = course.title || 'Untitled Course';
         msgElem.textContent   = 'Generating access URLs…';
 
@@ -57,8 +75,8 @@
           .from('scorm-courses')
           .createSignedUrl(manifestPath, 3600);
         if (manifestErr) throw manifestErr;
-        msgElem.textContent = 'Fetching manifest…';
 
+        msgElem.textContent = 'Fetching manifest…';
         const mfRes = await fetch(manifestData.signedUrl);
         if (!mfRes.ok) throw new Error(`HTTP ${mfRes.status}`);
         const manifestText = await mfRes.text();
@@ -76,7 +94,6 @@
         }
 
         msgElem.textContent = 'Generating launch URL…';
-
         const launchPath = `${courseSlug}/${launchFile}`;
         const { data: launchData, error: launchErr } = await supabase
           .storage
