@@ -1,6 +1,15 @@
 {
   "headers": [
     {
+      "source": "/public.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://mfooewemvofleynanjkb.supabase.co; style-src 'self' 'unsafe-inline'; frame-src 'self' https://mfooewemvofleynanjkb.supabase.co;"
+        }
+      ]
+    },
+    {
       "source": "/scorm-content/(.*)",
       "headers": [
         {
