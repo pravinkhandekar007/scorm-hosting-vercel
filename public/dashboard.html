@@ -94,7 +94,7 @@
         await supabase.auth.signIn({ provider: 'anonymous' });
 
         // Set session to custom JWT with public_id claim
-        const resp = await fetch('/.netlify/functions/issue-public-jwt', {
+        const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/issue-public-jwt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ public_id: token })
