@@ -20,74 +20,80 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     (async () => {
-      const msg = document.getElementById('message');
-      const frame = document.getElementById('courseFrame');
+      const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
       const titleElem = document.getElementById('course-title');
-      const params = new URLSearchParams(window.location.search);
+      const msgElem   = document.getElementById('message');
+      const frame     = document.getElementById('courseFrame');
+      const params    = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
 
       if (!courseSlug) {
         titleElem.textContent = 'Error';
-        msg.textContent = 'Error: Missing course slug.';
+        msgElem.textContent   = 'Error: Missing course slug.';
         return;
       }
 
-      msg.textContent = 'Fetching course metadata…';
-
-      const { data: { session } } = await supabase.auth.getSession();
+      msgElem.textContent = 'Fetching course metadata…';
 
       try {
-        const headers = {};
-        if (session && session.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-
-        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
-          headers,
-        });
-
+        // Fetch course metadata via edge function (uses anon key & RLS)
+        const res = await fetch(
+          `https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         const course = await res.json();
 
-        // Set the course title only (no static label)
         titleElem.textContent = course.title || 'Untitled Course';
+        msgElem.textContent   = 'Generating access URLs…';
 
-        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+        // Generate signed URL for imsmanifest.xml
+        const manifestPath = `${courseSlug}/imsmanifest.xml`;
+        const { data: manifestData, error: manifestErr } = await supabase
+          .storage
+          .from('scorm-courses')
+          .createSignedUrl(manifestPath, 3600);
+        if (manifestErr) throw manifestErr;
+        msgElem.textContent = 'Fetching manifest…';
 
-        msg.textContent = 'Fetching manifest…';
+        const mfRes = await fetch(manifestData.signedUrl);
+        if (!mfRes.ok) throw new Error(`HTTP ${mfRes.status}`);
+        const manifestText = await mfRes.text();
 
-        const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
+        msgElem.textContent = 'Parsing manifest…';
 
-        const manifestText = await mf.text();
-
-        msg.textContent = 'Parsing manifest…';
-
+        // Determine launch file
         let launchFile = course.launch_url || 'index.html';
         try {
           const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
           const resource = xml.querySelector('resource[href]');
           if (resource) launchFile = resource.getAttribute('href');
         } catch {
-          // fallback
+          // fallback to default
         }
 
-        msg.textContent = 'Launching course…';
+        msgElem.textContent = 'Generating launch URL…';
 
-        frame.src = proxyBaseUrl + launchFile;
+        const launchPath = `${courseSlug}/${launchFile}`;
+        const { data: launchData, error: launchErr } = await supabase
+          .storage
+          .from('scorm-courses')
+          .createSignedUrl(launchPath, 3600);
+        if (launchErr) throw launchErr;
+
+        msgElem.textContent = 'Launching course…';
+        frame.src = launchData.signedUrl;
         frame.style.display = 'block';
-        msg.style.display = 'none';
+        msgElem.style.display = 'none';
+
       } catch (err) {
         console.error(err);
         titleElem.textContent = 'Error';
-        msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
+        msgElem.textContent   = `Failed to load course: ${err.message}`;
+        frame.style.display   = 'none';
       }
     })();
   </script>
