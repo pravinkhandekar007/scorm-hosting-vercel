@@ -17,7 +17,7 @@
     style-src 'self' 'unsafe-inline';
     frame-src 'self' https://mfooewemvofleynanjkb.supabase.co;
   ">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="container">
@@ -45,22 +45,21 @@
       }
 
       try {
-        msg.textContent = 'Signing in anonymously…';
-        const { error: anonErr } = await supabase.auth.signIn({ provider: 'anonymous' });
-        if (anonErr) throw anonErr;
-
+        // 1. Fetch Edge Function JWT
         msg.textContent = 'Fetching access token…';
-        const res = await fetch('/.netlify/functions/issue-public-jwt', {
+        const resp = await fetch('/.netlify/functions/issue-public-jwt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ public_id: publicId }),
         });
-        if (!res.ok) throw new Error('Failed to get access token');
-        const { access_token, error: tokenError } = await res.json();
+        if (!resp.ok) throw new Error('Failed to get access token');
+        const { access_token, error: tokenError } = await resp.json();
         if (tokenError || !access_token) throw new Error(tokenError || 'No token returned');
 
+        // 2. Set Supabase session directly
         await supabase.auth.setSession({ access_token });
 
+        // 3. Load course metadata
         msg.textContent = 'Loading course metadata…';
         const { data: course, error: courseErr } = await supabase
           .from('courses')
@@ -70,24 +69,23 @@
 
         titleElem.textContent = course.title || 'Untitled Course';
 
+        // 4. Fetch and parse SCORM manifest
         const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
-
         msg.textContent = 'Fetching manifest…';
-        const mfResponse = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if (!mfResponse.ok) throw new Error(`Failed to fetch manifest: HTTP ${mfResponse.status}`);
-
-        const manifestText = await mfResponse.text();
-
+        const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
+        if (!mf.ok) throw new Error(`Manifest fetch failed: HTTP ${mf.status}`);
+        const manifestText = await mf.text();
         msg.textContent = 'Parsing manifest…';
         let launchFile = course.launch_url || 'index.html';
         try {
-          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
-          const resource = xml.querySelector('resource[href]');
-          if (resource) launchFile = resource.getAttribute('href');
+          const xmlDoc = new DOMParser().parseFromString(manifestText, 'application/xml');
+          const resElem = xmlDoc.querySelector('resource[href]');
+          if (resElem) launchFile = resElem.getAttribute('href');
         } catch {
-          // fallback silently
+          // ignore parse errors
         }
 
+        // 5. Launch SCORM content in iframe
         msg.textContent = 'Launching course…';
         frame.src = proxyBaseUrl + launchFile;
         frame.style.display = 'block';
@@ -97,7 +95,6 @@
         console.error(err);
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
       }
     })();
   </script>
