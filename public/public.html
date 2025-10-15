@@ -2,71 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://<YOUR-SUPABASE-URL>;">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Public Course</title>
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-    // Initialize Supabase client
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Extract public_id from URL, e.g., /public.html?public_id=abc123
-    const params = new URLSearchParams(window.location.search);
-    const public_id = params.get('public_id');
-    if (!public_id) {
-      document.body.textContent = 'Invalid public link.';
-      throw new Error('Missing public_id');
-    }
-
-    // Main async flow
-    (async () => {
-      // 1. Sign in anonymously
-      const { error: anonErr } = await supabase.auth.signIn({ provider: 'anonymous' });
-      if (anonErr) {
-        document.body.textContent = 'Anonymous sign-in failed.';
-        console.error(anonErr);
-        return;
-      }
-
-      // 2. Fetch custom JWT with embedded public_id
-      const resp = await fetch('/.netlify/functions/issue-public-jwt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id }),
-      });
-      const { access_token, error: jwtErr } = await resp.json();
-      if (jwtErr || !access_token) {
-        document.body.textContent = 'Failed to obtain public token.';
-        console.error(jwtErr);
-        return;
-      }
-
-      // 3. Set session with new JWT
-      await supabase.auth.setSession({ access_token });
-
-      // 4. Query course metadata
-      const { data: course, error: courseErr } = await supabase
-        .from('courses')
-        .select('*')
-        .single();
-      if (courseErr || !course) {
-        document.body.textContent = 'Course not found or access denied.';
-        console.error(courseErr);
-        return;
-      }
-
-      // 5. Render course launch (example: iframe)
-      document.body.innerHTML = `
-        <h1>${course.title}</h1>
-        <iframe src="${course.scorm_url}" width="800" height="600"></iframe>
-      `;
-    })();
-  </script>
+  <title>Public SCORM Course Player</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
+    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
+    #message { padding: 20px; text-align: center; color: #333; }
+    iframe { width: 100%; height: 80vh; border: none; display: none; }
+  </style>
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          script-src 'self' https://cdn.jsdelivr.net;
+          connect-src 'self' https://mfooewemvofleynanjkb.supabase.co;
+          style-src 'self' 'unsafe-inline';
+          frame-src 'self' https://mfooewemvofleynanjkb.supabase.co;
+        ">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <p>Loading course…</p>
+  <div id="container">
+    <h2 id="course-title">Loading…</h2>
+    <div id="message">Loading…</div>
+    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (async () => {
+      const msg = document.getElementById('message');
+      const frame = document.getElementById('courseFrame');
+      const titleElem = document.getElementById('course-title');
+      const params = new URLSearchParams(window.location.search);
+      const publicId = params.get('public_id');
+
+      if (!publicId) {
+        titleElem.textContent = 'Error';
+        msg.textContent = 'Missing public_id in URL.';
+        return;
+      }
+
+      msg.textContent = 'Signing in anonymously…';
+
+      try {
+        // Sign in anonymously to Supabase
+        const { error: anonErr } = await supabase.auth.signIn({ provider: 'anonymous' });
+        if (anonErr) throw anonErr;
+
+        // Request custom JWT with embedded public_id claim
+        const res = await fetch('/.netlify/functions/issue-public-jwt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ public_id: publicId }),
+        });
+        if (!res.ok) throw new Error('Failed to get access token from server');
+
+        const { access_token, error: tokenError } = await res.json();
+        if (tokenError || !access_token) throw new Error(tokenError || 'No token returned');
+
+        // Set custom session JWT
+        await supabase.auth.setSession({ access_token });
+
+        msg.textContent = 'Fetching course metadata…';
+
+        // Fetch course metadata - only course with matching public_id accessible by RLS policy
+        const { data: course, error: courseErr } = await supabase
+          .from('courses')
+          .select('*')
+          .single();
+
+        if (courseErr || !course) throw courseErr || new Error('Course not found');
+
+        titleElem.textContent = course.title || 'Untitled Course';
+
+        // Build URL to SCORM content stored in Supabase or proxy
+        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+
+        msg.textContent = 'Fetching manifest…';
+        const mfResponse = await fetch(proxyBaseUrl + 'imsmanifest.xml');
+        if (!mfResponse.ok) throw new Error(`Failed to fetch manifest: HTTP ${mfResponse.status}`);
+
+        const manifestText = await mfResponse.text();
+
+        msg.textContent = 'Parsing manifest…';
+
+        let launchFile = course.launch_url || 'index.html';
+        try {
+          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
+          const resource = xml.querySelector('resource[href]');
+          if (resource) launchFile = resource.getAttribute('href');
+        } catch {
+          // fallback to default if parsing fails
+        }
+
+        msg.textContent = 'Launching course…';
+
+        frame.src = proxyBaseUrl + launchFile;
+        frame.style.display = 'block';
+        msg.style.display = 'none';
+
+      } catch (err) {
+        console.error(err);
+        titleElem.textContent = 'Error';
+        msg.textContent = `Failed to load course: ${err.message}`;
+        frame.style.display = 'none';
+      }
+    })();
+  </script>
 </body>
 </html>
