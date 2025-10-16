@@ -27,6 +27,7 @@
     .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
     .status-public { background-color: #d4edda; color: #155724; }
     .status-private { background-color: #e2e3e5; color: #383d41; }
+    .timestamp { font-size: 12px; color: #6c757d; margin-left: 8px; }
     #loading { text-align: center; color: #6c757d; padding: 40px; }
     .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
     .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
@@ -57,7 +58,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -65,11 +66,8 @@
     });
 
     async function checkAuthAndLoadData() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html';
-        return;
-      }
+      const { data:{ session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = 'login.html';
       document.getElementById('user-email').textContent = session.user.email;
       await loadCourses();
     }
@@ -81,7 +79,7 @@
 
       const { data: courses, error } = await supabase
         .from('courses')
-        .select('course_slug, title, is_public, public_token, created_at')
+        .select('course_slug, title, is_public, public_token, public_created_at')
         .order('created_at', { ascending: false });
 
       document.getElementById('loading').style.display = 'none';
@@ -111,6 +109,9 @@
             <span class="status-badge ${course.is_public ? 'status-public' : 'status-private'}">
               ${course.is_public ? '🌐 Public' : '🔒 Private'}
             </span>
+            ${course.is_public && course.public_created_at 
+              ? `<span class="timestamp">since ${new Date(course.public_created_at).toLocaleDateString()}</span>` 
+              : ''}
             <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                target="_blank" class="btn btn-small">▶️ Launch</a>
             <button class="btn btn-secondary btn-small"
@@ -132,44 +133,32 @@
     function copyPrivateURL(slug) {
       const url = `${window.location.origin}/player.html?course=${encodeURIComponent(slug)}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert('✅ Private course URL copied to clipboard!\n\nThis link requires login to access.');
+        alert('✅ Private URL copied! (requires login)');
       });
     }
 
     function copyPublicLink(token) {
       const url = `${window.location.origin}/public.html?public_token=${token}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert('✅ Public link copied to clipboard!\n\nThis link can be accessed by anyone without login.');
+        alert('✅ Public link copied! Accessible by anyone.');
       });
     }
 
     async function deleteCourse(slug) {
-      if (!confirm('⚠️ Are you sure you want to delete this course?\n\nThis action cannot be undone.')) return;
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('❌ Login required to delete courses.');
-        return;
-      }
-
+      if (!confirm('⚠️ Delete this course? This cannot be undone.')) return;
+      const { data:{ session } } = await supabase.auth.getSession();
+      if (!session) return alert('❌ Login required.');
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(slug)}`, {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(slug)}`, {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
+          headers: { Authorization: `Bearer ${session.access_token}` }
         });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.error || 'Unknown error');
-        }
-        
-        alert('✅ Course deleted successfully.');
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error||'Delete failed');
+        alert('✅ Deleted successfully.');
         await loadCourses();
-      } catch (error) {
-        alert(`❌ Delete failed: ${error.message}`);
+      } catch (err) {
+        alert('❌ ' + err.message);
       }
     }
 
