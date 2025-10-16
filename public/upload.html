@@ -62,7 +62,6 @@
 
       <label>Course Visibility:</label>
       <p style="font-size:14px;color:#6c757d;">⚠️ <strong>Important:</strong> This setting is permanent.</p>
-
       <div class="visibility-option selected" onclick="selectVisibility('private')">
         <label>
           <input type="radio" name="visibility" value="private" checked>
@@ -81,7 +80,6 @@
           </div>
         </label>
       </div>
-
       <div id="public-warning" class="warning-box" style="display:none;">
         ⚠️ Public courses are accessible by anyone with the link.
       </div>
@@ -114,8 +112,8 @@
       const opt = event.currentTarget;
       opt.classList.add('selected');
       opt.querySelector('input[type="radio"]').checked = true;
-      document.getElementById('public-warning').style.display = type==='public'?'block':'none';
-      document.getElementById('private-info').style.display = type==='public'?'none':'block';
+      document.getElementById('public-warning').style.display = type === 'public' ? 'block' : 'none';
+      document.getElementById('private-info').style.display = type === 'public' ? 'none' : 'block';
     }
 
     document.querySelectorAll('input[name="visibility"]').forEach(radio => {
@@ -127,14 +125,19 @@
       const info = document.getElementById('login-info');
       const uploadBtn = document.getElementById('upload-button');
       const logoutBtn = document.getElementById('logout-button');
+
       if (session && session.user) {
         info.textContent = `Logged in as: ${session.user.email}`;
-        info.style.backgroundColor = '#d4edda'; info.style.color = '#155724';
-        uploadBtn.disabled = false; logoutBtn.style.display = 'block';
+        info.style.backgroundColor = '#d4edda';
+        info.style.color = '#155724';
+        uploadBtn.disabled = false;
+        logoutBtn.style.display = 'block';
       } else {
-        info.innerHTML = 'Not logged in. <a href="login.html">Log In/Sign Up</a>';
-        info.style.backgroundColor = '#f8d7da'; info.style.color = '#721c24';
-        uploadBtn.disabled = true; logoutBtn.style.display = 'none';
+        info.innerHTML = 'You are not logged in. <a href="login.html">Click here to Log In/Sign Up.</a>';
+        info.style.backgroundColor = '#f8d7da';
+        info.style.color = '#721c24';
+        uploadBtn.disabled = true;
+        logoutBtn.style.display = 'none';
       }
     }
 
@@ -147,85 +150,99 @@
       const file = document.getElementById('scorm-file').files[0];
       const title = document.getElementById('course-title').value.trim();
       const retention = document.getElementById('retention-period').value;
-      const isPublic = document.querySelector('input[name="visibility"]:checked').value==='public';
+      const isPublic = document.querySelector('input[name="visibility"]:checked').value === 'public';
       const status = document.getElementById('upload-status');
       const resultLinks = document.getElementById('result-links');
       const launchLink = document.getElementById('launch-link');
       const copyPubBtn = document.getElementById('copy-public-link-btn');
       const uploadBtn = document.getElementById('upload-button');
 
-      status.textContent=''; resultLinks.style.display='none';
-      if (!file||!title||!retention) {
-        status.textContent='⚠️ Fill all fields.'; status.style.color='red'; return;
+      status.textContent = ''; resultLinks.style.display = 'none';
+
+      if (!file || !title || !retention) {
+        status.textContent = '⚠️ Please fill all required fields.'; status.style.color = 'red'; return;
       }
 
       const { data:{ session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        status.textContent='⚠️ Login required.'; status.style.color='red'; return;
+        status.textContent = '⚠️ Login required.'; status.style.color = 'red'; return;
       }
+
       const user = session.user;
       let slug = `course-${Date.now()}-${crypto.randomUUID()}`;
-      const publicToken = isPublic?crypto.randomUUID():null;
+      const publicToken = isPublic ? crypto.randomUUID() : null;
       const now = new Date().toISOString();
 
       try {
-        uploadBtn.disabled=true; uploadBtn.textContent='Uploading...';
-        status.textContent='📤 Uploading package...'; status.style.color='#007bff';
+        uploadBtn.disabled = true; uploadBtn.textContent = 'Uploading...';
+        status.textContent = '📤 Uploading package...'; status.style.color = '#007bff';
 
         const encTitle = encodeURIComponent(title);
         const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${slug}&retention_days=${retention}&courseTitle=${encTitle}`;
-        const res = await fetch(uploadUrl,{
-          method:'POST',
-          headers:{ Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/octet-stream' },
-          body:file
+        const res = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/octet-stream'
+          },
+          body: file
         });
         if (!res.ok) throw new Error(`Upload error ${res.status}`);
 
-        status.textContent='💾 Saving metadata...';
+        status.textContent = '💾 Saving metadata...';
 
         const metadata = {
-          course_slug:null, package_path:null, title, launch_url:'index.html',
-          expires_at:new Date(Date.now()+retention*24*60*60*1000).toISOString(),
-          user_id:user.id, is_public:isPublic,
-          public_token:publicToken, public_id:publicToken, public_created_at:isPublic?now:null
+          course_slug: null, package_path: null, title,
+          launch_url: 'index.html',
+          expires_at: new Date(Date.now() + retention * 24 * 60 * 60 * 1000).toISOString(),
+          user_id: user.id,
+          is_public: isPublic,
+          public_token: publicToken,
+          public_id: publicToken,
+          public_created_at: isPublic ? now : null
         };
 
-        let insertRes, attempt=0, maxRetries=3;
-        while (attempt<maxRetries) {
+        let insertRes, attempt = 0, maxRetries = 3;
+        while (attempt < maxRetries) {
           metadata.course_slug = slug;
           metadata.package_path = slug;
+
           insertRes = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
-            method:'POST',
-            headers:{
-              apikey:SUPABASE_ANON_KEY,
-              Authorization:`Bearer ${session.access_token}`,
-              'Content-Type':'application/json','Prefer':'return=minimal'
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
             },
-            body:JSON.stringify(metadata)
+            body: JSON.stringify(metadata)
           });
-          if (insertRes.status===201) break;
-          if (insertRes.status===409) {
-            attempt++; slug = `course-${Date.now()}-${crypto.randomUUID()}`;
+
+          if (insertRes.status === 201) break;
+          if (insertRes.status === 409) {
+            attempt++;
+            slug = `course-${Date.now()}-${crypto.randomUUID()}`;
             continue;
           }
           throw new Error(`Metadata error ${insertRes.status}`);
         }
-        if (!insertRes || insertRes.status!==201) {
-          throw new Error('Unable to generate unique slug after retries');
+
+        if (!insertRes || insertRes.status !== 201) {
+          throw new Error('Unable to generate unique slug after multiple attempts.');
         }
 
-        status.textContent=`✅ "${title}" uploaded successfully.`; status.style.color='green';
-        uploadBtn.style.display='none';
-        document.getElementById('scorm-file').disabled=true;
-        document.getElementById('course-title').disabled=true;
-        document.getElementById('retention-period').disabled=true;
-        document.querySelectorAll('input[name="visibility"]').forEach(r=>r.disabled=true);
+        status.textContent = `✅ "${title}" uploaded successfully.`; status.style.color = 'green';
+        uploadBtn.style.display = 'none';
+        document.getElementById('scorm-file').disabled = true;
+        document.getElementById('course-title').disabled = true;
+        document.getElementById('retention-period').disabled = true;
+        document.querySelectorAll('input[name="visibility"]').forEach(r => r.disabled = true);
 
         const playerUrl = `player.html?course=${slug}`;
-        launchLink.href = playerUrl; resultLinks.style.display='flex';
+        launchLink.href = playerUrl; resultLinks.style.display = 'flex';
 
-        if (isPublic&&publicToken) {
-          copyPubBtn.style.display='block';
+        if (isPublic && publicToken) {
+          copyPubBtn.style.display = 'block';
           copyPubBtn.onclick = () => {
             const pubUrl = `${window.location.origin}/public.html?public_token=${publicToken}`;
             navigator.clipboard.writeText(pubUrl);
@@ -235,9 +252,28 @@
 
         document.getElementById('upload-another-button').onclick = () => {
           document.getElementById('upload-form').reset();
-          status.textContent=''; status.style.color='';
-          resultLinks.style.display='none'; copyPubBtn.style.display='none';
-          uploadBtn.style.display='block'; uploadBtn.disabled=false; uploadBtn.textContent='Upload Course';
-          document.getElementById('scorm-file').disabled=false;
-          document.getElementById('course-title').disabled=false;
-          document.get
+          status.textContent = ''; status.style.color = '';
+          resultLinks.style.display = 'none'; copyPubBtn.style.display = 'none';
+          uploadBtn.style.display = 'block'; uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Course';
+          document.getElementById('scorm-file').disabled = false;
+          document.getElementById('course-title').disabled = false;
+          document.getElementById('retention-period').disabled = false;
+          document.querySelectorAll('input[name="visibility"]').forEach(r => r.disabled = false);
+          document.querySelectorAll('.visibility-option').forEach(opt => opt.classList.remove('selected'));
+          document.querySelector('.visibility-option').classList.add('selected');
+          document.getElementById('public-warning').style.display = 'none';
+          document.getElementById('private-info').style.display = 'block';
+        };
+
+      } catch (err) {
+        status.textContent = `❌ ${err.message}`; status.style.color = 'red';
+        uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Course';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>
