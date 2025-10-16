@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Uploader</title>
   <style>
+    /* Same styling as before */
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
     .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     h2 { text-align: center; color: #1e1e1e; }
@@ -62,6 +63,7 @@
 
       <label>Course Visibility:</label>
       <p style="font-size:14px;color:#6c757d;">⚠️ <strong>Important:</strong> This setting is permanent.</p>
+
       <div class="visibility-option selected" onclick="selectVisibility('private')">
         <label>
           <input type="radio" name="visibility" value="private" checked>
@@ -76,7 +78,7 @@
           <input type="radio" name="visibility" value="public">
           <div>
             <div class="option-title">🌐 Public</div>
-            <div class="option-desc">Anyone with the link can view this course</div>
+            <div class="option-desc">Anyone with the link can view this course without login</div>
           </div>
         </label>
       </div>
@@ -121,7 +123,7 @@
     });
 
     async function checkAuth() {
-      const { data:{ session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const info = document.getElementById('login-info');
       const uploadBtn = document.getElementById('upload-button');
       const logoutBtn = document.getElementById('logout-button');
@@ -157,28 +159,37 @@
       const copyPubBtn = document.getElementById('copy-public-link-btn');
       const uploadBtn = document.getElementById('upload-button');
 
-      status.textContent = ''; resultLinks.style.display = 'none';
+      status.textContent = '';
+      resultLinks.style.display = 'none';
 
       if (!file || !title || !retention) {
-        status.textContent = '⚠️ Please fill all required fields.'; status.style.color = 'red'; return;
+        status.textContent = '⚠️ Please fill all required fields.';
+        status.style.color = 'red';
+        return;
       }
 
-      const { data:{ session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        status.textContent = '⚠️ Login required.'; status.style.color = 'red'; return;
+        status.textContent = '⚠️ Login required.';
+        status.style.color = 'red';
+        return;
       }
 
       const user = session.user;
+      const bucketName = isPublic ? 'public-courses' : 'private-courses';
       let slug = `course-${Date.now()}-${crypto.randomUUID()}`;
       const publicToken = isPublic ? crypto.randomUUID() : null;
       const now = new Date().toISOString();
 
       try {
-        uploadBtn.disabled = true; uploadBtn.textContent = 'Uploading...';
-        status.textContent = '📤 Uploading package...'; status.style.color = '#007bff';
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading...';
+        status.textContent = '📤 Uploading package...';
+        status.style.color = '#007bff';
 
         const encTitle = encodeURIComponent(title);
-        const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${slug}&retention_days=${retention}&courseTitle=${encTitle}`;
+        const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${slug}&bucket=${bucketName}&retention_days=${retention}&courseTitle=${encTitle}`;
+
         const res = await fetch(uploadUrl, {
           method: 'POST',
           headers: {
@@ -187,26 +198,29 @@
           },
           body: file
         });
-        if (!res.ok) throw new Error(`Upload error ${res.status}`);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Upload error ${res.status} - ${errorText}`);
+        }
 
         status.textContent = '💾 Saving metadata...';
 
         const metadata = {
-          course_slug: null, package_path: null, title,
+          course_slug: slug,
+          title,
+          package_path: slug,
+          bucket_name: bucketName,
           launch_url: 'index.html',
           expires_at: new Date(Date.now() + retention * 24 * 60 * 60 * 1000).toISOString(),
           user_id: user.id,
           is_public: isPublic,
           public_token: publicToken,
-          public_id: publicToken,
           public_created_at: isPublic ? now : null
         };
 
         let insertRes, attempt = 0, maxRetries = 3;
         while (attempt < maxRetries) {
-          metadata.course_slug = slug;
-          metadata.package_path = slug;
-
           insertRes = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
             method: 'POST',
             headers: {
@@ -222,6 +236,8 @@
           if (insertRes.status === 409) {
             attempt++;
             slug = `course-${Date.now()}-${crypto.randomUUID()}`;
+            metadata.course_slug = slug;
+            metadata.package_path = slug;
             continue;
           }
           throw new Error(`Metadata error ${insertRes.status}`);
@@ -231,7 +247,9 @@
           throw new Error('Unable to generate unique slug after multiple attempts.');
         }
 
-        status.textContent = `✅ "${title}" uploaded successfully.`; status.style.color = 'green';
+        status.textContent = `✅ "${title}" uploaded successfully.`;
+        status.style.color = 'green';
+
         uploadBtn.style.display = 'none';
         document.getElementById('scorm-file').disabled = true;
         document.getElementById('course-title').disabled = true;
@@ -239,7 +257,8 @@
         document.querySelectorAll('input[name="visibility"]').forEach(r => r.disabled = true);
 
         const playerUrl = `player.html?course=${slug}`;
-        launchLink.href = playerUrl; resultLinks.style.display = 'flex';
+        launchLink.href = playerUrl;
+        resultLinks.style.display = 'flex';
 
         if (isPublic && publicToken) {
           copyPubBtn.style.display = 'block';
@@ -252,9 +271,13 @@
 
         document.getElementById('upload-another-button').onclick = () => {
           document.getElementById('upload-form').reset();
-          status.textContent = ''; status.style.color = '';
-          resultLinks.style.display = 'none'; copyPubBtn.style.display = 'none';
-          uploadBtn.style.display = 'block'; uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Course';
+          status.textContent = '';
+          status.style.color = '';
+          resultLinks.style.display = 'none';
+          copyPubBtn.style.display = 'none';
+          uploadBtn.style.display = 'block';
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Upload Course';
           document.getElementById('scorm-file').disabled = false;
           document.getElementById('course-title').disabled = false;
           document.getElementById('retention-period').disabled = false;
@@ -266,8 +289,10 @@
         };
 
       } catch (err) {
-        status.textContent = `❌ ${err.message}`; status.style.color = 'red';
-        uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Course';
+        status.textContent = `❌ ${err.message}`;
+        status.style.color = 'red';
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload Course';
       }
     }
 
@@ -275,5 +300,4 @@
       checkAuth();
     });
   </script>
-</body>
-</html>
+</
