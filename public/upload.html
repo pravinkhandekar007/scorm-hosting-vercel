@@ -1,303 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>SCORM Course Uploader</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
-  .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-  h2 { text-align: center; color: #1e1e1e; }
-  label { display: block; margin-top: 15px; font-weight: bold; }
-  input[type="text"], input[type="file"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-  input[type="file"] { padding: 5px; }
-  button, .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; text-align: center; text-decoration: none; display: inline-block; box-sizing: border-box; }
-  button:hover, .btn:hover { background-color: #0056b3; }
-  button:disabled { background-color: #ccc; cursor: not-allowed; }
-  .btn-secondary { background-color: #6c757d; }
-  .btn-secondary:hover { background-color: #5a6268; }
-  #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
-  #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
-  #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
-  #logout-button:hover { background-color: #c82333; }
-  .nav-link { text-align: center; margin-bottom: 20px; }
-  .nav-link a { color: #007bff; text-decoration: none; }
-  .action-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-  .action-buttons .btn { width: 100%; }
-  .visibility-option { margin-top: 10px; padding: 15px; border: 2px solid #e9ecef; border-radius: 4px; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s; }
-  .visibility-option:hover { border-color: #007bff; background-color: #e7f3ff; }
-  .visibility-option.selected { border-color: #007bff; background-color: #e7f3ff; }
-  .visibility-option label { margin-top: 0; display: flex; align-items: flex-start; cursor: pointer; }
-  .visibility-option input[type="radio"] { margin-right: 10px; margin-top: 3px; }
-  .visibility-option .option-title { font-weight: bold; color: #2c3e50; }
-  .visibility-option .option-desc { font-size: 14px; color: #6c757d; margin-top: 5px; }
-  .warning-box { background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 15px; color: #856404; font-size: 14px; line-height: 1.5; }
-  .info-box { background-color: #d1ecf1; border: 1px solid #17a2b8; border-radius: 4px; padding: 12px; margin-top: 15px; color: #0c5460; font-size: 14px; line-height: 1.5; }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <title>SCORM Course Uploader</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #1e1e1e; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input[type="text"], input[type="file"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    input[type="file"] { padding: 5px; }
+    button, .btn { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; transition: background-color 0.3s; text-align: center; text-decoration: none; box-sizing: border-box; }
+    button:hover, .btn:hover { background-color: #0056b3; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .btn-secondary { background-color: #6c757d; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    #upload-status { margin-top: 15px; text-align: center; font-weight: bold; }
+    #login-info { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; text-align: center; }
+    #logout-button { background-color: #dc3545; width: auto; padding: 8px 15px; float: right; margin-top: -30px; }
+    #logout-button:hover { background-color: #c82333; }
+    .nav-link { text-align: center; margin-bottom: 20px; }
+    .nav-link a { color: #007bff; text-decoration: none; }
+    .action-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .action-buttons .btn { width: 100%; }
+    .visibility-option { margin-top: 10px; padding: 15px; border: 2px solid #e9ecef; border-radius: 4px; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s; }
+    .visibility-option:hover { border-color: #007bff; background-color: #e7f3ff; }
+    .visibility-option.selected { border-color: #007bff; background-color: #e7f3ff; }
+    .visibility-option label { display: flex; align-items: flex-start; cursor: pointer; }
+    .visibility-option input[type="radio"] { margin-right: 10px; margin-top: 3px; }
+    .option-title { font-weight: bold; color: #2c3e50; }
+    .option-desc { font-size: 14px; color: #6c757d; margin-top: 5px; }
+    .warning-box { background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 15px; color: #856404; font-size: 14px; }
+    .info-box { background-color: #d1ecf1; border: 1px solid #17a2b8; border-radius: 4px; padding: 12px; margin-top: 15px; color: #0c5460; font-size: 14px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="container">
-  <button id="logout-button" style="display:none;" onclick="logout()">Log Out</button>
-  <div class="nav-link">
-    <a href="dashboard.html">&larr; Back to Dashboard</a>
+  <div class="container">
+    <button id="logout-button" style="display:none;" onclick="logout()">Log Out</button>
+    <div class="nav-link">
+      <a href="dashboard.html">&larr; Back to Dashboard</a>
+    </div>
+    <h2>Upload SCORM Package</h2>
+    <div id="login-info">Checking authentication...</div>
+
+    <form id="upload-form">
+      <label for="course-title">Course Title:</label>
+      <input type="text" id="course-title" placeholder="Enter course title" required />
+
+      <label for="retention-period">Retention Period:</label>
+      <select id="retention-period" required>
+        <option value="0.0417">1 hour</option>
+        <option value="1">1 day</option>
+        <option value="7">1 week</option>
+        <option value="30" selected>1 month</option>
+        <option value="60">2 months</option>
+        <option value="90">3 months</option>
+        <option value="180">6 months</option>
+        <option value="360">12 months</option>
+      </select>
+
+      <label>Course Visibility:</label>
+      <p style="font-size:14px;color:#6c757d;">⚠️ <strong>Important:</strong> This setting is permanent.</p>
+
+      <div class="visibility-option selected" onclick="selectVisibility('private')">
+        <label>
+          <input type="radio" name="visibility" value="private" checked>
+          <div>
+            <div class="option-title">🔒 Private</div>
+            <div class="option-desc">Only you can access this course when logged in</div>
+          </div>
+        </label>
+      </div>
+      <div class="visibility-option" onclick="selectVisibility('public')">
+        <label>
+          <input type="radio" name="visibility" value="public">
+          <div>
+            <div class="option-title">🌐 Public</div>
+            <div class="option-desc">Anyone with the link can view this course</div>
+          </div>
+        </label>
+      </div>
+
+      <div id="public-warning" class="warning-box" style="display:none;">
+        ⚠️ Public courses are accessible by anyone with the link.
+      </div>
+      <div id="private-info" class="info-box">
+        ℹ️ Private courses require login to access.
+      </div>
+
+      <label for="scorm-file">SCORM ZIP File (with imsmanifest.xml):</label>
+      <input type="file" id="scorm-file" accept=".zip" required />
+
+      <button type="button" onclick="uploadFile()" id="upload-button" disabled>Upload Course</button>
+    </form>
+
+    <div id="upload-status"></div>
+    <div id="result-links" class="action-buttons" style="display:none;">
+      <a href="#" id="launch-link" class="btn" target="_blank">▶️ Launch Course</a>
+      <button id="copy-public-link-btn" class="btn btn-secondary" style="display:none;">📋 Copy Public Link</button>
+      <a href="dashboard.html" class="btn btn-secondary">📋 View All Courses</a>
+      <button type="button" id="upload-another-button" class="btn">📤 Upload Another Course</button>
+    </div>
   </div>
-  <h2>Upload SCORM Package</h2>
-  <div id="login-info">Checking authentication...</div>
-  
-  <form id="upload-form">
-    <label for="course-title">Course Title:</label>
-    <input type="text" id="course-title" placeholder="Enter course title" required />
 
-    <label for="retention-period">Retention Period:</label>
-    <select id="retention-period" required>
-      <option value="0.0417">1 hour</option>
-      <option value="1">1 day</option>
-      <option value="7">1 week</option>
-      <option value="30" selected>1 month</option>
-      <option value="60">2 months</option>
-      <option value="90">3 months</option>
-      <option value="180">6 months</option>
-      <option value="360">12 months</option>
-    </select>
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <label>Course Visibility:</label>
-    <p style="font-size: 14px; color: #6c757d; margin-top: 5px;">
-      ⚠️ <strong>Important:</strong> This setting cannot be changed after upload.
-    </p>
-    
-    <div class="visibility-option selected" onclick="selectVisibility('private')">
-      <label>
-        <input type="radio" name="visibility" value="private" checked>
-        <div>
-          <div class="option-title">🔒 Private</div>
-          <div class="option-desc">Only you can access this course when logged in</div>
-        </div>
-      </label>
-    </div>
-    
-    <div class="visibility-option" onclick="selectVisibility('public')">
-      <label>
-        <input type="radio" name="visibility" value="public">
-        <div>
-          <div class="option-title">🌐 Public</div>
-          <div class="option-desc">Anyone with the link can view this course (no login required)</div>
-        </div>
-      </label>
-    </div>
-    
-    <div id="public-warning" class="warning-box" style="display:none;">
-      ⚠️ <strong>Warning:</strong> Public courses can be accessed by anyone with the link. This setting is <strong>permanent</strong>.
-    </div>
-    
-    <div id="private-info" class="info-box">
-      ℹ️ Private courses are only accessible by you when logged in.
-    </div>
+    function selectVisibility(type) {
+      document.querySelectorAll('.visibility-option').forEach(opt => opt.classList.remove('selected'));
+      const opt = event.currentTarget;
+      opt.classList.add('selected');
+      opt.querySelector('input[type="radio"]').checked = true;
+      document.getElementById('public-warning').style.display = type==='public'?'block':'none';
+      document.getElementById('private-info').style.display = type==='public'?'none':'block';
+    }
 
-    <label for="scorm-file">SCORM ZIP File (with imsmanifest.xml):</label>
-    <input type="file" id="scorm-file" accept=".zip" required />
-
-    <button type="button" onclick="uploadFile()" id="upload-button" disabled>Upload Course</button>
-  </form>
-
-  <div id="upload-status"></div>
-  <div id="result-links" class="action-buttons" style="display:none;">
-    <a href="#" id="launch-link" class="btn" target="_blank">▶️ Launch Course</a>
-    <button id="copy-public-link-btn" class="btn btn-secondary" style="display:none;">📋 Copy Public Link</button>
-    <a href="dashboard.html" class="btn btn-secondary">📋 View All Courses</a>
-    <button type="button" id="upload-another-button" class="btn">📤 Upload Another Course</button>
-  </div>
-</div>
-
-<script>
-const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-function selectVisibility(type) {
-  document.querySelectorAll('.visibility-option').forEach(opt => opt.classList.remove('selected'));
-  const option = event.currentTarget;
-  option.classList.add('selected');
-  option.querySelector('input[type="radio"]').checked = true;
-  document.getElementById('public-warning').style.display = type === 'public' ? 'block' : 'none';
-  document.getElementById('private-info').style.display = type === 'public' ? 'none' : 'block';
-}
-
-document.querySelectorAll('input[name="visibility"]').forEach(radio => {
-  radio.addEventListener('change', e => selectVisibility(e.target.value));
-});
-
-async function checkAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const infoDiv = document.getElementById('login-info');
-  const uploadBtn = document.getElementById('upload-button');
-  const logoutBtn = document.getElementById('logout-button');
-
-  if (session && session.user) {
-    infoDiv.textContent = `Logged in as: ${session.user.email}`;
-    infoDiv.style.backgroundColor = '#d4edda';
-    infoDiv.style.color = '#155724';
-    uploadBtn.disabled = false;
-    logoutBtn.style.display = 'block';
-  } else {
-    infoDiv.innerHTML = 'You are not logged in. <a href="login.html">Click here to Log In/Sign Up.</a>';
-    infoDiv.style.backgroundColor = '#f8d7da';
-    infoDiv.style.color = '#721c24';
-    uploadBtn.disabled = true;
-    logoutBtn.style.display = 'none';
-  }
-}
-
-async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function uploadFile() {
-  const file = document.getElementById('scorm-file').files[0];
-  const title = document.getElementById('course-title').value.trim();
-  const retention = document.getElementById('retention-period').value;
-  const isPublic = document.querySelector('input[name="visibility"]:checked').value === 'public';
-  const status = document.getElementById('upload-status');
-  const resultLinks = document.getElementById('result-links');
-  const launchLink = document.getElementById('launch-link');
-  const copyPubBtn = document.getElementById('copy-public-link-btn');
-  const uploadBtn = document.getElementById('upload-button');
-
-  status.textContent = '';
-  status.style.color = '';
-  resultLinks.style.display = 'none';
-
-  if (!file || !title || !retention) {
-    status.textContent = '⚠️ Please fill all required fields.';
-    status.style.color = 'red';
-    return;
-  }
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    status.textContent = '⚠️ Login required.';
-    status.style.color = 'red';
-    return;
-  }
-
-  const user = session.user;
-  const slug = 'course-' + Date.now() + '-' + crypto.randomUUID();
-  const publicToken = isPublic ? crypto.randomUUID() : null;
-  const now = new Date().toISOString();
-
-  try {
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Uploading...';
-    status.textContent = '📤 Uploading package...';
-    status.style.color = '#007bff';
-
-    const encTitle = encodeURIComponent(title);
-    const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${slug}&retention_days=${retention}&courseTitle=${encTitle}`;
-
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        'Content-Type': 'application/octet-stream'
-      },
-      body: file
+    document.querySelectorAll('input[name="visibility"]').forEach(radio => {
+      radio.addEventListener('change', e => selectVisibility(e.target.value));
     });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Upload error ${res.status} - ${errorText}`);
+    async function checkAuth() {
+      const { data:{ session } } = await supabase.auth.getSession();
+      const info = document.getElementById('login-info');
+      const uploadBtn = document.getElementById('upload-button');
+      const logoutBtn = document.getElementById('logout-button');
+      if (session && session.user) {
+        info.textContent = `Logged in as: ${session.user.email}`;
+        info.style.backgroundColor = '#d4edda'; info.style.color = '#155724';
+        uploadBtn.disabled = false; logoutBtn.style.display = 'block';
+      } else {
+        info.innerHTML = 'Not logged in. <a href="login.html">Log In/Sign Up</a>';
+        info.style.backgroundColor = '#f8d7da'; info.style.color = '#721c24';
+        uploadBtn.disabled = true; logoutBtn.style.display = 'none';
+      }
     }
 
-    status.textContent = '💾 Saving metadata...';
-
-    const body = {
-      course_slug: slug,
-      title,
-      package_path: slug,
-      launch_url: 'index.html',
-      expires_at: new Date(Date.now() + retention * 24 * 60 * 60 * 1000).toISOString(),
-      user_id: user.id,
-      is_public: isPublic,
-      public_token: publicToken,
-      public_id: publicToken,
-      public_created_at: isPublic ? now : null
-    };
-
-    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (insertRes.status === 409) {
-      throw new Error('Course slug conflict, please retry upload');
-    }
-    if (!insertRes.ok) {
-      throw new Error(`Failed to save metadata (Status ${insertRes.status})`);
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
     }
 
-    status.textContent = `✅ Upload successful! Course "${title}" has been uploaded.`;
-    status.style.color = 'green';
+    async function uploadFile() {
+      const file = document.getElementById('scorm-file').files[0];
+      const title = document.getElementById('course-title').value.trim();
+      const retention = document.getElementById('retention-period').value;
+      const isPublic = document.querySelector('input[name="visibility"]:checked').value==='public';
+      const status = document.getElementById('upload-status');
+      const resultLinks = document.getElementById('result-links');
+      const launchLink = document.getElementById('launch-link');
+      const copyPubBtn = document.getElementById('copy-public-link-btn');
+      const uploadBtn = document.getElementById('upload-button');
 
-    // Disable form
-    uploadBtn.style.display = 'none';
-    document.getElementById('scorm-file').disabled = true;
-    document.getElementById('course-title').disabled = true;
-    document.getElementById('retention-period').disabled = true;
-    document.querySelectorAll('input[name="visibility"]').forEach(r => r.disabled = true);
-    document.querySelectorAll('.visibility-option').forEach(opt => opt.style.pointerEvents = 'none');
+      status.textContent=''; resultLinks.style.display='none';
+      if (!file||!title||!retention) {
+        status.textContent='⚠️ Fill all fields.'; status.style.color='red'; return;
+      }
 
-    // Show links
-    const playerUrl = `player.html?course=${slug}`;
-    launchLink.href = playerUrl;
-    resultLinks.style.display = 'flex';
+      const { data:{ session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        status.textContent='⚠️ Login required.'; status.style.color='red'; return;
+      }
+      const user = session.user;
+      let slug = `course-${Date.now()}-${crypto.randomUUID()}`;
+      const publicToken = isPublic?crypto.randomUUID():null;
+      const now = new Date().toISOString();
 
-    // Show public link copy button if public
-    if (isPublic && publicToken) {
-      copyPubBtn.style.display = 'block';
-      copyPubBtn.onclick = () => {
-        const pubUrl = `${window.location.origin}/public.html?public_token=${publicToken}`;
-        navigator.clipboard.writeText(pubUrl);
-        alert('✅ Public link copied to clipboard!\n\nShare this link with anyone to give them access to the course.');
-      };
-    }
+      try {
+        uploadBtn.disabled=true; uploadBtn.textContent='Uploading...';
+        status.textContent='📤 Uploading package...'; status.style.color='#007bff';
 
-    document.getElementById('upload-another-button').onclick = () => {
-      document.getElementById('upload-form').reset();
-      status.textContent = '';
-      status.style.color = '';
-      resultLinks.style.display = 'none';
-      copyPubBtn.style.display = 'none';
-      uploadBtn.style.display = 'block';
-      uploadBtn.disabled = false;
-      uploadBtn.textContent = 'Upload Course';
-      document.getElementById('scorm-file').disabled = false;
-      document.getElementById('course-title').disabled = false;
-      document.getElementById('retention-period').disabled = false;
-      document.querySelectorAll('input[name="visibility"]').forEach(r => r.disabled = false);
-      document.querySelectorAll('.visibility-option').forEach(opt => {
-        opt.style.pointerEvents = 'auto';
-        opt.classList.remove('selected');
-      });
-      document.querySelector('.visibility-option').classList.add('selected');
-      document.getElementById('public-warning').style.display = 'none';
-      document.getElementById('private-info').style.display = 'block';
-    };
+        const encTitle = encodeURIComponent(title);
+        const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${slug}&retention_days=${retention}&courseTitle=${encTitle}`;
+        const res = await fetch(uploadUrl,{
+          method:'POST',
+          headers:{ Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/octet-stream' },
+          body:file
+        });
+        if (!res.ok) throw new Error(`Upload error ${res.status}`);
 
-  } catch (err) {
-    status.textContent = `❌ Error: ${err.message}`;
-    status.style.color = 'red';
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = 'Upload Course';
-  }
-}
+        status.textContent='💾 Saving metadata...';
 
-document.addEventListener('DOMContentLoaded', checkAuth);
-</script>
-</body>
-</html>
+        const metadata = {
+          course_slug:null, package_path:null, title, launch_url:'index.html',
+          expires_at:new Date(Date.now()+retention*24*60*60*1000).toISOString(),
+          user_id:user.id, is_public:isPublic,
+          public_token:publicToken, public_id:publicToken, public_created_at:isPublic?now:null
+        };
+
+        let insertRes, attempt=0, maxRetries=3;
+        while (attempt<maxRetries) {
+          metadata.course_slug = slug;
+          metadata.package_path = slug;
+          insertRes = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
+            method:'POST',
+            headers:{
+              apikey:SUPABASE_ANON_KEY,
+              Authorization:`Bearer ${session.access_token}`,
+              'Content-Type':'application/json','Prefer':'return=minimal'
+            },
+            body:JSON.stringify(metadata)
+          });
+          if (insertRes.status===201) break;
+          if (insertRes.status===409) {
+            attempt++; slug = `course-${Date.now()}-${crypto.randomUUID()}`;
+            continue;
+          }
+          throw new Error(`Metadata error ${insertRes.status}`);
+        }
+        if (!insertRes || insertRes.status!==201) {
+          throw new Error('Unable to generate unique slug after retries');
+        }
+
+        status.textContent=`✅ "${title}" uploaded successfully.`; status.style.color='green';
+        uploadBtn.style.display='none';
+        document.getElementById('scorm-file').disabled=true;
+        document.getElementById('course-title').disabled=true;
+        document.getElementById('retention-period').disabled=true;
+        document.querySelectorAll('input[name="visibility"]').forEach(r=>r.disabled=true);
+
+        const playerUrl = `player.html?course=${slug}`;
+        launchLink.href = playerUrl; resultLinks.style.display='flex';
+
+        if (isPublic&&publicToken) {
+          copyPubBtn.style.display='block';
+          copyPubBtn.onclick = () => {
+            const pubUrl = `${window.location.origin}/public.html?public_token=${publicToken}`;
+            navigator.clipboard.writeText(pubUrl);
+            alert('✅ Public link copied to clipboard!');
+          };
+        }
+
+        document.getElementById('upload-another-button').onclick = () => {
+          document.getElementById('upload-form').reset();
+          status.textContent=''; status.style.color='';
+          resultLinks.style.display='none'; copyPubBtn.style.display='none';
+          uploadBtn.style.display='block'; uploadBtn.disabled=false; uploadBtn.textContent='Upload Course';
+          document.getElementById('scorm-file').disabled=false;
+          document.getElementById('course-title').disabled=false;
+          document.get
