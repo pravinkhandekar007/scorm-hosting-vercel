@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SCORM Course Player</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
+    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
+    #message { padding: 20px; text-align: center; }
+    iframe { width: 100%; height: 80vh; border: none; display: none; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <h2 id="course-title">Loading…</h2>
+    <div id="message">Loading…</div>
+    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (async () => {
+      const msg = document.getElementById('message');
+      const frame = document.getElementById('courseFrame');
+      const titleElem = document.getElementById('course-title');
+      const params = new URLSearchParams(window.location.search);
+      const publicToken = params.get('token');
+
+      if (!publicToken) {
+        titleElem.textContent = 'Error';
+        msg.textContent = 'Error: Missing public token.';
+        return;
+      }
+
+      msg.textContent = 'Fetching course metadata…';
+
+      try {
+        // Call the public edge function to get course data
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/get-public-course`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ publicToken })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        
+        if (!data.course) {
+          throw new Error('Course not found');
+        }
+
+        const course = data.course;
+
+        // Set the course title
+        titleElem.textContent = course.title || 'Untitled Course';
+
+        msg.textContent = 'Fetching manifest…';
+
+        // Use the signed URL provided by the edge function
+        const signedUrl = course.scorm_url;
+        
+        // Extract the base path from the signed URL (remove query params)
+        const baseUrl = signedUrl.split('?')[0];
+        
+        // Construct the manifest URL
+        const manifestUrl = baseUrl.replace(/\.zip$/, '') + '/imsmanifest.xml';
+
+        // Try to fetch the manifest
+        const mf = await fetch(manifestUrl);
+        
+        if (!mf.ok) {
+          // If direct path doesn't work, try extracting from ZIP
+          console.warn(`Manifest fetch failed (${mf.status}), attempting alternative load`);
+          msg.textContent = 'Launching course…';
+          frame.src = baseUrl;
+          frame.style.display = 'block';
+          msg.style.display = 'none';
+          return;
+        }
+
+        const manifestText = await mf.text();
+
+        msg.textContent = 'Parsing manifest…';
+
+        let launchFile = course.launch_url || 'index.html';
+        try {
+          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
+          const resource = xml.querySelector('resource[href]');
+          if (resource) launchFile = resource.getAttribute('href');
+        } catch {
+          console.warn('Failed to parse manifest, using default launch file');
+        }
+
+        msg.textContent = 'Launching course…';
+
+        // Construct the full launch URL
+        const launchUrl = baseUrl.replace(/[^/]*\.zip$/, '') + launchFile;
+        frame.src = launchUrl;
+        frame.style.display = 'block';
+        msg.style.display = 'none';
+
+      } catch (err) {
+        console.error('Error:', err);
+        titleElem.textContent = 'Error';
+        msg.textContent = `Failed to load course: ${err.message}`;
+        frame.style.display = 'none';
+      }
+    })();
+  </script>
+</body>
+</html>
