@@ -15,7 +15,7 @@
   <div id="container">
     <h2 id="course-title">Loading…</h2>
     <div id="message">Loading…</div>
-    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <iframe id="courseFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allowfullscreen></iframe>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
@@ -40,9 +40,11 @@
       msg.textContent = 'Fetching course metadata…';
 
       try {
-        // Query database to get course slug
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Query database
         const response = await fetch(
-          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,course_slug`,
+          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path`,
           {
             method: 'GET',
             headers: {
@@ -63,14 +65,12 @@
 
         const course = courses[0];
         titleElem.textContent = course.title || 'Untitled Course';
-
         msg.textContent = 'Launching course…';
 
-        // Load using player.html with course slug (same as authenticated users)
-        const playerUrl = `player.html?course=${encodeURIComponent(course.course_slug)}`;
-        console.log('Loading player with URL:', playerUrl);
-        
-        frame.src = playerUrl;
+        // Load the index.html file from the course folder
+        const courseUrl = `${SUPABASE_URL}/storage/v1/object/public/scorm-packages/${course.package_path}/index.html`;
+        console.log('Loading course from:', courseUrl);
+        frame.src = courseUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
