@@ -1,23 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Loading Course...</title>
+  <meta charset="UTF-8" />
+  <title>SCORM Course Player</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
+    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
+    #message { padding: 20px; text-align: center; }
+    iframe { width: 100%; height: 80vh; border: none; display: none; }
+  </style>
 </head>
 <body>
+  <div id="container">
+    <h2 id="course-title">Loading…</h2>
+    <div id="message">Loading…</div>
+    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+
   <script>
-    const token = new URLSearchParams(window.location.search).get('token');
-    if (token) {
-      // Redirect to the player with course slug fetched from database
-      fetch('https://mfooewemvofleynanjkb.supabase.co/rest/v1/courses?public_token=eq.' + token + '&is_public=eq.true&select=course_slug', {
-        headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY' }
-      }).then(r => r.json()).then(data => {
-        if (data.length > 0) {
-          window.location.href = 'player.html?course=' + encodeURIComponent(data[0].course_slug);
-        } else {
-          document.body.innerHTML = '<h1>Course not found</h1>';
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
+    (async () => {
+      const msg = document.getElementById('message');
+      const frame = document.getElementById('courseFrame');
+      const titleElem = document.getElementById('course-title');
+      const params = new URLSearchParams(window.location.search);
+      const publicToken = params.get('token');
+
+      if (!publicToken) {
+        titleElem.textContent = 'Error';
+        msg.textContent = 'Error: Missing public token.';
+        return;
+      }
+
+      msg.textContent = 'Fetching course metadata…';
+
+      try {
+        // Query database to get course slug
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,course_slug`,
+          {
+            method: 'GET',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Course not found');
         }
-      });
-    }
+
+        const courses = await response.json();
+        if (!courses || courses.length === 0) {
+          throw new Error('Course not found or not public');
+        }
+
+        const course = courses[0];
+        titleElem.textContent = course.title || 'Untitled Course';
+
+        msg.textContent = 'Launching course…';
+
+        // Load using player.html with course slug (same as authenticated users)
+        const playerUrl = `player.html?course=${encodeURIComponent(course.course_slug)}`;
+        console.log('Loading player with URL:', playerUrl);
+        
+        frame.src = playerUrl;
+        frame.style.display = 'block';
+        msg.style.display = 'none';
+
+      } catch (err) {
+        titleElem.textContent = 'Error';
+        msg.textContent = `Failed to load course: ${err.message}`;
+        console.error(err);
+      }
+    })();
   </script>
 </body>
 </html>
