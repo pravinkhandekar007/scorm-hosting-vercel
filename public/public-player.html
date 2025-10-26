@@ -7,7 +7,7 @@
     body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
     #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
-    #message { padding: 20px; text-align: center; white-space: pre-wrap; font-family: monospace; }
+    #message { padding: 20px; text-align: center; }
     iframe { width: 100%; height: 80vh; border: none; display: none; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
@@ -30,91 +30,80 @@
       const params = new URLSearchParams(window.location.search);
       const publicToken = params.get('token');
 
-      let debugLog = '';
-
-      function log(text) {
-        console.log(text);
-        debugLog += text + '\n';
-        msg.textContent = debugLog;
-      }
-
       if (!publicToken) {
         titleElem.textContent = 'Error';
         msg.textContent = 'Error: Missing public token.';
         return;
       }
 
-      log('1. Token from URL: ' + publicToken.substring(0, 8) + '...');
-      log('2. Supabase URL: ' + SUPABASE_URL);
+      msg.textContent = 'Fetching course metadata…';
 
       try {
+        console.log('Fetching public course with token:', publicToken);
+
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        log('3. Supabase client initialized');
 
-        // Build REST API URL
-        const restUrl = `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,description,public_token,package_path,launch_url,created_at`;
-        log('4. REST URL: ' + restUrl.substring(0, 80) + '...');
-        log('5. Calling REST API...');
-
-        const response = await fetch(restUrl, {
-          method: 'GET',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Accept': 'application/json'
+        // Query database - REMOVED 'description' column since it doesn't exist
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path,launch_url,created_at`,
+          {
+            method: 'GET',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Accept': 'application/json'
+            }
           }
-        });
+        );
 
-        log('6. REST API Response Status: ' + response.status);
-
-        const responseBody = await response.text();
-        log('7. Response Body: ' + responseBody.substring(0, 200));
+        console.log('Database query response status:', response.status);
 
         if (!response.ok) {
-          log('8. ERROR: REST API failed with ' + response.status);
-          throw new Error(`REST API returned ${response.status}: ${responseBody}`);
+          const errorText = await response.text();
+          console.error('Database error:', errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-        const courses = JSON.parse(responseBody);
-        log('9. Parsed ' + courses.length + ' courses');
+        const courses = await response.json();
+        console.log('Courses retrieved:', courses.length);
 
         if (!courses || courses.length === 0) {
-          throw new Error('No public courses found with this token');
+          throw new Error('Course not found or not public');
         }
 
         const course = courses[0];
-        log('10. Course found: ' + course.title);
-        log('11. Package path: ' + course.package_path);
+        console.log('Course found:', course.title);
 
+        // Set title
         titleElem.textContent = course.title || 'Untitled Course';
-        log('12. Generating signed URL...');
 
+        msg.textContent = 'Generating access URL…';
+
+        // Generate signed URL using Supabase JS client
         const { data: signedUrlData, error: urlError } = await supabase
           .storage
           .from('scorm-packages')
           .createSignedUrl(course.package_path, 3600);
 
-        if (urlError) {
-          log('13. ERROR generating signed URL: ' + JSON.stringify(urlError));
-          throw new Error('Failed to generate signed URL: ' + urlError.message);
+        if (urlError || !signedUrlData?.signedUrl) {
+          console.error('URL generation error:', urlError);
+          throw new Error('Failed to generate access URL');
         }
 
-        if (!signedUrlData?.signedUrl) {
-          log('13. ERROR: No signed URL in response');
-          throw new Error('No signed URL generated');
-        }
+        const signedUrl = signedUrlData.signedUrl;
+        console.log('Signed URL generated successfully');
 
-        log('14. Signed URL generated successfully');
-        log('15. Loading iframe with signed URL...');
-
-        frame.src = signedUrlData.signedUrl;
+        // Load course
+        msg.textContent = 'Launching course…';
+        frame.src = signedUrl;
         frame.style.display = 'block';
-        msg.textContent = 'Course loaded!';
-        msg.style.display = 'block';
+        msg.style.display = 'none';
 
       } catch (err) {
-        log('ERROR: ' + err.message);
-        titleElem.textContent = 'Error Loading Course';
+        console.error('Error loading course:', err);
+        titleElem.textContent = 'Error';
+        msg.textContent = `Failed to load course: ${err.message}`;
+        frame.style.display = 'none';
       }
     })();
   </script>
