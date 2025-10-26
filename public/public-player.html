@@ -39,68 +39,51 @@
       msg.textContent = 'Fetching course metadata…';
 
       try {
-        console.log('Fetching public course with token:', publicToken);
-
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Query database - REMOVED 'description' column since it doesn't exist
-        const response = await fetch(
-          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path,launch_url,created_at`,
-          {
-            method: 'GET',
-            headers: {
-              'apikey': SUPABASE_ANON_KEY,
-              'Accept': 'application/json'
-            }
+        // Query database - DO NOT select description column
+        const restUrl = `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path,launch_url,created_at`;
+        
+        const response = await fetch(restUrl, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Accept': 'application/json'
           }
-        );
-
-        console.log('Database query response status:', response.status);
+        });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Database error:', errorText);
           throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const courses = await response.json();
-        console.log('Courses retrieved:', courses.length);
 
         if (!courses || courses.length === 0) {
           throw new Error('Course not found or not public');
         }
 
         const course = courses[0];
-        console.log('Course found:', course.title);
-
-        // Set title
         titleElem.textContent = course.title || 'Untitled Course';
-
         msg.textContent = 'Generating access URL…';
 
-        // Generate signed URL using Supabase JS client
+        // Generate signed URL
         const { data: signedUrlData, error: urlError } = await supabase
           .storage
           .from('scorm-packages')
           .createSignedUrl(course.package_path, 3600);
 
         if (urlError || !signedUrlData?.signedUrl) {
-          console.error('URL generation error:', urlError);
-          throw new Error('Failed to generate access URL');
+          throw new Error('Failed to generate access URL: ' + (urlError?.message || 'Unknown error'));
         }
 
-        const signedUrl = signedUrlData.signedUrl;
-        console.log('Signed URL generated successfully');
-
-        // Load course
         msg.textContent = 'Launching course…';
-        frame.src = signedUrl;
+        frame.src = signedUrlData.signedUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
       } catch (err) {
-        console.error('Error loading course:', err);
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${err.message}`;
         frame.style.display = 'none';
