@@ -10,7 +10,6 @@
     #message { padding: 20px; text-align: center; }
     iframe { width: 100%; height: 80vh; border: none; display: none; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="container">
@@ -22,7 +21,6 @@
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     (async () => {
       const msg = document.getElementById('message');
@@ -40,29 +38,35 @@
       msg.textContent = 'Fetching course metadata…';
 
       try {
-        // Call the public edge function to get course data
-        // Include ANON key in Authorization header to invoke the function
+        console.log('Calling edge function with token:', publicToken);
+
+        // Make the fetch request
         const res = await fetch(`${SUPABASE_URL}/functions/v1/get-public-course`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'x-client-info': 'public-player'
           },
-          body: JSON.stringify({ publicToken })
+          body: JSON.stringify({ publicToken: publicToken })
         });
 
+        console.log('Response status:', res.status);
+        const responseText = await res.text();
+        console.log('Response body:', responseText);
+
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(`HTTP ${res.status}: ${errorData.error || 'Unknown error'}`);
+          throw new Error(`HTTP ${res.status}: ${responseText}`);
         }
 
-        const data = await res.json();
+        const data = JSON.parse(responseText);
         
         if (!data.course) {
-          throw new Error('Course not found');
+          throw new Error('Course not found in response');
         }
 
         const course = data.course;
+        console.log('Course loaded:', course.title);
 
         // Set the course title
         titleElem.textContent = course.title || 'Untitled Course';
@@ -73,17 +77,16 @@
         const signedUrl = course.scorm_url;
         
         if (!signedUrl) {
-          throw new Error('Course content URL not available');
+          throw new Error('No course content URL available');
         }
 
-        // Load the course directly from the signed URL
-        // The signed URL should point to the extracted SCORM content
+        console.log('Loading course from URL');
         frame.src = signedUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
       } catch (err) {
-        console.error('Error:', err);
+        console.error('Error loading course:', err);
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${err.message}`;
         frame.style.display = 'none';
