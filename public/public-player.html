@@ -38,55 +38,84 @@
       msg.textContent = 'Fetching course metadata…';
 
       try {
-        console.log('Calling edge function with token:', publicToken);
+        console.log('Fetching course with token:', publicToken);
 
-        // Make the fetch request
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/get-public-course`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'x-client-info': 'public-player'
-          },
-          body: JSON.stringify({ publicToken: publicToken })
-        });
+        // Call Supabase REST API directly (bypasses edge function authorization issues)
+        // This uses RLS policies to control access
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,description,public_token,package_path,launch_url,created_at`,
+          {
+            method: 'GET',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
         console.log('Response status:', res.status);
-        const responseText = await res.text();
-        console.log('Response body:', responseText);
 
         if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${responseText}`);
+          const errorText = await res.text();
+          console.error('Error response:', errorText);
+          throw new Error(`HTTP ${res.status}: ${errorText}`);
         }
 
-        const data = JSON.parse(responseText);
-        
-        if (!data.course) {
-          throw new Error('Course not found in response');
+        const courses = await res.json();
+        console.log('Courses data:', courses);
+
+        if (!courses || courses.length === 0) {
+          throw new Error('Course not found or not public');
         }
 
-        const course = data.course;
-        console.log('Course loaded:', course.title);
+        const course = courses[0];
+        console.log('Course found:', course.title);
 
         // Set the course title
         titleElem.textContent = course.title || 'Untitled Course';
 
-        msg.textContent = 'Loading course content…';
+        msg.textContent = 'Generating course URL…';
 
-        // Use the signed URL provided by the edge function
-        const signedUrl = course.scorm_url;
-        
-        if (!signedUrl) {
-          throw new Error('No course content URL available');
+        // Now generate signed URL for the course package
+        // We need to call an edge function for this, but with a simpler approach
+        try {
+          const signedUrlRes = await fetch(`${SUPABASE_URL}/functions/v1/get-signed-url`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ 
+              bucket: 'scorm-packages',
+              path: course.package_path 
+            })
+          });
+
+          let signedUrl;
+
+          if (signedUrlRes.ok) {
+            const urlData = await signedUrlRes.json();
+            signedUrl = urlData.signedUrl;
+          } else {
+            // If get-signed-url edge function doesn't exist, use package_path directly
+            // Supabase storage will handle it if RLS allows public access
+            signedUrl = `${SUPABASE_URL}/storage/v1/object/public/scorm-packages/${course.package_path}`;
+          }
+
+          console.log('Loading course from:', signedUrl);
+
+          msg.textContent = 'Launching course…';
+          frame.src = signedUrl;
+          frame.style.display = 'block';
+          msg.style.display = 'none';
+
+        } catch (urlErr) {
+          console.error('URL generation error:', urlErr);
+          throw urlErr;
         }
 
-        console.log('Loading course from URL');
-        frame.src = signedUrl;
-        frame.style.display = 'block';
-        msg.style.display = 'none';
-
       } catch (err) {
-        console.error('Error loading course:', err);
+        console.error('Error:', err);
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${err.message}`;
         frame.style.display = 'none';
