@@ -58,35 +58,16 @@
         const course = courses[0];
         titleElem.textContent = course.title || 'Untitled Course';
 
-        msg.textContent = 'Generating access URL…';
-
-        // Try possible launch files: explicit launch_url, then index.html, then index_lms.html, then default to index.html
-        const possibleFiles = [];
-        if (course.launch_url) possibleFiles.push(course.launch_url);
-        possibleFiles.push('index.html', 'index_lms.html', 'story_html5.html');
-
-        let signedUrl = null;
-        for (const file of possibleFiles) {
-          const path = `${course.package_path}/${file}`;
-          const { data, error } = await supabase
-            .storage
-            .from('scorm-packages')
-            .createSignedUrl(path, 3600);
-          if (data && data.signedUrl) {
-            signedUrl = data.signedUrl;
-            break;
-          }
-        }
-
-        if (!signedUrl) {
-          throw new Error('Failed to generate access URL for any launch file (index.html, launch_url, etc.)');
-        }
-
         msg.textContent = 'Launching course…';
-        frame.src = signedUrl;
+
+        // Use the Vercel proxy instead of signed URL
+        const launchFile = course.launch_url || 'index.html';
+        const proxyUrl = `/public-scorm-content/${course.package_path}/${launchFile}`;
+        
+        frame.src = proxyUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
-        console.log('Loaded SCORM player from:', signedUrl);
+        console.log('Loaded SCORM player from proxy:', proxyUrl);
 
       } catch (err) {
         titleElem.textContent = 'Error';
