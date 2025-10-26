@@ -60,14 +60,37 @@
 
         msg.textContent = 'Launching course…';
 
-        // Use the Vercel proxy instead of signed URL
-        const launchFile = course.launch_url || 'index.html';
-        const proxyUrl = `/public-scorm-content/${course.package_path}/${launchFile}`;
-        
-        frame.src = proxyUrl;
-        frame.style.display = 'block';
-        msg.style.display = 'none';
-        console.log('Loaded SCORM player from proxy:', proxyUrl);
+        // Try all likely launch files
+        const possibleFiles = [
+          course.launch_url,
+          "index.html",
+          "index_lms.html",
+          "story_html5.html",
+          "player.html",
+          "default.html"
+        ].filter(Boolean);
+
+        let found = false;
+        for (const file of possibleFiles) {
+          const proxyUrl = `/public-scorm-content/${course.package_path}/${file}`;
+          try {
+            // Do a HEAD request to see if this file exists
+            const headResp = await fetch(proxyUrl, { method: "HEAD" });
+            if (headResp.ok) {
+              frame.src = proxyUrl;
+              frame.style.display = 'block';
+              msg.style.display = 'none';
+              found = true;
+              console.log("Loaded SCORM player from proxy:", proxyUrl);
+              break;
+            }
+          } catch (e) {
+            // Ignore error, try next file
+          }
+        }
+        if (!found) {
+          msg.textContent = "No launch file (index.html, story_html5.html, etc.) found in this SCORM package.";
+        }
 
       } catch (err) {
         titleElem.textContent = 'Error';
