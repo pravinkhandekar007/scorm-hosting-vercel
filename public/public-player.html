@@ -7,7 +7,7 @@
     body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
     #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
-    #message { padding: 20px; text-align: center; }
+    #message { padding: 20px; text-align: center; white-space: pre-wrap; font-family: monospace; font-size: 12px; }
     iframe { width: 100%; height: 80vh; border: none; display: none; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
@@ -30,20 +30,27 @@
       const params = new URLSearchParams(window.location.search);
       const publicToken = params.get('token');
 
+      let log = '';
+      function addLog(text) {
+        log += text + '\n';
+        msg.textContent = log;
+        console.log(text);
+      }
+
       if (!publicToken) {
         titleElem.textContent = 'Error';
         msg.textContent = 'Error: Missing public token.';
         return;
       }
 
-      msg.textContent = 'Fetching course metadata…';
+      addLog('1. Token: ' + publicToken.substring(0, 10) + '...');
 
       try {
-        // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        addLog('2. Supabase client initialized');
 
-        // Query database - DO NOT select description column
         const restUrl = `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path,launch_url,created_at`;
+        addLog('3. Querying database...');
         
         const response = await fetch(restUrl, {
           method: 'GET',
@@ -59,34 +66,45 @@
         }
 
         const courses = await response.json();
+        addLog('4. Courses found: ' + courses.length);
 
         if (!courses || courses.length === 0) {
           throw new Error('Course not found or not public');
         }
 
         const course = courses[0];
+        addLog('5. Course title: ' + course.title);
+        addLog('6. Package path: ' + course.package_path);
+        addLog('7. Bucket: scorm-packages');
+        
         titleElem.textContent = course.title || 'Untitled Course';
-        msg.textContent = 'Generating access URL…';
+        addLog('8. Generating signed URL...');
 
-        // Generate signed URL
         const { data: signedUrlData, error: urlError } = await supabase
           .storage
           .from('scorm-packages')
           .createSignedUrl(course.package_path, 3600);
 
-        if (urlError || !signedUrlData?.signedUrl) {
-          throw new Error('Failed to generate access URL: ' + (urlError?.message || 'Unknown error'));
+        if (urlError) {
+          addLog('9. ERROR: ' + JSON.stringify(urlError));
+          throw new Error('Storage error: ' + urlError.message);
         }
 
-        msg.textContent = 'Launching course…';
+        if (!signedUrlData?.signedUrl) {
+          addLog('9. ERROR: No signed URL returned');
+          throw new Error('No signed URL generated');
+        }
+
+        addLog('10. Signed URL generated');
+        addLog('11. Loading course...');
+
         frame.src = signedUrlData.signedUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
       } catch (err) {
+        addLog('ERROR: ' + err.message);
         titleElem.textContent = 'Error';
-        msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
       }
     })();
   </script>
