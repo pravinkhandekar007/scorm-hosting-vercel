@@ -21,21 +21,27 @@
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
     (async () => {
       const msg = document.getElementById('message');
       const frame = document.getElementById('courseFrame');
       const titleElem = document.getElementById('course-title');
       const params = new URLSearchParams(window.location.search);
       const publicToken = params.get('token');
+
       if (!publicToken) {
         titleElem.textContent = 'Error';
         msg.textContent = 'Error: Missing public token.';
         return;
       }
+
       msg.textContent = 'Fetching course metadata…';
+
       try {
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const response = await fetch(
+
+        // Fetch course info
+        const res = await fetch(
           `${SUPABASE_URL}/rest/v1/courses?public_token=eq.${publicToken}&is_public=eq.true&select=id,title,public_token,package_path,launch_url`,
           {
             method: 'GET',
@@ -45,25 +51,43 @@
             }
           }
         );
-        if (!response.ok) throw new Error('Course not found');
-        const courses = await response.json();
+
+        if (!res.ok) throw new Error('Course not found');
+        const courses = await res.json();
         if (!courses || courses.length === 0) throw new Error('Course not found or not public');
         const course = courses[0];
         titleElem.textContent = course.title || 'Untitled Course';
+
         msg.textContent = 'Generating access URL…';
-        // Try to fetch index.html or whatever launch file is recorded!
-        const launchFile = course.launch_url || 'index.html';
-        const { data: signedUrlData, error: urlError } = await supabase
-          .storage
-          .from('scorm-packages')
-          .createSignedUrl(`${course.package_path}/${launchFile}`, 3600);
-        if (urlError || !signedUrlData?.signedUrl)
-          throw new Error('Failed to generate access URL: ' + (urlError?.message || 'Unknown error'));
+
+        // Try possible launch files: explicit launch_url, then index.html, then index_lms.html, then default to index.html
+        const possibleFiles = [];
+        if (course.launch_url) possibleFiles.push(course.launch_url);
+        possibleFiles.push('index.html', 'index_lms.html', 'story_html5.html');
+
+        let signedUrl = null;
+        for (const file of possibleFiles) {
+          const path = `${course.package_path}/${file}`;
+          const { data, error } = await supabase
+            .storage
+            .from('scorm-packages')
+            .createSignedUrl(path, 3600);
+          if (data && data.signedUrl) {
+            signedUrl = data.signedUrl;
+            break;
+          }
+        }
+
+        if (!signedUrl) {
+          throw new Error('Failed to generate access URL for any launch file (index.html, launch_url, etc.)');
+        }
+
         msg.textContent = 'Launching course…';
-        console.log('Loading signed URL:', signedUrlData.signedUrl);
-        frame.src = signedUrlData.signedUrl;
+        frame.src = signedUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
+        console.log('Loaded SCORM player from:', signedUrl);
+
       } catch (err) {
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${err.message}`;
