@@ -41,16 +41,19 @@
 
       try {
         // Call the public edge function to get course data
+        // Include ANON key in Authorization header to invoke the function
         const res = await fetch(`${SUPABASE_URL}/functions/v1/get-public-course`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify({ publicToken })
         });
 
         if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(`HTTP ${res.status}: ${errorData.error || 'Unknown error'}`);
         }
 
         const data = await res.json();
@@ -64,48 +67,18 @@
         // Set the course title
         titleElem.textContent = course.title || 'Untitled Course';
 
-        msg.textContent = 'Fetching manifest…';
+        msg.textContent = 'Loading course content…';
 
         // Use the signed URL provided by the edge function
         const signedUrl = course.scorm_url;
         
-        // Extract the base path from the signed URL (remove query params)
-        const baseUrl = signedUrl.split('?')[0];
-        
-        // Construct the manifest URL
-        const manifestUrl = baseUrl.replace(/\.zip$/, '') + '/imsmanifest.xml';
-
-        // Try to fetch the manifest
-        const mf = await fetch(manifestUrl);
-        
-        if (!mf.ok) {
-          // If direct path doesn't work, try extracting from ZIP
-          console.warn(`Manifest fetch failed (${mf.status}), attempting alternative load`);
-          msg.textContent = 'Launching course…';
-          frame.src = baseUrl;
-          frame.style.display = 'block';
-          msg.style.display = 'none';
-          return;
+        if (!signedUrl) {
+          throw new Error('Course content URL not available');
         }
 
-        const manifestText = await mf.text();
-
-        msg.textContent = 'Parsing manifest…';
-
-        let launchFile = course.launch_url || 'index.html';
-        try {
-          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
-          const resource = xml.querySelector('resource[href]');
-          if (resource) launchFile = resource.getAttribute('href');
-        } catch {
-          console.warn('Failed to parse manifest, using default launch file');
-        }
-
-        msg.textContent = 'Launching course…';
-
-        // Construct the full launch URL
-        const launchUrl = baseUrl.replace(/[^/]*\.zip$/, '') + launchFile;
-        frame.src = launchUrl;
+        // Load the course directly from the signed URL
+        // The signed URL should point to the extracted SCORM content
+        frame.src = signedUrl;
         frame.style.display = 'block';
         msg.style.display = 'none';
 
