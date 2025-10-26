@@ -10,6 +10,17 @@
         { "key": "Cache-Control", "value": "public, max-age=3600" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
+    },
+    {
+      "source": "/public-scorm-content/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;"
+        },
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
     }
   ],
   "rewrites": [
@@ -24,6 +35,10 @@
     {
       "source": "/scorm-content/:path*",
       "destination": "/api/serve-scorm?path=:path*"
+    },
+    {
+      "source": "/public-scorm-content/:path*",
+      "destination": "/api/serve-public-scorm?path=:path*"
     }
   ]
 }
