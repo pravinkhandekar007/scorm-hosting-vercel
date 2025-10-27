@@ -43,12 +43,20 @@
             margin-bottom: 35px;
             padding-bottom: 25px;
             border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .header h1 {
             color: #0073e6;
             margin: 0;
             font-size: 1.8rem;
             font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
         .user-info {
             display: flex;
@@ -104,6 +112,15 @@
         .btn-secondary:hover {
             background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
             transform: translateY(-2px);
+        }
+        .btn-info {
+            background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+        .btn-info:hover {
+            background: linear-gradient(90deg, #138496 0%, #0c5460 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(23,162,184,0.3);
         }
         .btn-danger {
             background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
@@ -214,19 +231,30 @@
                 padding-top: 10px;
                 border-top: 2px solid #ddd;
             }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+            }
         }
         @media (max-width: 768px) {
             .container {
                 padding: 30px 25px;
             }
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
             .banner {
                 font-size: 1.5rem;
                 padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .nav-buttons {
+                flex-direction: column;
+            }
+            .nav-buttons .btn {
+                width: 100%;
             }
         }
     </style>
@@ -237,9 +265,12 @@
         <div class="container">
             <div class="header">
                 <h1>🎓 My Courses</h1>
-                <div class="user-info">
-                    <span class="user-email" id="user-email">Loading...</span>
-                    <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <span class="user-email" id="user-email">Loading...</span>
+                        <a href="profile.html" class="btn btn-info btn-small">👤 Profile</a>
+                        <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+                    </div>
                 </div>
             </div>
 
