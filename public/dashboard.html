@@ -169,7 +169,7 @@
             font-size: 1.1rem;
             margin-bottom: 10px;
         }
-        .active-until-badge {
+        .valid-for-badge {
             display: inline-block;
             padding: 8px 14px;
             border-radius: 6px;
@@ -177,17 +177,17 @@
             font-weight: 600;
             width: fit-content;
         }
-        .active-until-badge.active {
+        .valid-for-badge.active {
             background-color: #d4edda;
             color: #155724;
             border-left: 3px solid #28a745;
         }
-        .active-until-badge.warning {
+        .valid-for-badge.warning {
             background-color: #fff3cd;
             color: #856404;
             border-left: 3px solid #ffc107;
         }
-        .active-until-badge.expiring {
+        .valid-for-badge.expiring {
             background-color: #f8d7da;
             color: #721c24;
             border-left: 3px solid #dc3545;
@@ -382,11 +382,11 @@
 
                 let display = '';
                 if (days > 0) {
-                    display = `${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''} left`;
+                    display = `${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`;
                 } else if (hours > 0) {
-                    display = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} left`;
+                    display = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''}`;
                 } else {
-                    display = `${minutes} minute${minutes !== 1 ? 's' : ''} left`;
+                    display = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
                 }
 
                 return { days, hours, minutes, status, display };
@@ -423,8 +423,8 @@
                         <div class="course-item">
                             <div class="course-info">
                                 <div class="course-title">${course.title}</div>
-                                <div class="active-until-badge ${badgeClass}">
-                                    ⏱️ Active Until: ${timeInfo.display}
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
                                 </div>
                             </div>
                             <div class="course-actions">
