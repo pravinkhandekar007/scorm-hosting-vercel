@@ -308,7 +308,27 @@
                     window.location.href = 'login.html';
                     return;
                 }
-                document.getElementById('user-email').textContent = session.user.email;
+                
+                try {
+                    // Fetch user profile to get full name
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('user_id', session.user.id)
+                        .single();
+
+                    // Display full name if available, otherwise display email
+                    let displayName = session.user.email;
+                    if (profile && profile.full_name) {
+                        displayName = profile.full_name;
+                    }
+                    
+                    document.getElementById('user-email').textContent = displayName;
+                } catch (error) {
+                    // If profile doesn't exist yet, just show email
+                    document.getElementById('user-email').textContent = session.user.email;
+                }
+                
                 await loadCourses();
             }
 
