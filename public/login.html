@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Login - PlayScorm</title>
+<meta name="description" content="PlayScorm - Cloud-based SCORM player and LMS for e-learning. Upload, manage, and launch SCORM 1.2 and SCORM 2004 courses with ease. Secure, fast, and scalable learning management system.">
+<meta name="keywords" content="SCORM player, SCORM LMS, e-learning platform, learning management system, SCORM 1.2, SCORM 2004, online training, course authoring, AICC, xAPI, Tin Can API, interactive learning, corporate training, distance learning, SCORM compliance">
+<meta name="author" content="PlayScorm">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - PlayScorm | SCORM Player & E-Learning Platform</title>
 <style>
   body {
     margin: 0;
@@ -125,16 +129,55 @@
     padding: 40px 40px 30px 40px;
     box-sizing: border-box;
     border-left: 1px solid #ddd;
+    overflow-y: auto;
+    max-height: 600px;
   }
   .description {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.92);
     border-radius: 14px;
-    padding: 22px;
+    padding: 25px;
     color: #204060;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.7;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
     text-align: left;
+  }
+  .description h2 {
+    color: #00205B;
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+  .description h3 {
+    color: #0073e6;
+    font-size: 1.05rem;
+    margin-top: 18px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .description p {
+    margin: 10px 0;
+  }
+  .description ul {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+  .description li {
+    margin-bottom: 6px;
+  }
+  .keywords-highlight {
+    background: rgba(120, 83, 250, 0.08);
+    padding: 12px 15px;
+    border-left: 4px solid #7853fa;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  .keywords-highlight strong {
+    color: #7853fa;
+    font-weight: 600;
   }
   @media (max-width: 1000px) {
     .container {
@@ -146,6 +189,7 @@
       min-width: 0;
       padding: 30px 20px;
       border: none;
+      max-height: none;
     }
     .right-panel {
       margin-top: 20px;
@@ -178,19 +222,39 @@
       <div class="right-panel" aria-hidden="true">
         <!-- Image is set as background above -->
         <div class="description">
-          <h2>About PlayScorm</h2>
+          <h2>Understanding SCORM & PlayScorm</h2>
+          
+          <h3>What is SCORM?</h3>
           <p>
-            PlayScorm is a modern, cloud-based eLearning platform designed to easily upload, manage, and launch SCORM courses with seamless user experience.
+            SCORM (Sharable Content Object Reference Model) is the industry standard for e-learning and online training. It defines how digital learning content communicates with Learning Management Systems (LMS), ensuring compatibility, interoperability, and consistent delivery across different educational platforms.
           </p>
+
+          <h3>How SCORM Works in E-Learning</h3>
           <p>
-            Built with security, speed, and scalability in mind, PlayScorm leverages cutting edge technologies such as Supabase, edge functions, and serverless architectures for unmatched uptime and low latency.
+            SCORM courses are packaged as standardized content packages that can be uploaded to any SCORM-compliant LMS or SCORM player. When learners launch SCORM content, the system tracks their progress, completion status, quiz scores, and time spent—enabling comprehensive analytics for corporate training, distance learning, and interactive learning environments.
           </p>
+
+          <h3>SCORM Standards & Compliance</h3>
+          <ul>
+            <li><strong>SCORM 1.2:</strong> The most widely adopted version for course authoring and delivery</li>
+            <li><strong>SCORM 2004:</strong> Advanced version with enhanced xAPI and Tin Can API support</li>
+            <li><strong>AICC:</strong> Alternative compliance standard for legacy e-learning content</li>
+            <li><strong>xAPI (Experience API):</strong> Modern successor tracking learning across multiple platforms</li>
+          </ul>
+
+          <h3>Industry Importance</h3>
           <p>
-            Whether you’re a trainer looking to build immersive courses or an organization wanting to share knowledge securely, PlayScorm offers intuitive course management, user authentication, and detailed analytics.
+            SCORM is critical for organizations managing online training, corporate training programs, and distance learning initiatives. It ensures consistent learner experience, reliable progress tracking, and compliance with educational standards across enterprise Learning Management Systems.
           </p>
+
+          <h3>Why Choose PlayScorm?</h3>
           <p>
-            Experience the future of SCORM delivery and online learning with PlayScorm today.
+            PlayScorm is a cloud-based SCORM player and e-learning platform that simplifies SCORM course delivery. Built with modern technologies, it provides secure SCORM file uploads, instant course playback, shareable learning links, and detailed learner analytics—perfect for trainers, organizations, and educational institutions.
           </p>
+
+          <div class="keywords-highlight">
+            <strong>Popular Search Terms:</strong> SCORM player online, best LMS for SCORM, SCORM 1.2 player, SCORM 2004 LMS, free SCORM player, interactive e-learning platform, cloud-based learning management system, SCORM compliance solutions
+          </div>
         </div>
       </div>
     </div>
