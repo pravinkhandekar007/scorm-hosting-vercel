@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="description" content="Update your PlayScorm profile - Manage your account details">
+<meta name="keywords" content="profile, account settings, user profile, e-learning">
+<meta name="author" content="PlayScorm">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Profile - PlayScorm</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    min-height: 100vh;
+    background: #C0C0C0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0;
+  }
+  .main-wrapper {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .banner {
+    width: 100%;
+    background: linear-gradient(to right, #00205B, #00857D);
+    color: #fff;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 26px 0 20px 0;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+    flex-shrink: 0;
+  }
+  .container {
+    background: #fdfdfd;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+    border-radius: 0 0 20px 20px;
+    flex: 1;
+    padding: 50px 40px;
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .nav-link {
+    text-align: left;
+  }
+  .nav-link a {
+    color: #0073e6;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: color 0.3s;
+  }
+  .nav-link a:hover {
+    color: #005bb3;
+  }
+  #logout-button {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: block;
+  }
+  #logout-button:hover {
+    background: linear-gradient(90deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+  }
+  h2 {
+    color: #0073e6;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .profile-status {
+    margin-bottom: 30px;
+    padding: 15px 20px;
+    background-color: #f0f7ff;
+    border-left: 5px solid #0073e6;
+    border-radius: 8px;
+    text-align: center;
+    color: #204060;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .profile-status.success {
+    background-color: #e8f5e9;
+    border-left-color: #4caf50;
+    color: #2e7d32;
+  }
+  .profile-status.error {
+    background-color: #ffebee;
+    border-left-color: #f44336;
+    color: #c62828;
+  }
+  label {
+    display: block;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fafafa;
+    transition: border-color 0.3s;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  textarea:focus {
+    border-color: #0073e6;
+    outline: none;
+    background: #fff;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .form-row .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .form-row .form-group label {
+    margin-top: 0;
+  }
+  .form-group {
+    margin-top: 25px;
+  }
+  .button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  .btn,
+  button[type="button"],
+  button[type="submit"] {
+    background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    box-sizing: border-box;
+    flex: 1;
+  }
+  button[type="button"]:hover,
+  button[type="submit"]:hover,
+  .btn:hover {
+    background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(120,83,250,0.3);
+  }
+  button:disabled,
+  button[type="submit"]:disabled {
+    background: #99c2f0;
+    cursor: default;
+    transform: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .btn-secondary {
+    background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
+  }
+  .btn-secondary:hover {
+    background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+  }
+  .loading {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    padding: 40px;
+  }
+  #loading-spinner {
+    display: none;
+    text-align: center;
+    color: #0073e6;
+    font-weight: 600;
+    margin-top: 15px;
+  }
+  @media (max-width: 768px) {
+    .banner {
+      font-size: 1.5rem;
+      padding: 20px 15px;
+    }
+    .container {
+      padding: 30px 25px;
+      max-width: 100%;
+      border-radius: 0;
+    }
+    .header-top {
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-start;
+    }
+    #logout-button {
+      width: 100%;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 25px;
+    }
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .button-group {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+    }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="main-wrapper">
+    <div class="banner">PlayScorm</div>
+    <div class="container">
+      <div class="header-top">
+        <div class="nav-link">
+          <a href="dashboard.html">&larr; Back to Dashboard</a>
+        </div>
+        <button id="logout-button" onclick="logout()">Logout</button>
+      </div>
+
+      <h2>👤 Update Your Profile</h2>
+      
+      <div id="profile-status" class="profile-status" style="display: none;"></div>
+
+      <div id="loading-container" class="loading">
+        <p>Loading your profile...</p>
+      </div>
+
+      <form id="profile-form" style="display: none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="full-name">Full Name</label>
+            <input type="text" id="full-name" placeholder="Your full name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="your@email.com" readonly />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" placeholder="+1 (555) 000-0000" />
+          </div>
+          <div class="form-group">
+            <label for="organization">Organization</label>
+            <input type="text" id="organization" placeholder="Your organization" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bio">About You</label>
+          <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn">💾 Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="goBack()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const statusDiv = document.getElementById('profile-status');
+    const loadingContainer = document.getElementById('loading-container');
+    const profileForm = document.getElementById('profile-form');
+
+    async function checkAuthAndLoadProfile() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = session.user;
+      const userId = user.id;
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        loadingContainer.style.display = 'none';
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        if (profile) {
+          document.getElementById('full-name').value = profile.full_name || '';
+          document.getElementById('email').value = profile.email || user.email;
+          document.getElementById('phone').value = profile.phone || '';
+          document.getElementById('organization').value = profile.organization || '';
+          document.getElementById('bio').value = profile.bio || '';
+        } else {
+          document.getElementById('email').value = user.email;
+        }
+
+        profileForm.style.display = 'block';
+      } catch (error) {
+        loadingContainer.style.display = 'none';
+        statusDiv.textContent = `Error loading profile: ${error.message}`;
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
+      }
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        statusDiv.textContent = 'You must be logged in to update your profile.';
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
+        return;
+      }
+
+      const userId = session.user.id;
+      const fullName = document.getElementById('full-name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const organization = document.getElementById('organization').value.trim();
+      const bio = document.getElementById('bio').value.trim();
+
+      try {
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (existingProfile) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              full_name: fullName,
+              phone: phone,
+              organization: organization,
+              bio: bio,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
+
+          if (updateError) throw updateError;
+        } else {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: userId,
+              email: session.user.email,
+              full_name: fullName,
+              phone: phone,
+              organization: organization,
+              bio: bio
+            });
+
+          if (insertError) throw insertError;
+        }
+
+        statusDiv.textContent = '✓ Profile updated successfully!';
+        statusDiv.className = 'profile-status success';
+        statusDiv.style.display = 'block';
+
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 3000);
+      } catch (error) {
+        statusDiv.textContent = `Error updating profile: ${error.message}`;
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
+      }
+    });
+
+    function goBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAuthAndLoadProfile);
+  </script>
+</body>
+</html>
