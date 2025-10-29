@@ -4,8 +4,8 @@
     <!-- Meta Tags for SEO -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PlayScorm - Simple, affordable SCORM LMS for Indian trainers and businesses. Upload, host, and track SCORM courses instantly. Free tier available.">
-    <meta name="keywords" content="SCORM player, LMS India, e-learning platform, SCORM hosting, corporate training, online courses, learning management system">
+    <meta name="description" content="PlayScorm - Simple, affordable SCORM LMS for Indian trainers and businesses. Upload, host, and track SCORM courses instantly. Free for limited time.">
+    <meta name="keywords" content="SCORM player, LMS India, e-learning platform, SCORM hosting, corporate training, online courses, learning management system, instructional designer portfolio">
     <meta name="author" content="Compass Edutech">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
@@ -46,12 +46,12 @@
         
         /* Navigation */
         nav {
-            background: linear-gradient(to right, #00205B, #00857D);
+            background: linear-gradient(to right, #1a3a52, #00857D);
             padding: 0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         
         .nav-container {
@@ -139,7 +139,7 @@
             gap: 15px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
         
         .btn-primary {
@@ -181,6 +181,27 @@
             background: white;
             color: #00857D;
             transform: translateY(-3px);
+        }
+        
+        .promo-banner {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: inline-block;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .promo-banner strong {
+            color: #fff;
+            font-size: 18px;
+        }
+        
+        .promo-banner span {
+            display: block;
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
         }
         
         /* Features Grid */
@@ -250,17 +271,6 @@
             color: #666;
             line-height: 1.6;
             font-size: 15px;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: #ffe6cc;
-            color: #cc6600;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 10px;
         }
         
         /* Coming Soon Features */
@@ -369,127 +379,6 @@
             font-size: 15px;
         }
         
-        /* Pricing Preview */
-        .pricing {
-            padding: 80px 20px;
-            background: white;
-        }
-        
-        .pricing-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .pricing-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
-        }
-        
-        .pricing-card {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s;
-            position: relative;
-        }
-        
-        .pricing-card:hover {
-            border-color: #0073e6;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,115,230,0.2);
-        }
-        
-        .pricing-card.featured {
-            border-color: #0073e6;
-            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
-            transform: scale(1.05);
-        }
-        
-        .featured-badge {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #0073e6;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .plan-name {
-            font-size: 22px;
-            color: #00205B;
-            font-weight: 700;
-            margin: 15px 0;
-        }
-        
-        .plan-price {
-            font-size: 36px;
-            color: #0073e6;
-            font-weight: 700;
-            margin: 15px 0;
-        }
-        
-        .plan-price small {
-            font-size: 16px;
-            color: #666;
-        }
-        
-        .plan-description {
-            color: #666;
-            font-size: 14px;
-            margin: 15px 0 25px 0;
-        }
-        
-        .plan-features {
-            text-align: left;
-            margin: 25px 0;
-            list-style: none;
-        }
-        
-        .plan-features li {
-            padding: 10px 0;
-            color: #555;
-            font-size: 14px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .plan-features li:before {
-            content: '✓ ';
-            color: #28a745;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        
-        .plan-button {
-            background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            width: 100%;
-            transition: all 0.3s;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .plan-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(120,83,250,0.3);
-            color: white;
-        }
-        
         /* Use Cases */
         .use-cases {
             padding: 80px 20px;
@@ -525,6 +414,58 @@
         .use-case-item p {
             color: #666;
             line-height: 1.6;
+        }
+        
+        /* Pricing Announcement */
+        .pricing-announcement {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .pricing-announcement-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .pricing-box {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+            padding: 50px 40px;
+            border-radius: 16px;
+            border: 3px solid #0073e6;
+            margin-top: 40px;
+        }
+        
+        .pricing-box h3 {
+            font-size: 32px;
+            color: #00205B;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .free-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .pricing-box p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.8;
+            margin: 15px 0;
+        }
+        
+        .pricing-box .note {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+            margin-top: 25px;
         }
         
         /* CTA Section */
@@ -630,12 +571,16 @@
                 grid-template-columns: 1fr;
             }
             
-            .pricing-card.featured {
-                transform: scale(1);
-            }
-            
             .benefits-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .promo-banner {
+                padding: 12px 20px;
+            }
+            
+            .promo-banner strong {
+                font-size: 16px;
             }
         }
         
@@ -664,7 +609,6 @@
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#coming-soon">Coming Soon</a></li>
-                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#use-cases">Use Cases</a></li>
                 <li><a href="login.html" class="cta-button">Sign In</a></li>
             </ul>
@@ -677,8 +621,12 @@
             <h1>Upload SCORM, Track Progress, Inspire Learners</h1>
             <p>PlayScorm is the simplest, most affordable SCORM LMS for Indian trainers, coaches, and businesses. No installation. No complexity. Just upload and go.</p>
             <div class="hero-buttons">
-                <a href="login.html?action=signup" class="btn-primary">Start Free (No Card Needed)</a>
+                <a href="login.html?action=signup" class="btn-primary">Start Free Today</a>
                 <a href="#features" class="btn-secondary">Learn More</a>
+            </div>
+            <div class="promo-banner">
+                <strong>🎉 Free for Limited Time!</strong>
+                <span>Get full access now. Pricing will be announced soon.</span>
             </div>
         </div>
     </section>
@@ -778,8 +726,8 @@
                 <div class="benefit-item">
                     <div class="benefit-icon">💰</div>
                     <div class="benefit-content">
-                        <h3>India Pricing</h3>
-                        <p>₹0 to start. No hidden fees. Transparent pricing. Scales with your growth.</p>
+                        <h3>Free to Start</h3>
+                        <p>Get full access now. No credit card required. Affordable India pricing coming soon.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
@@ -838,6 +786,10 @@
                     <p>Deliver courses to your students without technical setup. Get instant verification emails from your domain.</p>
                 </div>
                 <div class="use-case-item">
+                    <h3>🎨 Instructional Designers</h3>
+                    <p>Showcase your SCORM courses in a professional portfolio. Share with clients. Generate shareable demo links instantly.</p>
+                </div>
+                <div class="use-case-item">
                     <h3>🎓 Coaching Centers</h3>
                     <p>Blend classroom teaching with online content. Track student progress. Generate performance reports for parents.</p>
                 </div>
@@ -857,56 +809,26 @@
         </div>
     </section>
 
-    <!-- Pricing Preview -->
-    <section class="pricing" id="pricing">
-        <div class="pricing-container">
+    <!-- Pricing Announcement -->
+    <section class="pricing-announcement">
+        <div class="pricing-announcement-container">
             <div class="section-title">
-                <h2>Simple Pricing</h2>
-                <p>Start free. Upgrade as you grow. No credit card required.</p>
+                <h2>Early Access Offer</h2>
+                <p>Be among the first to experience PlayScorm</p>
             </div>
-            <div class="pricing-cards">
-                <div class="pricing-card">
-                    <div class="plan-name">Starter</div>
-                    <div class="plan-price">₹0<small>/month</small></div>
-                    <div class="plan-description">Perfect to get started</div>
-                    <ul class="plan-features">
-                        <li>3 courses</li>
-                        <li>100 learners</li>
-                        <li>Basic analytics</li>
-                        <li>Email support</li>
-                    </ul>
-                    <a href="login.html?action=signup" class="plan-button">Start Free</a>
-                </div>
-                <div class="pricing-card featured">
-                    <div class="featured-badge">Most Popular</div>
-                    <div class="plan-name">Pro</div>
-                    <div class="plan-price">₹599<small>/month</small></div>
-                    <div class="plan-description">Growing trainers & teams</div>
-                    <ul class="plan-features">
-                        <li>20 courses</li>
-                        <li>500 learners</li>
-                        <li>Advanced analytics</li>
-                        <li>Multi-module courses</li>
-                        <li>Priority support</li>
-                    </ul>
-                    <a href="login.html?action=signup&plan=pro" class="plan-button">Start Pro Trial</a>
-                </div>
-                <div class="pricing-card">
-                    <div class="plan-name">Business</div>
-                    <div class="plan-price">₹1,999<small>/month</small></div>
-                    <div class="plan-description">SMBs & organizations</div>
-                    <ul class="plan-features">
-                        <li>100 courses</li>
-                        <li>3,000 learners</li>
-                        <li>Full analytics suite</li>
-                        <li>Learner management</li>
-                        <li>Priority support</li>
-                    </ul>
-                    <a href="login.html?action=signup&plan=business" class="plan-button">Start Business Trial</a>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 50px; color: #666;">
-                <p><strong>Enterprise?</strong> Contact us for custom pricing: <a href="mailto:info@compassedutech.com" style="color: #0073e6;">info@compassedutech.com</a></p>
+            <div class="pricing-box">
+                <h3>Get Full Access Now</h3>
+                <div class="free-badge">✨ 100% FREE</div>
+                <p><strong>No credit card required.</strong> No hidden fees. No tricks.</p>
+                <p>We're offering full access to PlayScorm for a limited time as we finalize our pricing plans.</p>
+                <p><strong>What you get:</strong></p>
+                <p>✓ Unlimited SCORM uploads<br>
+                ✓ Unlimited learners<br>
+                ✓ All current features<br>
+                ✓ Priority support<br>
+                ✓ Early access to new features</p>
+                <p class="note"><em>Pricing will be announced in the coming weeks. Early users will receive special discounts and grandfathered pricing.</em></p>
+                <a href="login.html?action=signup" class="btn-primary" style="margin-top: 25px;">Create Free Account Now</a>
             </div>
         </div>
     </section>
@@ -915,8 +837,8 @@
     <section class="cta-section">
         <div class="cta-section-container">
             <h2>Ready to Transform Your Training?</h2>
-            <p>Join 100+ trainers and organizations already using PlayScorm</p>
-            <a href="login.html?action=signup" class="btn-primary">Create Free Account Now</a>
+            <p>Join early adopters already using PlayScorm</p>
+            <a href="login.html?action=signup" class="btn-primary">Get Started - It's Free!</a>
         </div>
     </section>
 
@@ -928,8 +850,8 @@
                     <h3>PlayScorm</h3>
                     <a href="/">Home</a>
                     <a href="#features">Features</a>
-                    <a href="#pricing">Pricing</a>
                     <a href="#coming-soon">Roadmap</a>
+                    <a href="#use-cases">Use Cases</a>
                 </div>
                 <div class="footer-section">
                     <h3>Company</h3>
@@ -993,20 +915,10 @@
         "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "Customer Support",
-            "email": "info@playscorm.com"
+            "email": "info@compassedutech.com"
         }
     }
     </script>
-
-    <!-- Analytics & Tracking (Add your GA code here) -->
-    <!-- Global site tag (gtag.js) - Add your Google Analytics ID -->
-    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID');
-    </script> -->
 
 </body>
 </html>
