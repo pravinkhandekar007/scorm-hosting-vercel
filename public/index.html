@@ -101,51 +101,45 @@
             align-items: center;
         }
         
-       .nav-links a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    transition: opacity 0.3s;
-    font-size: 14px;
-}
-
-.nav-links .cta-button {
-    color: #00857D !important;
-    background: white;
-}
-
-.nav-links .cta-button:hover {
-    color: #00857D !important;
-    background: #f0f0f0;
-}
-
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
         
         .nav-links a:hover {
             opacity: 0.8;
         }
         
         .cta-button {
-    background: white;
-    color: #00857D !important;
-    padding: 10px 20px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s;
-    display: inline-block;
-}
-
-.cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255,255,255,0.3);
-    color: #00857D !important;
-}
-
-.cta-button:visited {
-    color: #00857D !important;
-}
-
+            background: white;
+            color: #00857D !important;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none !important;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: #00857D !important;
+            text-decoration: none !important;
+        }
+        
+        .cta-button:visited {
+            color: #00857D !important;
+        }
+        
+        .cta-button:active {
+            color: #00857D !important;
+        }
         
         /* Hero Section */
         .hero {
@@ -324,10 +318,32 @@
             margin: 0 auto;
         }
         
+        .roadmap-section {
+            margin-bottom: 50px;
+        }
+        
+        .roadmap-year {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .roadmap-year h3 {
+            font-size: 24px;
+            color: #00205B;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .roadmap-year p {
+            font-size: 16px;
+            color: #666;
+        }
+        
         .coming-soon-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
+            margin-bottom: 40px;
         }
         
         .coming-soon-card {
@@ -432,7 +448,7 @@
         
         .use-cases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             margin-top: 50px;
         }
@@ -454,6 +470,11 @@
         .use-case-item p {
             color: #666;
             line-height: 1.6;
+        }
+        
+        /* Use Cases Center Item (EdTech) */
+        .use-cases-grid .use-case-item:nth-child(7) {
+            grid-column: 2;
         }
         
         /* Pricing Announcement */
@@ -594,6 +615,20 @@
         }
         
         /* Responsive */
+        @media (max-width: 1024px) {
+            .coming-soon-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .use-cases-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .use-cases-grid .use-case-item:nth-child(7) {
+                grid-column: auto;
+            }
+        }
+        
         @media (max-width: 768px) {
             .nav-links {
                 gap: 15px;
@@ -626,6 +661,18 @@
             
             .benefits-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .coming-soon-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .use-cases-grid .use-case-item:nth-child(7) {
+                grid-column: auto;
             }
             
             .promo-banner {
@@ -742,38 +789,56 @@
         <div class="coming-soon-container">
             <div class="section-title">
                 <h2>Coming Soon (Roadmap)</h2>
-                <p>Powerful features launching in the next 3 months</p>
+                <p>Powerful features launching in the coming months</p>
             </div>
-            <div class="coming-soon-grid">
-                <div class="coming-soon-card">
-                    <h3>📚 Multi-Module Courses</h3>
-                    <p>Combine multiple SCORM files into one structured course. Linear or open access modes.</p>
-                    <span class="coming-soon-tag">Q4 2025</span>
+            
+            <!-- Q4 2025 Features -->
+            <div class="roadmap-section">
+                <div class="roadmap-year">
+                    <h3>Q4 2025</h3>
+                    <p>These features are coming in the next few weeks</p>
                 </div>
-                <div class="coming-soon-card">
-                    <h3>👥 Learner Management</h3>
-                    <p>Add learners, bulk import, track progress. Perfect for corporate training teams.</p>
-                    <span class="coming-soon-tag">Q4 2025</span>
+                <div class="coming-soon-grid">
+                    <div class="coming-soon-card">
+                        <h3>📚 Multi-Module Courses</h3>
+                        <p>Combine multiple SCORM files into one structured course. Linear or open access modes.</p>
+                        <span class="coming-soon-tag">Q4 2025</span>
+                    </div>
+                    <div class="coming-soon-card">
+                        <h3>👥 Learner Management</h3>
+                        <p>Add learners, bulk import, track progress. Perfect for corporate training teams.</p>
+                        <span class="coming-soon-tag">Q4 2025</span>
+                    </div>
+                    <div class="coming-soon-card">
+                        <h3>📊 Advanced Tracking</h3>
+                        <p>Per-module progress, scores, completion status. Detailed learner analytics and reports.</p>
+                        <span class="coming-soon-tag">Q4 2025</span>
+                    </div>
                 </div>
-                <div class="coming-soon-card">
-                    <h3>📊 Advanced Tracking</h3>
-                    <p>Per-module progress, scores, completion status. Detailed learner analytics and reports.</p>
-                    <span class="coming-soon-tag">Q4 2025</span>
+            </div>
+            
+            <!-- Q1 2026 Features -->
+            <div class="roadmap-section">
+                <div class="roadmap-year">
+                    <h3>Q1 2026</h3>
+                    <p>Advanced features for power users and enterprises</p>
                 </div>
-                <div class="coming-soon-card">
-                    <h3>🎓 Certificates</h3>
-                    <p>Auto-generate certificates on course completion. Customizable designs with branding.</p>
-                    <span class="coming-soon-tag">Q1 2026</span>
-                </div>
-                <div class="coming-soon-card">
-                    <h3>🏢 White Label</h3>
-                    <p>Your logo, your domain, your branding. Resell to your clients with custom domain.</p>
-                    <span class="coming-soon-tag">Q1 2026</span>
-                </div>
-                <div class="coming-soon-card">
-                    <h3>🔗 Integrations</h3>
-                    <p>Connect with Zapier, webhooks, and popular HR/training software. API access included.</p>
-                    <span class="coming-soon-tag">Q1 2026</span>
+                <div class="coming-soon-grid">
+                    <div class="coming-soon-card">
+                        <h3>🎓 Certificates</h3>
+                        <p>Auto-generate certificates on course completion. Customizable designs with branding.</p>
+                        <span class="coming-soon-tag">Q1 2026</span>
+                    </div>
+                    <div class="coming-soon-card">
+                        <h3>🏢 White Label</h3>
+                        <p>Your logo, your domain, your branding. Resell to your clients with custom domain.</p>
+                        <span class="coming-soon-tag">Q1 2026</span>
+                    </div>
+                    <div class="coming-soon-card">
+                        <h3>🔗 Integrations</h3>
+                        <p>Connect with Zapier, webhooks, and popular HR/training software. API access included.</p>
+                        <span class="coming-soon-tag">Q1 2026</span>
+                    </div>
                 </div>
             </div>
         </div>
