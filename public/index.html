@@ -15,7 +15,7 @@
     <meta property="og:url" content="https://playscorm.com">
     <meta property="og:title" content="PlayScorm - SCORM LMS Made Simple">
     <meta property="og:description" content="Upload, host, and track SCORM courses with PlayScorm. Affordable, cloud-based, India-friendly LMS for trainers and businesses.">
-    <meta property="og:image" content="https://playscorm.com/og-image.png">
+    <meta property="og:image" content="https://playscorm.com/logo.png">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -27,10 +27,9 @@
     <link rel="canonical" href="https://playscorm.com">
     
     <!-- Favicon -->
-   <!-- Favicon for browser tab -->
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
     
     <title>PlayScorm - Simple SCORM LMS Platform | Upload & Track Courses</title>
     
@@ -69,10 +68,30 @@
         
         .logo {
             color: white;
-            font-size: 24px;
             font-weight: 700;
             letter-spacing: 1px;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            opacity: 0.85;
+            transform: scale(1.02);
+        }
+        
+        .logo img {
+            height: 50px;
+            width: auto;
+            display: block;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .logo span {
+            font-size: 20px;
+            white-space: nowrap;
         }
         
         .nav-links {
@@ -515,6 +534,19 @@
             margin-bottom: 40px;
         }
         
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .footer-logo img {
+            height: 40px;
+            width: auto;
+            filter: brightness(0.9);
+        }
+        
         .footer-section h3 {
             color: white;
             margin-bottom: 15px;
@@ -585,6 +617,14 @@
             .promo-banner strong {
                 font-size: 16px;
             }
+            
+            .logo span {
+                display: none;
+            }
+            
+            .logo img {
+                height: 40px;
+            }
         }
         
         /* Animations */
@@ -609,9 +649,9 @@
     <nav>
         <div class="nav-container">
             <a href="/" class="logo">
-    <img src="/logo.png" alt="PlayScorm Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;">
-    PlayScorm
-</a>
+                <img src="/logo.png" alt="PlayScorm Logo" title="PlayScorm - SCORM LMS Made Simple">
+                <span>PlayScorm</span>
+            </a>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#coming-soon">Coming Soon</a></li>
@@ -853,8 +893,10 @@
         <div class="footer-container">
             <div class="footer-grid">
                 <div class="footer-section">
-    <img src="/logo.png" alt="PlayScorm Logo" style="height: 40px; margin-bottom: 15px;">
-    <h3>PlayScorm</h3>
+                    <div class="footer-logo">
+                        <img src="/logo.png" alt="PlayScorm Logo">
+                        <h3>PlayScorm</h3>
+                    </div>
                     <a href="/">Home</a>
                     <a href="#features">Features</a>
                     <a href="#coming-soon">Roadmap</a>
