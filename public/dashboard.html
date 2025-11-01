@@ -318,7 +318,7 @@
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-        
+
         if (typeof window.supabase === 'undefined') {
             console.error('Supabase library not loaded');
             alert('Error loading application. Please refresh the page.');
@@ -400,7 +400,7 @@
                 try {
                     const { data: courses, error } = await supabase
                         .from('courses')
-                        .select('course_slug, title, is_public, public_token, expires_at')
+                        .select('id, course_slug, title, is_public, public_token, expires_at')
                         .order('created_at', { ascending: false });
                     loadingDiv.style.display = 'none';
                     if (error) {
@@ -430,6 +430,8 @@
                             <div class="course-actions">
                                 <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
                                 <button class="btn btn-secondary btn-small"
                                         onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
                                 <button class="btn btn-danger btn-small"
