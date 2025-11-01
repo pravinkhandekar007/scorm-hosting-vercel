@@ -140,7 +140,9 @@
 
     <div>
       <div class="section-title">Bulk Upload Enrollments (CSV)</div>
-      <textarea id="bulk-csv-textarea" placeholder="learner_email,learner_name&#10;email1@example.com,Name One&#10;email2@example.com,Name Two"></textarea>
+      <textarea id="bulk-csv-textarea" placeholder="learner_email,learner_name
+email1@example.com,Name One
+email2@example.com,Name Two"></textarea>
       <button id="bulk-upload-btn">Upload CSV</button>
     </div>
   </div>
@@ -168,7 +170,13 @@
       errorMessage.style.display = 'none';
       enrollmentsTbody.innerHTML = '<tr><td colspan="4">Loading enrollments...</td></tr>';
 
-      const { data, error } = await supabase.functions.invoke('enrollments-list', { body: { course_id: courseId } });
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const { data, error } = await supabase.functions.invoke('enrollments-list', { 
+        body: { course_id: courseId }, 
+        headers: { Authorization: `Bearer ${session.access_token}` } 
+      });
+
       if (error) {
         enrollmentsTbody.innerHTML = '';
         errorMessage.textContent = 'Failed to load enrollments: ' + error.message;
@@ -214,9 +222,15 @@
     async function deleteEnrollment(enrollId) {
       if (!confirm('Are you sure you want to delete this enrollment?')) return;
 
-      const response = await fetch(`/api/enrollments-delete?id=${enrollId}`, {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`https://mfooewemvofleynanjkb.supabase.co/functions/v1/enrollments-delete?id=${enrollId}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
+
       if (response.ok) {
         statusMessage.textContent = 'Enrollment deleted successfully.';
         statusMessage.style.display = 'block';
@@ -242,10 +256,15 @@
         return;
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+
       try {
-        const resp = await fetch('/api/enrollments-single', {
+        const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/enrollments-single', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({ course_id: courseId, learner_email, learner_name }),
         });
 
@@ -276,10 +295,15 @@
         return;
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+
       try {
-        const resp = await fetch('/api/enrollments-bulk', {
+        const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/enrollments-bulk', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({ course_id: courseId, csv_data: csvData }),
         });
 
