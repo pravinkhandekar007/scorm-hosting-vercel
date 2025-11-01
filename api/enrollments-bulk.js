@@ -82,8 +82,9 @@ export default async function handler(req, res) {
       }
       seenEmails.add(learner_email);
 
-      // Check if user exists by email
-      const { data: users, error: userError } = await supabase.auth.admin.listUsers({
+      // Check if user exists by email using Admin API
+      // This method returns { users: [], ... }. Adjusted accordingly.
+      const { data: userList, error: userError } = await supabase.auth.admin.listUsers({
         filter: `email=eq.${learner_email}`,
       });
 
@@ -93,8 +94,14 @@ export default async function handler(req, res) {
       }
 
       let learner_id;
-      if (users.length === 0) {
-        // Create new user with random password
+
+      // Defensive checks around userList object
+      if (
+        !userList
+        || (Array.isArray(userList) && userList.length === 0)
+        || (userList.users && userList.users.length === 0)
+      ) {
+        // user not found, create new user
         const randomPassword = crypto.randomBytes(16).toString("hex");
         const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
           email: learner_email,
@@ -110,7 +117,8 @@ export default async function handler(req, res) {
 
         learner_id = newUser.id;
       } else {
-        learner_id = users[0].id;
+        // user found, assign ID
+        learner_id = userList.users ? userList.users[0].id : userList[0].id;
       }
 
       // Check if enrollment already exists
