@@ -256,29 +256,40 @@ email2@example.com,Name Two"></textarea>
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-
       try {
+        console.log('Submitting enrollment:', learner_email, learner_name);
+
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          throw new Error('User not authenticated');
+        }
+
         const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/enrollments-single', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({ course_id: courseId, learner_email, learner_name }),
         });
 
+        console.log('Response status:', resp.status);
+
         if (!resp.ok) {
           const errData = await resp.json();
+          console.error('Error response:', errData);
           throw new Error(errData.error || 'Failed to add enrollment');
         }
 
         statusMessage.textContent = 'Enrollment added successfully.';
         statusMessage.style.color = 'green';
         statusMessage.style.display = 'block';
+
         e.target.reset();
         loadEnrollments();
       } catch (err) {
+        console.error('Add enrollment error:', err);
         errorMessage.textContent = err.message || 'Error adding enrollment';
         errorMessage.style.display = 'block';
       }
@@ -300,7 +311,7 @@ email2@example.com,Name Two"></textarea>
       try {
         const resp = await fetch('https://mfooewemvofleynanjkb.supabase.co/functions/v1/enrollments-bulk', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
