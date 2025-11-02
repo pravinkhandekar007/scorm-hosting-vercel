@@ -152,12 +152,11 @@ email2@example.com,Name Two"></textarea>
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Get course id from query string
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('course_id');
 
     if (!courseId) {
-      alert('Course ID missing in URL. Please access this page from the dashboard via Manage Enrollments link.');
+      alert('Course ID missing in URL.');
       window.location.href = 'dashboard.html';
     }
 
@@ -171,23 +170,22 @@ email2@example.com,Name Two"></textarea>
       enrollmentsTbody.innerHTML = '<tr><td colspan="4">Loading enrollments...</td></tr>';
 
       try {
-        const { data, error } = await supabase.functions.invoke('enrollments-list', {
-          body: { course_id: courseId }
-        });
+        const { data, error } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('course_id', courseId)
+          .order('created_at', { ascending: false });
 
-        if (error) {
-          throw new Error(error.message || 'Failed to load enrollments');
-        }
+        if (error) throw error;
 
-        const enrollments = data?.enrollments || [];
         enrollmentsTbody.innerHTML = '';
 
-        if (enrollments.length === 0) {
+        if (!data || data.length === 0) {
           enrollmentsTbody.innerHTML = '<tr><td colspan="4">No enrollments found.</td></tr>';
           return;
         }
 
-        for (const enroll of enrollments) {
+        for (const enroll of data) {
           const tr = document.createElement('tr');
 
           const nameTd = document.createElement('td');
@@ -223,11 +221,12 @@ email2@example.com,Name Two"></textarea>
       if (!confirm('Are you sure you want to delete this enrollment?')) return;
 
       try {
-        const { error } = await supabase.functions.invoke('enrollments-delete', {
-          body: { id: enrollId }
-        });
+        const { error } = await supabase
+          .from('enrollments')
+          .delete()
+          .eq('id', enrollId);
 
-        if (error) throw new Error(error.message);
+        if (error) throw error;
 
         statusMessage.textContent = 'Enrollment deleted successfully.';
         statusMessage.style.display = 'block';
@@ -253,17 +252,33 @@ email2@example.com,Name Two"></textarea>
       }
 
       try {
-        console.log('Submitting enrollment:', learner_email, learner_name);
+        console.log('Adding enrollment...');
 
-        const { data, error } = await supabase.functions.invoke('enrollments-single', {
-          body: { course_id: courseId, learner_email, learner_name }
-        });
+        // Check if enrollment already exists
+        const { data: existing } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('course_id', courseId)
+          .eq('learner_email', learner_email)
+          .single();
 
-        console.log('Response:', data, error);
-
-        if (error) {
-          throw new Error(error.message || 'Failed to add enrollment');
+        if (existing) {
+          statusMessage.textContent = 'Learner already enrolled.';
+          statusMessage.style.display = 'block';
+          return;
         }
+
+        // Insert enrollment
+        const { error } = await supabase
+          .from('enrollments')
+          .insert({
+            course_id: courseId,
+            learner_email,
+            learner_name,
+            enrolled_at: new Date().toISOString(),
+          });
+
+        if (error) throw error;
 
         statusMessage.textContent = 'Enrollment added successfully.';
         statusMessage.style.color = 'green';
@@ -290,15 +305,34 @@ email2@example.com,Name Two"></textarea>
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('enrollments-bulk', {
-          body: { course_id: courseId, csv_data: csvData }
-        });
+        const lines = csvData.split('\n').filter(line => line.trim());
+        const enrollments = [];
 
-        if (error) {
-          throw new Error(error.message || 'Bulk upload failed');
+        for (const line of lines) {
+          const [email, name] = line.split(',').map(s => s.trim());
+          if (email && name) {
+            enrollments.push({
+              course_id: courseId,
+              learner_email: email,
+              learner_name: name,
+              enrolled_at: new Date().toISOString(),
+            });
+          }
         }
 
-        statusMessage.textContent = `Bulk upload done. Created: ${data.summary.created}, Already Enrolled: ${data.summary.already_enrolled}, Errors: ${data.summary.errors}`;
+        if (enrollments.length === 0) {
+          errorMessage.textContent = 'No valid enrollment data found.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+
+        const { error } = await supabase
+          .from('enrollments')
+          .insert(enrollments);
+
+        if (error) throw error;
+
+        statusMessage.textContent = `Bulk upload successful. ${enrollments.length} enrollment(s) added.`;
         statusMessage.style.color = 'green';
         statusMessage.style.display = 'block';
         loadEnrollments();
