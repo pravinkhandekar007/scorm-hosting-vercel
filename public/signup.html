@@ -178,9 +178,33 @@
             message.textContent = error.message;
             message.classList.add("error");
           } else {
-            message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-            message.classList.add("success");
-            form.reset();
+            try {
+              // Create user profile with selected role
+              const createProfileRes = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create-profile',
+                  user_id: data.user.id,
+                  email: data.user.email,
+                  full_name,
+                  role
+                })
+              });
+
+              if (!createProfileRes.ok) {
+                const err = await createProfileRes.json();
+                throw new Error(err.error || 'Failed to create profile.');
+              }
+
+              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+              message.classList.add("success");
+              form.reset();
+
+            } catch (profileError) {
+              message.textContent = `Signup succeeded, but profile creation failed: ${profileError.message}`;
+              message.classList.add("error");
+            }
           }
         } catch (err) {
           message.textContent = 'Unexpected error occurred. Please try again.';
