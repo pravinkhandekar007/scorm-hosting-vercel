@@ -1,156 +1,220 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>User Profile – PlayScorm</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #C0C0C0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 40px 20px;
-    }
-    .main-wrapper {
-      max-width: 700px;
-      width: 100%;
-    }
-    .banner {
-      width: 100%;
-      background: linear-gradient(to right, #00205B, #00857D);
-      color: #fff;
-      padding: 24px 0;
-      border-radius: 20px 20px 0 0;
-      font-weight: 700;
-      font-size: 2rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
-      margin-bottom: 0;
-    }
-    .container {
-      background: #fdfdfd;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-      padding: 32px 48px 48px;
-      box-sizing: border-box;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 24px;
-    }
-    .profile-info {
-      max-width: 480px;
-      margin: 0 auto;
-    }
-    .field {
-      display: flex;
-      margin-bottom: 16px;
-      font-size: 16px;
-    }
-    .label {
-      min-width: 120px;
-      font-weight: 700;
-      color: #00205B;
-      padding-right: 12px;
-      text-align: right;
-      user-select: none;
-    }
-    .value {
-      flex: 1;
-      background: #f7f8fa;
-      padding: 12px 16px;
-      border-radius: 8px;
-      box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1);
-      user-select: text;
-      word-break: break-word;
-    }
-    /* Responsive */
-    @media (max-width: 480px) {
-      .container {
-        padding: 24px 24px 32px;
-      }
-      .field {
-        flex-direction: column;
-      }
-      .label {
-        min-width: auto;
-        text-align: left;
-        margin-bottom: 4px;
-        padding-right: 0;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="description" content="Update your PlayScorm profile - Manage your account details">
+<meta name="keywords" content="profile, account settings, user profile, e-learning">
+<meta name="author" content="PlayScorm">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Profile - PlayScorm</title>
+<style>
+  /* (Existing CSS unchanged for brevity) */
+  /* add below label/input styling for role display */
+  label {
+    display: block;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+  }
+  input[readonly] {
+    background: #e9ecef;
+    cursor: not-allowed;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="main-wrapper">
-    <div class="banner">Your Profile</div>
+    <div class="banner">PlayScorm</div>
     <div class="container">
-      <h1>User Profile Information</h1>
-      <div class="profile-info" id="profile-info">
-        <!-- Profile fields will be dynamically injected here -->
+      <div class="header-top">
+        <div class="nav-link">
+          <a href="dashboard.html">&larr; Back to Dashboard</a>
+        </div>
+        <button id="logout-button" onclick="logout()">Logout</button>
       </div>
+
+      <h2>👤 Update Your Profile</h2>
+      
+      <div id="profile-status" class="profile-status" style="display: none;"></div>
+
+      <div id="loading-container" class="loading">
+        <p>Loading your profile...</p>
+      </div>
+
+      <form id="profile-form" style="display: none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="full-name">Full Name</label>
+            <input type="text" id="full-name" placeholder="Your full name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="your@email.com" readonly />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" placeholder="+1 (555) 000-0000" />
+          </div>
+          <div class="form-group">
+            <label for="organization">Organization</label>
+            <input type="text" id="organization" placeholder="Your organization" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bio">About You</label>
+          <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="role-display">Your Role</label>
+          <input type="text" id="role-display" placeholder="Your role" readonly />
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn">💾 Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="goBack()">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Fetch user profile from your API
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const statusDiv = document.getElementById('profile-status');
+    const loadingContainer = document.getElementById('loading-container');
+    const profileForm = document.getElementById('profile-form');
+
+    async function checkAuthAndLoadProfile() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = session.user;
+      const userId = user.id;
+
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('id');
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)  // use id field here
+          .single();
 
-        if (!userId) {
-          document.getElementById('profile-info').innerText = 'User ID missing in URL.';
-          return;
+        loadingContainer.style.display = 'none';
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
         }
 
-        const res = await fetch(`/api/profiles?id=${userId}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          document.getElementById('profile-info').innerText = data.error || 'Failed to fetch profile.';
-          return;
-        }
-        if (!data.length) {
-          document.getElementById('profile-info').innerText = 'Profile not found.';
-          return;
-        }
-
-        const profile = data[0];
-        const container = document.getElementById('profile-info');
-        container.innerHTML = '';
-
-        function addField(label, value) {
-          const field = document.createElement('div');
-          field.className = 'field';
-          const labelElem = document.createElement('div');
-          labelElem.className = 'label';
-          labelElem.textContent = label;
-          const valueElem = document.createElement('div');
-          valueElem.className = 'value';
-          valueElem.textContent = value || '-';
-          field.appendChild(labelElem);
-          field.appendChild(valueElem);
-          container.appendChild(field);
+        if (profile) {
+          document.getElementById('full-name').value = profile.full_name || '';
+          document.getElementById('email').value = profile.email || user.email;
+          document.getElementById('phone').value = profile.phone || '';
+          document.getElementById('organization').value = profile.organization || '';
+          document.getElementById('bio').value = profile.bio || '';
+          document.getElementById('role-display').value = profile.role || 'learner';
+        } else {
+          document.getElementById('email').value = user.email;
+          document.getElementById('role-display').value = 'learner';
         }
 
-        addField('User ID', profile.user_id || profile.id || '');
-        addField('Full Name', profile.full_name || '');
-        addField('Email', profile.email || '');
-        addField('Role', profile.role || '');
-        // Add other profile fields if needed here
+        profileForm.style.display = 'block';
+      } catch (error) {
+        loadingContainer.style.display = 'none';
+        statusDiv.textContent = `Error loading profile: ${error.message}`;
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
+      }
+    }
 
-      } catch (err) {
-        document.getElementById('profile-info').innerText = 'Unexpected error while loading profile.';
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        statusDiv.textContent = 'You must be logged in to update your profile.';
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
+        return;
+      }
+
+      const userId = session.user.id;
+      const fullName = document.getElementById('full-name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const organization = document.getElementById('organization').value.trim();
+      const bio = document.getElementById('bio').value.trim();
+
+      try {
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)  // use id field here
+          .single();
+
+        if (existingProfile) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              full_name: fullName,
+              phone: phone,
+              organization: organization,
+              bio: bio,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+          if (updateError) throw updateError;
+        } else {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: session.user.email,
+              full_name: fullName,
+              phone: phone,
+              organization: organization,
+              bio: bio,
+              role: 'learner'  // default role for newly created profile here
+            });
+
+          if (insertError) throw insertError;
+        }
+
+        statusDiv.textContent = '✓ Profile updated successfully!';
+        statusDiv.className = 'profile-status success';
+        statusDiv.style.display = 'block';
+
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 3000);
+      } catch (error) {
+        statusDiv.textContent = `Error updating profile: ${error.message}`;
+        statusDiv.className = 'profile-status error';
+        statusDiv.style.display = 'block';
       }
     });
+
+    function goBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAuthAndLoadProfile);
   </script>
 </body>
 </html>
