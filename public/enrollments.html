@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Manage Enrollments - PlayScorm</title>
   <style>
-    /* Your existing CSS styles here */
+    /* Your existing CSS styles */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -150,7 +150,7 @@ email2@example.com,Name Two"></textarea>
 
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -173,32 +173,6 @@ email2@example.com,Name Two"></textarea>
         throw new Error('User not authenticated');
       }
       return session.user;
-    }
-
-    async function getOrCreateLearner(email, name) {
-      // Re-check auth in case
-      await checkAuth();
-
-      // Check if learner exists
-      const { data: existingLearner } = await supabase
-        .from('learners')
-        .select('id')
-        .eq('email', email)
-        .single();
-
-      if (existingLearner) {
-        return existingLearner.id;
-      }
-
-      // Create new learner
-      const { data: newLearner, error } = await supabase
-        .from('learners')
-        .insert({ email, name })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      return newLearner.id;
     }
 
     async function loadEnrollments() {
@@ -299,39 +273,30 @@ email2@example.com,Name Two"></textarea>
             return;
           }
 
-          // Try to get existing learner or create
-          const learner_id = await getOrCreateLearner(learner_email, learner_name);
+          // Call backend API to create enrollment and user
+          const response = await fetch('/api/enrollments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              course_id: courseId,
+              learner_email,
+              learner_name,
+            }),
+          });
 
-          // Check if enrollment already exists
-          const { data: existing } = await supabase
-            .from('enrollments')
-            .select('id')
-            .eq('course_id', courseId)
-            .eq('learner_id', learner_id)
-            .single();
-
-          if (existing) {
-            statusMessage.textContent = 'Learner already enrolled.';
-            statusMessage.style.display = 'block';
-            return;
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to add enrollment');
           }
 
-          // Insert enrollment row
-          const { error } = await supabase
-            .from('enrollments')
-            .insert({
-              course_id: courseId,
-              learner_id,
-            });
-
-          if (error) throw error;
-
-          statusMessage.textContent = 'Enrollment added successfully.';
+          const resData = await response.json();
+          statusMessage.textContent = resData.message || 'Enrollment added successfully.';
           statusMessage.style.color = 'green';
           statusMessage.style.display = 'block';
 
           e.target.reset();
           loadEnrollments();
+
         } catch (err) {
           errorMessage.textContent = err.message || 'Error adding enrollment';
           errorMessage.style.display = 'block';
@@ -353,35 +318,34 @@ email2@example.com,Name Two"></textarea>
           }
 
           const lines = csvData.split('\n').filter(line => line.trim());
-          let enrollments = [];
+          let total = 0;
 
           for (const line of lines) {
-            const [email, name] = line.split(',').map(s => s.trim());
-            if (email && name) {
-              const learner_id = await getOrCreateLearner(email, name);
-              enrollments.push({
-                course_id: courseId,
-                learner_id,
+            const [learner_email, learner_name] = line.split(',').map(s => s.trim());
+            if (learner_email && learner_name) {
+              const response = await fetch('/api/enrollments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  course_id: courseId,
+                  learner_email,
+                  learner_name,
+                }),
               });
+              if (!response.ok) {
+                const err = await response.json();
+                throw new Error(`Failed to enroll ${learner_email}: ${err.error}`);
+              }
+              total++;
             }
           }
 
-          if (enrollments.length === 0) {
-            errorMessage.textContent = 'No valid enrollment data found.';
-            errorMessage.style.display = 'block';
-            return;
-          }
-
-          const { error } = await supabase
-            .from('enrollments')
-            .insert(enrollments);
-
-          if (error) throw error;
-
-          statusMessage.textContent = `Bulk upload successful. ${enrollments.length} enrollment(s) added.`;
+          statusMessage.textContent = `Bulk upload successful. ${total} enrollment(s) added.`;
           statusMessage.style.color = 'green';
           statusMessage.style.display = 'block';
+
           loadEnrollments();
+
         } catch (err) {
           errorMessage.textContent = err.message || 'Error during bulk upload';
           errorMessage.style.display = 'block';
