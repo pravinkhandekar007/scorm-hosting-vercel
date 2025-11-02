@@ -21,8 +21,6 @@ async function fetchUserByEmail(email) {
     }
 
     const text = await response.text();
-    console.log(`fetchUserByEmail: Raw response for email ${email}: ${text}`);
-
     const data = JSON.parse(text);
 
     if (!data || !Array.isArray(data.users)) {
@@ -30,16 +28,17 @@ async function fetchUserByEmail(email) {
       return null;
     }
 
-    if (data.users.length === 0) {
-      console.log(`fetchUserByEmail: No users found for email ${email}`);
+    const emailLower = email.toLowerCase();
+    const matchedUser = data.users.find(u => u.email.toLowerCase() === emailLower);
+
+    if (!matchedUser) {
+      console.log(`fetchUserByEmail: No exact user match found for email ${email}`);
       return null;
     }
 
-    data.users.forEach((user, idx) => {
-      console.log(`User ${idx} for email ${email}: id=${user.id} email=${user.email}`);
-    });
+    console.log(`fetchUserByEmail: Found user id=${matchedUser.id} email=${matchedUser.email} for email query ${email}`);
 
-    return data.users[0];
+    return matchedUser;
   } catch (error) {
     console.error(`fetchUserByEmail: Error fetching user by email (${email}):`, error);
     return null;
@@ -132,7 +131,6 @@ export default async function handler(req, res) {
 
     console.log(`Using learner_id: ${learner_id} to check existing enrollments`);
 
-    // Check in the learners table
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
@@ -155,7 +153,6 @@ export default async function handler(req, res) {
       console.log(`Inserted new learner record for ID ${learner_id}`);
     }
 
-    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -168,7 +165,6 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Learner already enrolled in this course" });
     }
 
-    // Enroll the learner
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
