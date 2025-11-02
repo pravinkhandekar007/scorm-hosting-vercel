@@ -15,7 +15,6 @@ async function fetchUserByEmail(email) {
     });
 
     if (!response.ok) {
-      // Could be 404 if user not found
       return null;
     }
 
@@ -31,8 +30,6 @@ async function fetchUserByEmail(email) {
 }
 
 export default async function handler(req, res) {
-  // Add your CORS headers here if needed
-
   if (req.method === "OPTIONS") {
     res.status(200).end();
     return;
@@ -51,7 +48,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Validate course existence
+    // Check course existence
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -62,13 +59,13 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Check if user exists using REST admin API
+    // Check user existence in Auth
     let existingUser = await fetchUserByEmail(learner_email);
 
     let learner_id;
 
     if (!existingUser) {
-      // create user if not exists
+      // Create new user
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email: learner_email,
         password: Math.random().toString(36).slice(-8),
@@ -85,7 +82,29 @@ export default async function handler(req, res) {
       learner_id = existingUser.id;
     }
 
-    // Check for existing enrollment
+    // Ensure learner row exists in learners table
+    const { data: learnerInTable } = await supabase
+      .from("learners")
+      .select("id")
+      .eq("id", learner_id)
+      .single();
+
+    if (!learnerInTable) {
+      const { error: learnerInsertError } = await supabase
+        .from("learners")
+        .insert({
+          id: learner_id,
+          email: learner_email,
+          name: learner_name,
+        });
+
+      if (learnerInsertError) {
+        console.error("Error inserting learner:", learnerInsertError);
+        return res.status(500).json({ error: "Failed to insert learner record" });
+      }
+    }
+
+    // Check enrollment existence
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -99,7 +118,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Insert enrollment
+    // Create enrollment record
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
