@@ -260,7 +260,7 @@
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', userId)
+          .eq('user_id', userId)
           .single();
 
         loadingContainer.style.display = 'none';
@@ -310,8 +310,8 @@
       try {
         const { data: existingProfile, error: fetchError } = await supabase
           .from('profiles')
-          .select('id')
-          .eq('id', userId)
+          .select('user_id')
+          .eq('user_id', userId)
           .single();
 
         if (existingProfile) {
@@ -324,14 +324,14 @@
               bio: bio,
               updated_at: new Date().toISOString()
             })
-            .eq('id', userId);
+            .eq('user_id', userId);
 
           if (updateError) throw updateError;
         } else {
           const { error: insertError } = await supabase
             .from('profiles')
             .insert({
-              id: userId,
+              user_id: userId,
               email: session.user.email,
               full_name: fullName,
               phone: phone,
