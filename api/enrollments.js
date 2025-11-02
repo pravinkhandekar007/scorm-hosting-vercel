@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Verify course exists
+    // Verify course existence
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -83,14 +83,21 @@ export default async function handler(req, res) {
       learner_id = existingUser.id;
     }
 
-    // Ensure learner present in learners table (foreign key requirement)
-    const { data: learnerInTable } = await supabase
+    // Check learners table for id and email
+    const { data: learnerById } = await supabase
       .from('learners')
       .select('id')
       .eq('id', learner_id)
       .single();
 
-    if (!learnerInTable) {
+    const { data: learnerByEmail } = await supabase
+      .from('learners')
+      .select('id')
+      .eq('email', learner_email)
+      .single();
+
+    if (!learnerById && !learnerByEmail) {
+      // Insert learner record
       const { error: learnerInsertError } = await supabase
         .from('learners')
         .insert({
@@ -103,9 +110,14 @@ export default async function handler(req, res) {
         console.error('Failed to insert learner:', learnerInsertError);
         return res.status(500).json({ error: 'Failed to insert learner record' });
       }
+    } else {
+      // Align learner_id to existing one if email found with different id
+      if (learnerByEmail && !learnerById) {
+        learner_id = learnerByEmail.id;
+      }
     }
 
-    // Check if enrollment already exists for course and learner
+    // Check existing enrollment
     const { data: existingEnrollment } = await supabase
       .from('enrollments')
       .select('id')
@@ -114,7 +126,7 @@ export default async function handler(req, res) {
       .single();
 
     if (existingEnrollment) {
-      return res.status(409).json({ error: "Enrollment already exists for this course and learner" });
+      return res.status(409).json({ error: 'Learner already enrolled in this course' });
     }
 
     // Create enrollment record
@@ -137,7 +149,7 @@ export default async function handler(req, res) {
     return res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: 'Enrollment created, email notification sent if new user.',
+      message: 'Enrollment created successfully, email notification sent if new user.',
     });
   } catch (error) {
     console.error('Unhandled error:', error);
