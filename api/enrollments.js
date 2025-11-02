@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  // Enable CORS headers omitted for brevity, add them just as in your existing file
+  // CORS headers omitted for brevity - add your existing ones here
 
   if (req.method === "OPTIONS") {
     res.status(200).end();
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         email: learner_email,
         password: Math.random().toString(36).slice(-8), // temporary random password
         email_confirm: false,
-        user_metadata: { full_name: learner_name }
+        user_metadata: { full_name: learner_name },
       });
 
       if (createUserError) {
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Create enrollment
+    // Create enrollment with all required fields (including learner_email and learner_name)
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
