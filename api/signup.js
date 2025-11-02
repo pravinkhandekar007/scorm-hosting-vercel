@@ -5,58 +5,56 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    const { learner_id, email, full_name, role = "learner", otherProfileData } = req.body;
+    const { action } = req.body;
 
-    if (!learner_id || !email || !full_name) {
-      console.log('Missing required fields:', { learner_id, email, full_name });
-      return res.status(400).json({ error: "Missing required fields." });
+    if (action === "create-profile") {
+      // Profile creation logic
+      const { user_id, email, full_name, role = "learner", otherProfileData } = req.body;
+
+      if (!user_id || !email || !full_name) {
+        return res.status(400).json({ error: "Missing required fields for profile creation." });
+      }
+
+      const { data: existingProfile, error: selectError } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("user_id", user_id)
+        .single();
+
+      if (selectError && selectError.code !== "PGRST116") {
+        return res.status(500).json({ error: selectError.message || "Error checking profile existence" });
+      }
+
+      if (existingProfile) {
+        return res.status(409).json({ error: "Profile already exists." });
+      }
+
+      const { error: insertError } = await supabase.from("profiles").insert({
+        user_id,
+        email,
+        full_name,
+        role,
+        ...otherProfileData,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      return res.status(201).json({ success: true, message: "Profile created." });
+    } else {
+      // Existing signup logic (if any)
+      // If you previously created profiles here, you can omit or handle other signup actions.
+
+      return res.status(400).json({ error: "Missing or invalid action parameter." });
     }
-
-    console.log('Received learner_id:', learner_id);
-    console.log('Checking for existing profile with user_id:', learner_id);
-
-    const { data: existingProfile, error: selectError } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("user_id", learner_id)
-      .single();
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      console.error('Error querying existing profile:', selectError);
-      return res.status(500).json({ error: selectError.message || 'Error checking profile existence' });
-    }
-
-    if (existingProfile) {
-      console.log('Profile already exists for:', learner_id);
-      return res.status(409).json({ error: "Profile already exists." });
-    }
-
-    console.log('Inserting new profile:', { user_id: learner_id, email, full_name, role, ...otherProfileData });
-
-    const { error: insertError } = await supabase.from("profiles").insert({
-      user_id: learner_id,
-      email,
-      full_name,
-      role,
-      ...otherProfileData,
-    });
-
-    if (insertError) {
-      console.error('Error inserting profile:', insertError);
-      throw insertError;
-    }
-
-    console.log('Profile inserted successfully for user:', learner_id);
-
-    res.status(201).json({
-      success: true,
-      message: "Signup complete, profile created.",
-    });
   } catch (error) {
     console.error("signup API error:", error);
-    res.status(500).json({ error: error.message || "Internal server error" });
+    return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
