@@ -144,7 +144,7 @@
           const user = data.user;
 
           // Check if profile exists
-          const profileRes = await fetch(`/api/profiles?user_id=${user.id}`);
+          const profileRes = await fetch(`/api/profiles?id=${user.id}`);
           const profileData = await profileRes.json();
 
           if (!profileRes.ok) {
