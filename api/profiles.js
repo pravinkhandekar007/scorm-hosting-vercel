@@ -9,16 +9,27 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Expects API call to /api/profiles?id=USER_ID
   const { id } = req.query;
-  if (!id) return res.status(400).json({ error: "Missing 'id' query param." });
+  console.log('profiles.js API called with id:', id);
+
+  if (!id) {
+    console.log('Missing id param in request');
+    return res.status(400).json({ error: "Missing 'id' query param." });
+  }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", id);
+    .eq("id", id)
+    .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ error: error.message });
+  }
 
-  res.status(200).json(data || []);
+  console.log('Profile fetched:', data);
+
+  // Return as array for compatibility with frontend handling
+  res.status(200).json(data ? [data] : []);
 }
