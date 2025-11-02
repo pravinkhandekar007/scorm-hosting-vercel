@@ -6,7 +6,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function fetchUserByEmail(email) {
   try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
+    const url = `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
+    const response = await fetch(url, {
       headers: {
         apiKey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
@@ -15,18 +16,32 @@ async function fetchUserByEmail(email) {
     });
 
     if (!response.ok) {
-      console.log(`fetchUserByEmail: No user found for email ${email}. Status: ${response.status}`);
+      console.log(`fetchUserByEmail: No user found for email ${email}, status: ${response.status}`);
       return null;
     }
 
-    const data = await response.json();
-    if (data && data.users && data.users.length > 0) {
-      console.log(`fetchUserByEmail: Found user with id ${data.users[0].id} for email ${email}`);
-      return data.users[0];
+    const text = await response.text();
+    console.log(`fetchUserByEmail: Raw response for email ${email}: ${text}`);
+
+    const data = JSON.parse(text);
+
+    if (!data || !Array.isArray(data.users)) {
+      console.error(`fetchUserByEmail: Invalid response format for email ${email}`);
+      return null;
     }
-    return null;
+
+    if (data.users.length === 0) {
+      console.log(`fetchUserByEmail: No users found for email ${email}`);
+      return null;
+    }
+
+    data.users.forEach((user, idx) => {
+      console.log(`User ${idx} for email ${email}: id=${user.id} email=${user.email}`);
+    });
+
+    return data.users[0];
   } catch (error) {
-    console.error(`fetchUserByEmail: Error fetching user by email ${email}:`, error);
+    console.error(`fetchUserByEmail: Error fetching user by email (${email}):`, error);
     return null;
   }
 }
@@ -100,16 +115,14 @@ export default async function handler(req, res) {
     let learner_id;
 
     if (!user) {
-      // User does not exist, send invite email
       try {
         const invitedUser = await inviteUser(learner_email, learner_name);
         learner_id = invitedUser.id;
       } catch (error) {
         console.log(`Failed to invite user ${learner_email}, retry fetch`);
-        // Try fetch user again, user may exist
         user = await fetchUserByEmail(learner_email);
         if (!user) {
-          return res.status(500).json({ error: `Failed to invite user or find existing user with email ${learner_email}` });
+          return res.status(500).json({ error: `Failed to invite or find existing user with email ${learner_email}` });
         }
         learner_id = user.id;
       }
@@ -119,7 +132,7 @@ export default async function handler(req, res) {
 
     console.log(`Using learner_id: ${learner_id} to check existing enrollments`);
 
-    // Ensure learner present in learners table
+    // Ensure learner record exists
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
@@ -155,7 +168,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Learner already enrolled in this course" });
     }
 
-    // Insert new enrollment
+    // Create enrollment
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
