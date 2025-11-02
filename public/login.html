@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login - PlayScorm</title>
   <style>
-    /* Your existing styles here */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #C0C0C0;
@@ -72,6 +71,17 @@
       min-height: 20px;
       text-align: center;
     }
+    .footer-text {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #666;
+    }
+    .footer-text a {
+      color: #7853fa;
+      font-weight: 600;
+      text-decoration: none;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -88,6 +98,10 @@
       
       <button type="submit" id="login-btn" disabled>Sign In</button>
     </form>
+    <p class="footer-text">
+      Don't have an account?
+      <a href="signup.html">Sign Up</a>
+    </p>
   </div>
 
   <script>
@@ -142,10 +156,11 @@
 
           // If profile doesn't exist, create it
           if (!profileData.length) {
-            const createProfileRes = await fetch('/api/create-profile', {
+            const createProfileRes = await fetch('/api/signup', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                action: 'create-profile',
                 user_id: user.id,
                 email: user.email,
                 full_name: user.user_metadata?.full_name || user.email,
