@@ -10,7 +10,7 @@ async function fetchUserByEmail(email) {
       headers: {
         apiKey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
     });
 
@@ -30,6 +30,8 @@ async function fetchUserByEmail(email) {
 }
 
 export default async function handler(req, res) {
+  // Add your CORS headers here if needed
+
   if (req.method === "OPTIONS") {
     res.status(200).end();
     return;
@@ -65,7 +67,7 @@ export default async function handler(req, res) {
     let learner_id;
 
     if (!existingUser) {
-      // Create new user
+      // create new user
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email: learner_email,
         password: Math.random().toString(36).slice(-8),
@@ -82,29 +84,35 @@ export default async function handler(req, res) {
       learner_id = existingUser.id;
     }
 
-    // Ensure learner row exists in learners table
+    // Ensure learner exists in learners table
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
-      .eq("id", learner_id)
+      .eq("email", learner_email)
       .single();
 
     if (!learnerInTable) {
-      const { error: learnerInsertError } = await supabase
+      // Insert learner without id (auto-generated)
+      const { data: newLearner, error: learnerInsertError } = await supabase
         .from("learners")
         .insert({
-          id: learner_id,
           email: learner_email,
           name: learner_name,
-        });
+        })
+        .select('id')
+        .single();
 
       if (learnerInsertError) {
         console.error("Error inserting learner:", learnerInsertError);
-        return res.status(500).json({ error: "Failed to insert learner record" });
+        return res.status(500).json({ error: `Failed to insert learner record: ${learnerInsertError.message}` });
       }
+
+      learner_id = newLearner.id; // update learner_id with inserted learner's id
+    } else {
+      learner_id = learnerInTable.id;
     }
 
-    // Check enrollment existence
+    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -118,7 +126,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Create enrollment record
+    // Insert new enrollment
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
