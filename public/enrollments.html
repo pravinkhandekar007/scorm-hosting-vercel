@@ -193,9 +193,10 @@ email2@example.com,Name Two"></textarea>
       enrollmentsTbody.innerHTML = '<tr><td colspan="4">Loading enrollments...</td></tr>';
 
       try {
+        // Join enrollments and learners table (if needed) for name/email consistency
         const { data, error } = await supabase
           .from('enrollments')
-          .select('*')
+          .select('id, learner_email, learner_name, status')
           .eq('course_id', courseId)
           .order('created_at', { ascending: false });
 
@@ -275,14 +276,15 @@ email2@example.com,Name Two"></textarea>
       }
 
       try {
-        console.log('Adding enrollment...');
+        // Try to get existing learner or create
+        const learner_id = await getOrCreateLearner(learner_email, learner_name);
 
         // Check if enrollment already exists
         const { data: existing } = await supabase
           .from('enrollments')
           .select('id')
           .eq('course_id', courseId)
-          .eq('learner_email', learner_email)
+          .eq('learner_id', learner_id)
           .single();
 
         if (existing) {
@@ -291,17 +293,12 @@ email2@example.com,Name Two"></textarea>
           return;
         }
 
-        // Get or create learner
-        const learner_id = await getOrCreateLearner(learner_email, learner_name);
-
-        // Insert enrollment
+        // Insert enrollment row
         const { error } = await supabase
           .from('enrollments')
           .insert({
             course_id: courseId,
             learner_id,
-            learner_email,
-            learner_name,
           });
 
         if (error) throw error;
@@ -313,7 +310,6 @@ email2@example.com,Name Two"></textarea>
         e.target.reset();
         loadEnrollments();
       } catch (err) {
-        console.error('Add enrollment error:', err);
         errorMessage.textContent = err.message || 'Error adding enrollment';
         errorMessage.style.display = 'block';
       }
@@ -330,20 +326,17 @@ email2@example.com,Name Two"></textarea>
         return;
       }
 
-      try {
-        const lines = csvData.split('\n').filter(line => line.trim());
-        const enrollments = [];
+      const lines = csvData.split('\n').filter(line => line.trim());
+      let enrollments = [];
 
+      try {
         for (const line of lines) {
           const [email, name] = line.split(',').map(s => s.trim());
           if (email && name) {
-            // Get or create learner for each
             const learner_id = await getOrCreateLearner(email, name);
             enrollments.push({
               course_id: courseId,
               learner_id,
-              learner_email: email,
-              learner_name: name,
             });
           }
         }
