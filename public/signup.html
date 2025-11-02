@@ -178,29 +178,9 @@
             message.textContent = error.message;
             message.classList.add("error");
           } else {
-            if (data.user && !data.session) {
-              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-              message.classList.add("success");
-              form.reset();
-
-              // Call backend API to create profile with role and full_name
-              const learner_id = data.user.id;
-              const res = await fetch('/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ learner_id, email, full_name, role }),
-              });
-
-              const profileRes = await res.json();
-              if (!res.ok) {
-                message.textContent = 'Profile creation failed: ' + (profileRes.error || '');
-                message.classList.add("error");
-              }
-            } else if (data.session) {
-              // Auto-login case with confirmed email, redirect to enrolled course
-              const userEmail = data.session.user.email;
-              redirectToEnrolledCourse(userEmail);
-            }
+            message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+            message.classList.add("success");
+            form.reset();
           }
         } catch (err) {
           message.textContent = 'Unexpected error occurred. Please try again.';
@@ -209,26 +189,6 @@
           signupBtn.disabled = false;
         }
       });
-
-      async function redirectToEnrolledCourse(userEmail) {
-        try {
-          const { data: enrollments, error } = await supabase
-            .from('enrollments')
-            .select('course_id')
-            .eq('learner_email', userEmail);
-
-          if (error) throw error;
-
-          if (enrollments.length > 0) {
-            window.location.href = `/course.html?id=${enrollments[0].course_id}`;
-          } else {
-            window.location.href = '/dashboard.html';
-          }
-        } catch (err) {
-          message.textContent = 'Failed to retrieve enrollments. Please try to login again later.';
-          message.classList.add("error");
-        }
-      }
     });
   </script>
 </body>
