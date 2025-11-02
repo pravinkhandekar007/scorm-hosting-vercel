@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 const frontendUrl = process.env.FRONTEND_BASE_URL;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function fetchUserByEmail(email) {
   const { data, error } = await supabase.auth.admin.listUsers({ email });
@@ -32,14 +32,26 @@ async function createUser(email, fullName) {
 }
 
 async function sendPasswordResetEmail(email) {
-  const { data, error } = await supabase.auth.api.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.FRONTEND_BASE_URL}/reset-password`,
+  const url = `${supabaseUrl}/auth/v1/recover`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      redirect_to: `${frontendUrl}/reset-password`, // Adjust to your reset-password route
+    }),
   });
-  if (error) {
-    console.error("Error sending password reset email:", error);
-    throw error;
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Failed to send password reset email: ${errorText}`);
+    throw new Error(`Failed to trigger password reset email: ${errorText}`);
   }
-  return data;
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -84,7 +96,7 @@ export default async function handler(req, res) {
 
     const learner_id = user.id;
 
-    // Insert or confirm learner in the learners table
+    // Insert or confirm learner in learners table
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
@@ -105,7 +117,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Check if already enrolled
+    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -139,7 +151,7 @@ export default async function handler(req, res) {
       message: "Enrollment created. Password reset email sent if user was newly created.",
     });
   } catch (error) {
-    console.error("Error in enrollment API:", error);
+    console.error("Error in enrollments API:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
