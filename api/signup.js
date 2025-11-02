@@ -8,10 +8,10 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { learner_id, email, name, role = "learner", otherProfileData } = req.body;
+    const { learner_id, email, full_name, role = "learner", otherProfileData } = req.body;
 
-    if (!learner_id || !email || !name) {
-      console.log('Missing required fields:', { learner_id, email, name });
+    if (!learner_id || !email || !full_name) {
+      console.log('Missing required fields:', { learner_id, email, full_name });
       return res.status(400).json({ error: "Missing required fields." });
     }
 
@@ -34,12 +34,12 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Profile already exists." });
     }
 
-    console.log('Inserting new profile:', { id: learner_id, email, name, role, ...otherProfileData });
+    console.log('Inserting new profile:', { id: learner_id, email, full_name, role, ...otherProfileData });
 
     const { error: insertError } = await supabase.from("profiles").insert({
       id: learner_id,
       email,
-      name,
+      full_name,
       role,
       ...otherProfileData,
     });
