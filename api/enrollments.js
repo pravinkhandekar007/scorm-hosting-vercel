@@ -1,8 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL; // Use server-side URL here
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const frontendUrl = process.env.FRONTEND_BASE_URL;
+const frontendUrl = process.env.FRONTEND_BASE_URL || process.env.NEXT_PUBLIC_APP_URL; // Frontend URL for email links
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function fetchUserByEmail(email) {
@@ -42,7 +43,7 @@ async function sendPasswordResetEmail(email) {
     },
     body: JSON.stringify({
       email,
-      redirect_to: `${frontendUrl}/reset-password`, // Adjust to your reset-password route
+      redirect_to: `${frontendUrl}/reset-password`,
     }),
   });
 
@@ -75,7 +76,6 @@ export default async function handler(req, res) {
 
     console.log(`Received request to enroll learner: ${learner_email} into course: ${course_id}`);
 
-    // Verify course exists
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -86,7 +86,6 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Check user existence
     let user = await fetchUserByEmail(learner_email);
 
     if (!user) {
@@ -96,7 +95,6 @@ export default async function handler(req, res) {
 
     const learner_id = user.id;
 
-    // Insert or confirm learner in learners table
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
@@ -113,11 +111,11 @@ export default async function handler(req, res) {
         });
 
       if (learnerInsertError) {
+        console.error(`Failed to insert learner record: ${learnerInsertError.message}`);
         return res.status(500).json({ error: "Failed to insert learner record" });
       }
     }
 
-    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -129,7 +127,6 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Learner already enrolled in this course" });
     }
 
-    // Insert enrollment
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
@@ -142,6 +139,7 @@ export default async function handler(req, res) {
       .select();
 
     if (enrollmentError) {
+      console.error(`Failed to create enrollment: ${enrollmentError.message}`);
       return res.status(500).json({ error: "Failed to create enrollment" });
     }
 
