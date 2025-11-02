@@ -132,7 +132,7 @@ export default async function handler(req, res) {
 
     console.log(`Using learner_id: ${learner_id} to check existing enrollments`);
 
-    // Ensure learner record exists
+    // Check in the learners table
     const { data: learnerInTable } = await supabase
       .from("learners")
       .select("id")
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
       console.log(`Inserted new learner record for ID ${learner_id}`);
     }
 
-    // Check existing enrollment
+    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Learner already enrolled in this course" });
     }
 
-    // Create enrollment
+    // Enroll the learner
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
@@ -185,15 +185,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Failed to create enrollment" });
     }
 
-    console.log(`Enrollment created successfully for learner ${learner_email} in course ${course_id}`);
+    console.log(`Enrollment successfully created for learner ${learner_email} in course ${course_id}`);
 
     return res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: "Enrollment created and invite sent if applicable.",
+      message: "Enrollment created successfully.",
     });
   } catch (error) {
-    console.error("Unhandled error in enrollment API:", error);
+    console.error("Unhandled error during enrollment:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
