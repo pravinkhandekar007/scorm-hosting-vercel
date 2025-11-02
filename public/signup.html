@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Sign Up – PlayScorm</title>
   <style>
-    /* ... (Your CSS styles remain the same) ... */
     body {
       margin: 0;
       min-height: 100vh;
@@ -130,7 +129,6 @@
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // NOTE: For security, use environment variables for keys in a production environment.
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -157,7 +155,6 @@
 
         signupBtn.disabled = true;
         try {
-          // CORRECTED: Using the proper syntax for emailRedirectTo
           const { error, data } = await supabase.auth.signUp({
             email,
             password,
@@ -170,15 +167,14 @@
             message.textContent = error.message;
             message.classList.add("error");
           } else {
-            // Check for unconfirmed user state which is typical for email signup
             if (data.user && !data.session) {
-                message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-                message.classList.add("success");
-                form.reset();
+              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+              message.classList.add("success");
+              form.reset();
             } else if (data.session) {
-                // This case is unlikely if email confirmation is enabled, but handles auto-login
-                message.textContent = 'Signup successful and you are logged in!';
-                message.classList.add("success");
+              // Auto-login case with confirmed email, redirect to enrolled course
+              const userEmail = data.session.user.email;
+              redirectToEnrolledCourse(userEmail);
             }
           }
         } catch (err) {
@@ -188,6 +184,27 @@
           signupBtn.disabled = false;
         }
       });
+
+      async function redirectToEnrolledCourse(userEmail) {
+        try {
+          const { data: enrollments, error } = await supabase
+            .from('enrollments')
+            .select('course_id')
+            .eq('learner_email', userEmail);
+
+          if (error) throw error;
+
+          if (enrollments.length > 0) {
+            window.location.href = `/course.html?id=${enrollments[0].course_id}`;
+          } else {
+            window.location.href = '/dashboard.html';
+          }
+        } catch (err) {
+          message.textContent = 'Failed to retrieve enrollments. Please try to login again later.';
+          message.classList.add("error");
+        }
+      }
+
     });
   </script>
 </body>
