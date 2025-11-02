@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrlRaw = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Trim trailing slash if any
+const supabaseUrl = supabaseUrlRaw.endsWith('/') ? supabaseUrlRaw.slice(0, -1) : supabaseUrlRaw;
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function fetchUserByEmail(email) {
@@ -9,7 +12,7 @@ async function fetchUserByEmail(email) {
     const url = `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
     const response = await fetch(url, {
       headers: {
-        apiKey: supabaseKey,
+        apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
         "Content-Type": "application/json",
       },
@@ -47,10 +50,11 @@ async function fetchUserByEmail(email) {
 
 async function inviteUser(email, fullName) {
   try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/admin/invite`, {
+    const inviteUrl = `${supabaseUrl}/auth/v1/admin/invite`;
+    const response = await fetch(inviteUrl, {
       method: "POST",
       headers: {
-        apiKey: supabaseKey,
+        apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
         "Content-Type": "application/json",
       },
@@ -62,6 +66,10 @@ async function inviteUser(email, fullName) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      if (response.status === 404) {
+        console.error(`inviteUser: Invite endpoint not found (404). Your Supabase project may not support Admin Invite API.`);
+        throw new Error(`Invite API not supported on this project. Please consider manual invite email approach.`);
+      }
       console.error(`inviteUser: Invite failed for email ${email}, Status: ${response.status}, Response: ${errorText}`);
       throw new Error(`Failed to invite user: ${errorText}`);
     }
@@ -118,12 +126,8 @@ export default async function handler(req, res) {
         const invitedUser = await inviteUser(learner_email, learner_name);
         learner_id = invitedUser.id;
       } catch (error) {
-        console.log(`Failed to invite user ${learner_email}, retry fetch`);
-        user = await fetchUserByEmail(learner_email);
-        if (!user) {
-          return res.status(500).json({ error: `Failed to invite or find existing user with email ${learner_email}` });
-        }
-        learner_id = user.id;
+        console.log(`Failed to invite user ${learner_email}, fallback to manual invite or error`);
+        return res.status(500).json({ error: error.message || "Failed to invite user" });
       }
     } else {
       learner_id = user.id;
