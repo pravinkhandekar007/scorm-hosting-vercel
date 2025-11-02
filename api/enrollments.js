@@ -29,6 +29,35 @@ async function fetchUserByEmail(email) {
   }
 }
 
+async function inviteUser(email, fullName) {
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/invite`, {
+      method: 'POST',
+      headers: {
+        apiKey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        data: { full_name: fullName }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Invite user failed:", response.status, errorText);
+      throw new Error('Failed to invite user');
+    }
+
+    const invitedUser = await response.json();
+    return invitedUser;
+  } catch (error) {
+    console.error("Error inviting user:", error);
+    throw error;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.status(200).end();
@@ -59,45 +88,27 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Check user Auth existence
-    let existingUser = await fetchUserByEmail(learner_email);
+    // Check if user exists in Auth
+    let user = await fetchUserByEmail(learner_email);
 
     let learner_id;
 
-    if (!existingUser) {
-      // Create Supabase Auth user
-      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
-        email: learner_email,
-        password: Math.random().toString(36).slice(-8),
-        email_confirm: false,
-        user_metadata: { full_name: learner_name },
-      });
-
-      if (createUserError) {
-        console.error("Error creating new user in Auth:", createUserError);
-        return res.status(500).json({ error: "Failed to create user in Auth" });
-      }
-
-      learner_id = newUser.id;
+    if (!user) {
+      // User not exists, send invite email to join platform and course
+      const invitedUser = await inviteUser(learner_email, learner_name);
+      learner_id = invitedUser.id;
     } else {
-      learner_id = existingUser.id;
+      learner_id = user.id;
     }
 
-    // Check learners table for id and email
-    const { data: learnerById } = await supabase
+    // Ensure learner present in learners table
+    const { data: learnerInTable } = await supabase
       .from('learners')
       .select('id')
       .eq('id', learner_id)
       .single();
 
-    const { data: learnerByEmail } = await supabase
-      .from('learners')
-      .select('id')
-      .eq('email', learner_email)
-      .single();
-
-    if (!learnerById && !learnerByEmail) {
-      // Insert learner record
+    if (!learnerInTable) {
       const { error: learnerInsertError } = await supabase
         .from('learners')
         .insert({
@@ -109,11 +120,6 @@ export default async function handler(req, res) {
       if (learnerInsertError) {
         console.error('Failed to insert learner:', learnerInsertError);
         return res.status(500).json({ error: 'Failed to insert learner record' });
-      }
-    } else {
-      // Align learner_id to existing one if email found with different id
-      if (learnerByEmail && !learnerById) {
-        learner_id = learnerByEmail.id;
       }
     }
 
@@ -149,7 +155,7 @@ export default async function handler(req, res) {
     return res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: 'Enrollment created successfully, email notification sent if new user.',
+      message: 'Enrollment created and invite sent if applicable.',
     });
   } catch (error) {
     console.error('Unhandled error:', error);
