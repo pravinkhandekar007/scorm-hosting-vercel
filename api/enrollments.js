@@ -15,6 +15,7 @@ async function fetchUserByEmail(email) {
     });
 
     if (!response.ok) {
+      // Likely user does not exist
       return null;
     }
 
@@ -30,8 +31,6 @@ async function fetchUserByEmail(email) {
 }
 
 export default async function handler(req, res) {
-  // Add your CORS headers here if needed
-
   if (req.method === "OPTIONS") {
     res.status(200).end();
     return;
@@ -50,7 +49,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check course existence
+    // Verify course existence
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -61,13 +60,13 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Check user existence in Auth
+    // Look up user via Supabase Auth REST API
     let existingUser = await fetchUserByEmail(learner_email);
 
     let learner_id;
 
     if (!existingUser) {
-      // create new user
+      // Create new auth user if not present
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email: learner_email,
         password: Math.random().toString(36).slice(-8),
@@ -79,40 +78,13 @@ export default async function handler(req, res) {
         console.error("Error creating new user:", createUserError);
         return res.status(500).json({ error: "Failed to create user in Auth" });
       }
+
       learner_id = newUser.id;
     } else {
       learner_id = existingUser.id;
     }
 
-    // Ensure learner exists in learners table
-    const { data: learnerInTable } = await supabase
-      .from("learners")
-      .select("id")
-      .eq("email", learner_email)
-      .single();
-
-    if (!learnerInTable) {
-      // Insert learner without id (auto-generated)
-      const { data: newLearner, error: learnerInsertError } = await supabase
-        .from("learners")
-        .insert({
-          email: learner_email,
-          name: learner_name,
-        })
-        .select('id')
-        .single();
-
-      if (learnerInsertError) {
-        console.error("Error inserting learner:", learnerInsertError);
-        return res.status(500).json({ error: `Failed to insert learner record: ${learnerInsertError.message}` });
-      }
-
-      learner_id = newLearner.id; // update learner_id with inserted learner's id
-    } else {
-      learner_id = learnerInTable.id;
-    }
-
-    // Check for existing enrollment
+    // Check existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -126,7 +98,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Insert new enrollment
+    // Insert enrollment row referencing auth user directly
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
