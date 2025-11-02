@@ -4,30 +4,34 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Helper function to get user by email via REST Admin API
 async function fetchUserByEmail(email) {
-  const url = `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
-  const res = await fetch(url, {
-    headers: {
-      apiKey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
-    },
-  });
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
+      headers: {
+        apiKey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json"
+      },
+    });
 
-  if (!res.ok) {
-    // Return null if not found or any error
+    if (!response.ok) {
+      // Could be 404 if user not found
+      return null;
+    }
+
+    const data = await response.json();
+    if (data && data.users && data.users.length > 0) {
+      return data.users[0];
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching user by email via REST admin API:", error);
     return null;
   }
-
-  const data = await res.json();
-  if (data && data.users && data.users.length > 0) {
-    return data.users[0];
-  }
-  return null;
 }
 
 export default async function handler(req, res) {
-  // Add CORS headers (same as your existing code)
+  // Add your CORS headers here if needed
 
   if (req.method === "OPTIONS") {
     res.status(200).end();
@@ -47,7 +51,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check if course exists
+    // Validate course existence
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -58,21 +62,22 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Use REST API to check if user exists
-    const existingUser = await fetchUserByEmail(learner_email);
+    // Check if user exists using REST admin API
+    let existingUser = await fetchUserByEmail(learner_email);
 
     let learner_id;
 
     if (!existingUser) {
-      // User not found, create new user using admin createUser method
+      // create user if not exists
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email: learner_email,
-        password: Math.random().toString(36).slice(-8), // temporary random password
+        password: Math.random().toString(36).slice(-8),
         email_confirm: false,
         user_metadata: { full_name: learner_name },
       });
 
       if (createUserError) {
+        console.error("Error creating new user:", createUserError);
         return res.status(500).json({ error: "Failed to create user in Auth" });
       }
       learner_id = newUser.id;
@@ -80,7 +85,7 @@ export default async function handler(req, res) {
       learner_id = existingUser.id;
     }
 
-    // Check if enrollment already exists
+    // Check for existing enrollment
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -94,7 +99,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Create new enrollment record
+    // Insert enrollment
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
@@ -107,7 +112,7 @@ export default async function handler(req, res) {
       .select();
 
     if (enrollmentError) {
-      console.error("Enrollment creation error:", enrollmentError);
+      console.error("Error creating enrollment:", enrollmentError);
       return res.status(500).json({ error: "Failed to create enrollment" });
     }
 
@@ -117,7 +122,7 @@ export default async function handler(req, res) {
       message: "Enrollment created, email notification sent if new user.",
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Unhandled error in enrollments API:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
