@@ -21,15 +21,18 @@ export default async function handler(req, res) {
     .from("profiles")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    console.error('Error fetching profile:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Error fetching profile:', error, { id });
+    return res.status(500).json({ error: error.message, detail: error.details || null, hint: error.hint || null });
+  }
+
+  if (!data) {
+    console.log('No profile found for id:', id);
+    return res.status(200).json([]);
   }
 
   console.log('Profile fetched:', data);
-
-  // Return as array for compatibility with frontend handling
-  res.status(200).json(data ? [data] : []);
+  return res.status(200).json([data]);
 }
