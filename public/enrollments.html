@@ -164,6 +164,29 @@ email2@example.com,Name Two"></textarea>
     const statusMessage = document.getElementById('status-message');
     const errorMessage = document.getElementById('error-message');
 
+    async function getOrCreateLearner(email, name) {
+      // Check if learner exists
+      const { data: existingLearner } = await supabase
+        .from('learners')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (existingLearner) {
+        return existingLearner.id;
+      }
+
+      // Create new learner
+      const { data: newLearner, error } = await supabase
+        .from('learners')
+        .insert({ email, name })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      return newLearner.id;
+    }
+
     async function loadEnrollments() {
       statusMessage.style.display = 'none';
       errorMessage.style.display = 'none';
@@ -268,11 +291,15 @@ email2@example.com,Name Two"></textarea>
           return;
         }
 
+        // Get or create learner
+        const learner_id = await getOrCreateLearner(learner_email, learner_name);
+
         // Insert enrollment
         const { error } = await supabase
           .from('enrollments')
           .insert({
             course_id: courseId,
+            learner_id,
             learner_email,
             learner_name,
           });
@@ -310,8 +337,11 @@ email2@example.com,Name Two"></textarea>
         for (const line of lines) {
           const [email, name] = line.split(',').map(s => s.trim());
           if (email && name) {
+            // Get or create learner for each
+            const learner_id = await getOrCreateLearner(email, name);
             enrollments.push({
               course_id: courseId,
+              learner_id,
               learner_email: email,
               learner_name: name,
             });
