@@ -8,13 +8,12 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { learner_id, email, name, otherProfileData } = req.body;
+    const { learner_id, email, name, role = "learner", otherProfileData } = req.body;
 
     if (!learner_id || !email || !name) {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
-    // Insert profile for user completing signup
     const { data: existingProfile } = await supabase
       .from("profiles")
       .select("id")
@@ -29,6 +28,7 @@ export default async function handler(req, res) {
       id: learner_id,
       email,
       name,
+      role,
       ...otherProfileData,
     });
 
