@@ -61,7 +61,7 @@
       font-size: 15px;
       display: block;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 12px 15px;
       margin-bottom: 20px;
@@ -72,7 +72,7 @@
       transition: border-color 0.3s;
       box-sizing: border-box;
     }
-    input:focus {
+    input:focus, select:focus {
       border-color: #0073e6;
       outline: none;
     }
@@ -120,6 +120,11 @@
         <input type="email" id="email" placeholder="you@example.com" required />
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Choose a password" required minlength="6" />
+        <label for="role">Sign up as</label>
+        <select id="role" name="role">
+          <option value="learner" selected>Learner</option>
+          <option value="owner">Course Owner</option>
+        </select>
         <button type="submit" id="signup-button">Sign Up</button>
       </form>
       <p class="footer-text">
@@ -136,6 +141,7 @@
       const form = document.getElementById('signup-form');
       const emailInput = document.getElementById('email');
       const pwdInput = document.getElementById('password');
+      const roleSelect = document.getElementById('role');
       const message = document.getElementById('message');
       const signupBtn = document.getElementById('signup-button');
 
@@ -146,6 +152,7 @@
 
         const email = emailInput.value.trim();
         const password = pwdInput.value;
+        const role = roleSelect.value || 'learner';
 
         if (!email || password.length < 6) {
           message.textContent = 'Valid email and password (min 6 chars) required.';
@@ -171,6 +178,20 @@
               message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
               message.classList.add("success");
               form.reset();
+
+              // Call backend API to create profile with role
+              const learner_id = data.user.id;
+              const res = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ learner_id, email, name: email, role }),
+              });
+
+              const profileRes = await res.json();
+              if (!res.ok) {
+                message.textContent = 'Profile creation failed: ' + (profileRes.error || '');
+                message.classList.add("error");
+              }
             } else if (data.session) {
               // Auto-login case with confirmed email, redirect to enrolled course
               const userEmail = data.session.user.email;
@@ -204,7 +225,6 @@
           message.classList.add("error");
         }
       }
-
     });
   </script>
 </body>
