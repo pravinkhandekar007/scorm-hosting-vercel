@@ -4,7 +4,100 @@
   <meta charset="UTF-8" />
   <title>Manage Enrollments - PlayScorm</title>
   <style>
-    /* Your existing styles unchanged */
+    /* Your existing CSS styles here */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .main-wrapper {
+      max-width: 1200px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-bottom: 30px;
+      color: #00205B;
+      font-weight: 700;
+    }
+    #status-message {
+      margin-bottom: 15px;
+      font-weight: 600;
+      color: #28a745;
+      display: none;
+    }
+    #error-message {
+      margin-bottom: 15px;
+      font-weight: 600;
+      color: #d32f2f;
+      display: none;
+    }
+    .back-link {
+      margin-bottom: 25px;
+      display: inline-block;
+      color: #0073e6;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 35px;
+    }
+    th, td {
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #0073e6;
+      color: white;
+      font-weight: 600;
+    }
+    button {
+      background: #0073e6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #005bb5;
+    }
+    #add-enrollment-form input, #bulk-csv-textarea {
+      width: 100%;
+      padding: 8px 14px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    #bulk-csv-textarea {
+      height: 150px;
+      font-family: monospace;
+      resize: vertical;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .section-title {
+      font-weight: 700;
+      color: #00205B;
+      font-size: 18px;
+      margin-top: 40px;
+      margin-bottom: 15px;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -16,8 +109,43 @@
     <div id="status-message"></div>
     <div id="error-message"></div>
 
-    <!-- Your existing HTML unchanged -->
+    <div>
+      <div class="section-title">Current Enrollments</div>
+      <table id="enrollments-table" aria-label="Enrollment list">
+        <thead>
+          <tr>
+            <th>Learner Name</th>
+            <th>Learner Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
 
+    <div>
+      <div class="section-title">Add Single Enrollment</div>
+      <form id="add-enrollment-form">
+        <div class="form-group">
+          <input type="email" id="learner-email" placeholder="Learner Email" required />
+        </div>
+        <div class="form-group">
+          <input type="text" id="learner-name" placeholder="Learner Name" required />
+        </div>
+        <button type="submit">Add Enrollment</button>
+      </form>
+    </div>
+
+    <div>
+      <div class="section-title">Bulk Upload Enrollments (CSV)</div>
+      <textarea id="bulk-csv-textarea" placeholder="learner_email,learner_name
+email1@example.com,Name One
+email2@example.com,Name Two"></textarea>
+      <button id="bulk-upload-btn">Upload CSV</button>
+    </div>
   </div>
 
   <script>
@@ -48,6 +176,7 @@
     }
 
     async function getOrCreateLearner(email, name) {
+      // Re-check auth in case
       await checkAuth();
 
       // Check if learner exists
@@ -149,116 +278,122 @@
       }
     }
 
-    document.getElementById('add-enrollment-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorMessage.style.display = 'none';
-      statusMessage.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', () => {
+      const addEnrollmentForm = document.getElementById('add-enrollment-form');
+      const bulkUploadBtn = document.getElementById('bulk-upload-btn');
 
-      try {
-        await checkAuth();
+      addEnrollmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMessage.style.display = 'none';
+        statusMessage.style.display = 'none';
 
-        const learner_email = document.getElementById('learner-email').value.trim();
-        const learner_name = document.getElementById('learner-name').value.trim();
+        try {
+          await checkAuth();
 
-        if (!learner_email || !learner_name) {
-          errorMessage.textContent = 'Both email and name are required.';
-          errorMessage.style.display = 'block';
-          return;
-        }
+          const learner_email = document.getElementById('learner-email').value.trim();
+          const learner_name = document.getElementById('learner-name').value.trim();
 
-        // Try to get existing learner or create
-        const learner_id = await getOrCreateLearner(learner_email, learner_name);
+          if (!learner_email || !learner_name) {
+            errorMessage.textContent = 'Both email and name are required.';
+            errorMessage.style.display = 'block';
+            return;
+          }
 
-        // Check if enrollment already exists
-        const { data: existing } = await supabase
-          .from('enrollments')
-          .select('id')
-          .eq('course_id', courseId)
-          .eq('learner_id', learner_id)
-          .single();
+          // Try to get existing learner or create
+          const learner_id = await getOrCreateLearner(learner_email, learner_name);
 
-        if (existing) {
-          statusMessage.textContent = 'Learner already enrolled.';
-          statusMessage.style.display = 'block';
-          return;
-        }
+          // Check if enrollment already exists
+          const { data: existing } = await supabase
+            .from('enrollments')
+            .select('id')
+            .eq('course_id', courseId)
+            .eq('learner_id', learner_id)
+            .single();
 
-        // Insert enrollment row
-        const { error } = await supabase
-          .from('enrollments')
-          .insert({
-            course_id: courseId,
-            learner_id,
-          });
+          if (existing) {
+            statusMessage.textContent = 'Learner already enrolled.';
+            statusMessage.style.display = 'block';
+            return;
+          }
 
-        if (error) throw error;
-
-        statusMessage.textContent = 'Enrollment added successfully.';
-        statusMessage.style.color = 'green';
-        statusMessage.style.display = 'block';
-
-        e.target.reset();
-        loadEnrollments();
-      } catch (err) {
-        errorMessage.textContent = err.message || 'Error adding enrollment';
-        errorMessage.style.display = 'block';
-      }
-    });
-
-    document.getElementById('bulk-upload-btn').addEventListener('click', async () => {
-      errorMessage.style.display = 'none';
-      statusMessage.style.display = 'none';
-
-      try {
-        await checkAuth();
-
-        const csvData = document.getElementById('bulk-csv-textarea').value.trim();
-        if (!csvData) {
-          errorMessage.textContent = 'CSV data is empty.';
-          errorMessage.style.display = 'block';
-          return;
-        }
-
-        const lines = csvData.split('\n').filter(line => line.trim());
-        let enrollments = [];
-
-        for (const line of lines) {
-          const [email, name] = line.split(',').map(s => s.trim());
-          if (email && name) {
-            const learner_id = await getOrCreateLearner(email, name);
-            enrollments.push({
+          // Insert enrollment row
+          const { error } = await supabase
+            .from('enrollments')
+            .insert({
               course_id: courseId,
               learner_id,
             });
-          }
-        }
 
-        if (enrollments.length === 0) {
-          errorMessage.textContent = 'No valid enrollment data found.';
+          if (error) throw error;
+
+          statusMessage.textContent = 'Enrollment added successfully.';
+          statusMessage.style.color = 'green';
+          statusMessage.style.display = 'block';
+
+          e.target.reset();
+          loadEnrollments();
+        } catch (err) {
+          errorMessage.textContent = err.message || 'Error adding enrollment';
           errorMessage.style.display = 'block';
-          return;
         }
+      });
 
-        const { error } = await supabase
-          .from('enrollments')
-          .insert(enrollments);
+      bulkUploadBtn.addEventListener('click', async () => {
+        errorMessage.style.display = 'none';
+        statusMessage.style.display = 'none';
 
-        if (error) throw error;
+        try {
+          await checkAuth();
 
-        statusMessage.textContent = `Bulk upload successful. ${enrollments.length} enrollment(s) added.`;
-        statusMessage.style.color = 'green';
-        statusMessage.style.display = 'block';
-        loadEnrollments();
-      } catch (err) {
-        errorMessage.textContent = err.message || 'Error during bulk upload';
-        errorMessage.style.display = 'block';
-      }
+          const csvData = document.getElementById('bulk-csv-textarea').value.trim();
+          if (!csvData) {
+            errorMessage.textContent = 'CSV data is empty.';
+            errorMessage.style.display = 'block';
+            return;
+          }
+
+          const lines = csvData.split('\n').filter(line => line.trim());
+          let enrollments = [];
+
+          for (const line of lines) {
+            const [email, name] = line.split(',').map(s => s.trim());
+            if (email && name) {
+              const learner_id = await getOrCreateLearner(email, name);
+              enrollments.push({
+                course_id: courseId,
+                learner_id,
+              });
+            }
+          }
+
+          if (enrollments.length === 0) {
+            errorMessage.textContent = 'No valid enrollment data found.';
+            errorMessage.style.display = 'block';
+            return;
+          }
+
+          const { error } = await supabase
+            .from('enrollments')
+            .insert(enrollments);
+
+          if (error) throw error;
+
+          statusMessage.textContent = `Bulk upload successful. ${enrollments.length} enrollment(s) added.`;
+          statusMessage.style.color = 'green';
+          statusMessage.style.display = 'block';
+          loadEnrollments();
+        } catch (err) {
+          errorMessage.textContent = err.message || 'Error during bulk upload';
+          errorMessage.style.display = 'block';
+        }
+      });
+
+      loadEnrollments();
     });
 
     function goBack() {
       window.location.href = 'dashboard.html';
     }
-
   </script>
 </body>
 </html>
