@@ -15,7 +15,6 @@ async function fetchUserByEmail(email) {
     });
 
     if (!response.ok) {
-      // Likely user does not exist
       return null;
     }
 
@@ -49,7 +48,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Verify course existence
+    // Verify course exists
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id")
@@ -60,13 +59,13 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Look up user via Supabase Auth REST API
+    // Check user Auth existence
     let existingUser = await fetchUserByEmail(learner_email);
 
     let learner_id;
 
     if (!existingUser) {
-      // Create new auth user if not present
+      // Create Supabase Auth user
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email: learner_email,
         password: Math.random().toString(36).slice(-8),
@@ -75,7 +74,7 @@ export default async function handler(req, res) {
       });
 
       if (createUserError) {
-        console.error("Error creating new user:", createUserError);
+        console.error("Error creating new user in Auth:", createUserError);
         return res.status(500).json({ error: "Failed to create user in Auth" });
       }
 
@@ -84,44 +83,64 @@ export default async function handler(req, res) {
       learner_id = existingUser.id;
     }
 
-    // Check existing enrollment
+    // Ensure learner present in learners table (foreign key requirement)
+    const { data: learnerInTable } = await supabase
+      .from('learners')
+      .select('id')
+      .eq('id', learner_id)
+      .single();
+
+    if (!learnerInTable) {
+      const { error: learnerInsertError } = await supabase
+        .from('learners')
+        .insert({
+          id: learner_id,
+          email: learner_email,
+          name: learner_name,
+        });
+
+      if (learnerInsertError) {
+        console.error('Failed to insert learner:', learnerInsertError);
+        return res.status(500).json({ error: 'Failed to insert learner record' });
+      }
+    }
+
+    // Check if enrollment already exists for course and learner
     const { data: existingEnrollment } = await supabase
-      .from("enrollments")
-      .select("id")
-      .eq("course_id", course_id)
-      .eq("learner_id", learner_id)
+      .from('enrollments')
+      .select('id')
+      .eq('course_id', course_id)
+      .eq('learner_id', learner_id)
       .single();
 
     if (existingEnrollment) {
-      return res.status(409).json({
-        error: "Enrollment already exists for this course and learner",
-      });
+      return res.status(409).json({ error: "Enrollment already exists for this course and learner" });
     }
 
-    // Insert enrollment row referencing auth user directly
+    // Create enrollment record
     const { data: enrollment, error: enrollmentError } = await supabase
-      .from("enrollments")
+      .from('enrollments')
       .insert({
         course_id,
         learner_id,
         learner_email,
         learner_name,
-        status: "active",
+        status: 'active',
       })
       .select();
 
     if (enrollmentError) {
-      console.error("Error creating enrollment:", enrollmentError);
-      return res.status(500).json({ error: "Failed to create enrollment" });
+      console.error('Failed to create enrollment:', enrollmentError);
+      return res.status(500).json({ error: 'Failed to create enrollment' });
     }
 
     return res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: "Enrollment created, email notification sent if new user.",
+      message: 'Enrollment created, email notification sent if new user.',
     });
   } catch (error) {
-    console.error("Unhandled error in enrollments API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Unhandled error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
