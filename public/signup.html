@@ -116,6 +116,8 @@
       <h1>Sign Up</h1>
       <form id="signup-form" autocomplete="off">
         <div id="message" class="message"></div>
+        <label for="full-name">Full Name</label>
+        <input type="text" id="full-name" placeholder="Your full name" required />
         <label for="email">Email Address</label>
         <input type="email" id="email" placeholder="you@example.com" required />
         <label for="password">Password</label>
@@ -139,6 +141,7 @@
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
+      const fullNameInput = document.getElementById('full-name');
       const emailInput = document.getElementById('email');
       const pwdInput = document.getElementById('password');
       const roleSelect = document.getElementById('role');
@@ -150,12 +153,13 @@
         message.textContent = '';
         message.className = 'message';
 
+        const full_name = fullNameInput.value.trim();
         const email = emailInput.value.trim();
         const password = pwdInput.value;
         const role = roleSelect.value || 'learner';
 
-        if (!email || password.length < 6) {
-          message.textContent = 'Valid email and password (min 6 chars) required.';
+        if (!full_name || !email || password.length < 6) {
+          message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
           message.classList.add("error");
           return;
         }
@@ -179,12 +183,12 @@
               message.classList.add("success");
               form.reset();
 
-              // Call backend API to create profile with role
+              // Call backend API to create profile with role and full_name
               const learner_id = data.user.id;
               const res = await fetch('/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ learner_id, email, name: email, role }),
+                body: JSON.stringify({ learner_id, email, full_name, role }),
               });
 
               const profileRes = await res.json();
