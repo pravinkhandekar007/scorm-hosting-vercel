@@ -16,12 +16,12 @@ export default async function handler(req, res) {
     }
 
     console.log('Received learner_id:', learner_id);
-    console.log('Checking for existing profile with id:', learner_id);
+    console.log('Checking for existing profile with user_id:', learner_id);
 
     const { data: existingProfile, error: selectError } = await supabase
       .from("profiles")
-      .select("id")
-      .eq("id", learner_id)
+      .select("user_id")
+      .eq("user_id", learner_id)
       .single();
 
     if (selectError && selectError.code !== 'PGRST116') {
@@ -34,10 +34,10 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: "Profile already exists." });
     }
 
-    console.log('Inserting new profile:', { id: learner_id, email, full_name, role, ...otherProfileData });
+    console.log('Inserting new profile:', { user_id: learner_id, email, full_name, role, ...otherProfileData });
 
     const { error: insertError } = await supabase.from("profiles").insert({
-      id: learner_id,
+      user_id: learner_id,
       email,
       full_name,
       role,
