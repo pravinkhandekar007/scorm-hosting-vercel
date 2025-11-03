@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Sign Up – PlayScorm</title>
   <style>
-    /* Your original styles here */
     body {
       margin: 0;
       min-height: 100vh;
@@ -138,7 +137,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // replace actual anon key
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
@@ -167,50 +166,27 @@
 
         signupBtn.disabled = true;
         try {
-          // 1. Sign up on Supabase Auth
+          // Sign up with user metadata containing role and full_name
           const { error, data } = await supabase.auth.signUp({
             email,
             password,
-            options: { emailRedirectTo: 'https://playscorm.com/email-verified.html' }
+            options: {
+              emailRedirectTo: 'https://playscorm.com/email-verified.html',
+              data: {
+                full_name: full_name,
+                role: role
+              }
+            }
           });
 
           if (error) {
             message.textContent = error.message;
             message.classList.add("error");
-            signupBtn.disabled = false;
-            return;
-          }
-
-          // 2. After successful signup, create profile with role
-          const createProfileRes = await fetch('/api/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'create-profile',
-              user_id: data.user.id,
-              email: data.user.email,
-              full_name,
-              role
-            })
-          });
-
-          const resultJson = await createProfileRes.json();
-
-          if (!createProfileRes.ok) {
-            if (createProfileRes.status === 409) {
-              // Profile already exists, treat as success
-              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-              message.classList.add("success");
-              form.reset();
-            } else {
-              throw new Error(resultJson.error || 'Failed to create profile.');
-            }
           } else {
-            message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+            message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
             message.classList.add("success");
             form.reset();
           }
-
         } catch (err) {
           message.textContent = 'Unexpected error occurred. Please try again.';
           message.classList.add("error");
