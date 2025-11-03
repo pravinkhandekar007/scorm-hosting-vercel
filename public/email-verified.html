@@ -31,7 +31,7 @@
     .container {
       background: #fdfdfd;
       border-radius: 0 0 20px 20px;
-      box-shadow: 0 6px 32px rgba(60,45,605,0.07);
+      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
       padding: 40px;
       max-width: 600px;
       margin: auto;
@@ -94,6 +94,8 @@
       const loginLink = document.getElementById('login-link');
       const dashboardLink = document.getElementById('dashboard-link');
 
+      console.log('=== EMAIL VERIFICATION PAGE ===');
+
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const access_token = params.get('access_token');
@@ -108,71 +110,42 @@
       const { error } = await supabase.auth.setSession({ access_token, refresh_token });
 
       if (error) {
+        console.error('Session error:', error);
         message.textContent = `Verification error: ${error.message}`;
         message.className = 'error';
         return;
       }
 
-      // Session set successfully, now create profile
       try {
-        console.log('=== EMAIL VERIFIED - CREATE PROFILE ===');
-        
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
         if (userError || !user) {
           throw new Error('Unable to get user information');
         }
 
-        console.log('Current user ID:', user.id);
+        console.log('✓ Email verified for user:', user.email);
+        
+        // Check if profile was created during signup
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
 
-        // Get role and full_name from localStorage
-        const full_name = localStorage.getItem('pendingSignupFullName') || '';
-        const role = localStorage.getItem('pendingSignupRole') || 'learner';
-
-        console.log('Retrieved from localStorage:');
-        console.log('  full_name:', full_name);
-        console.log('  role:', role);
-
-        if (!full_name || !role) {
-          throw new Error('Missing signup data. Please sign up again.');
-        }
-
-        // Call API to create profile with role
-        console.log('Calling /api/signup to create profile...');
-        const createProfileRes = await fetch('/api/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'create-profile',
-            user_id: user.id,
-            email: user.email,
-            full_name,
-            role
-          })
-        });
-
-        const resultJson = await createProfileRes.json();
-
-        console.log('Profile creation response:');
-        console.log('  Status:', createProfileRes.status);
-        console.log('  Response:', resultJson);
-
-        if (createProfileRes.ok || createProfileRes.status === 409) {
-          message.textContent = 'Your email has been verified! Your profile is ready. Redirecting to dashboard...';
+        if (profile) {
+          console.log('✓ Profile exists with role:', profile.role);
+          message.textContent = `✓ Email verified! Your profile is ready. You can now log in.`;
           message.className = 'success';
-          
-          // Clear localStorage
-          localStorage.removeItem('pendingSignupRole');
-          localStorage.removeItem('pendingSignupFullName');
-          
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 2000);
         } else {
-          throw new Error(resultJson.error || 'Failed to create profile');
+          console.log('⚠ Profile not found, but email verified');
+          message.textContent = `✓ Email verified! You can now log in.`;
+          message.className = 'success';
         }
-      } catch (profileError) {
-        console.error('Profile creation error:', profileError);
+
+        loginLink.style.display = 'inline-block';
+
+      } catch (err) {
+        console.error('Error:', err);
         message.textContent = `Email verified! You can now log in.`;
         message.className = 'success';
         loginLink.style.display = 'inline-block';
