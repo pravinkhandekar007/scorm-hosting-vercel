@@ -158,7 +158,11 @@
         const password = pwdInput.value;
         const role = roleSelect.value;
 
-        console.log('Form values:', { full_name, email, role });
+        console.log('=== SIGNUP FORM SUBMISSION ===');
+        console.log('Full Name:', full_name);
+        console.log('Email:', email);
+        console.log('Role from select:', role);
+        console.log('Role type:', typeof role);
 
         if (!full_name || !email || password.length < 6) {
           message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
@@ -166,34 +170,70 @@
           return;
         }
 
+        if (!role || (role !== 'learner' && role !== 'owner')) {
+          message.textContent = 'Please select a valid role (Learner or Course Owner).';
+          message.classList.add("error");
+          return;
+        }
+
         signupBtn.disabled = true;
         try {
-          // Sign up with user metadata containing role and full_name
-          const { error, data } = await supabase.auth.signUp({
+          // Step 1: Sign up with Supabase Auth
+          console.log('Step 1: Calling supabase.auth.signUp()');
+          const { error: signupError, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: 'https://scorm-hosting-vercel-1to2g9240-pravins-projects-cf1d54ae.vercel.app/email-verified.html',
-              data: {
-                full_name: full_name,
-                role: role
-              }
+              emailRedirectTo: 'https://scorm-hosting-vercel-1to2g9240-pravins-projects-cf1d54ae.vercel.app/email-verified.html'
             }
           });
 
-          console.log('Signup response:', { error, data });
-
-          if (error) {
-            message.textContent = error.message;
+          if (signupError) {
+            message.textContent = signupError.message;
             message.classList.add("error");
-          } else {
+            signupBtn.disabled = false;
+            return;
+          }
+
+          console.log('Step 1 Success - User ID:', data.user.id);
+
+          // Step 2: Wait for user to propagate
+          console.log('Step 2: Waiting 1 second for user propagation...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // Step 3: Call backend API to create profile
+          console.log('Step 3: Calling /api/signup to create profile');
+          const profilePayload = {
+            action: 'create-profile',
+            user_id: data.user.id,
+            email: data.user.email,
+            full_name: full_name,
+            role: role
+          };
+          
+          console.log('Profile payload being sent:', profilePayload);
+
+          const createProfileRes = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profilePayload)
+          });
+
+          const resultJson = await createProfileRes.json();
+          console.log('Profile creation response status:', createProfileRes.status);
+          console.log('Profile creation response:', resultJson);
+
+          if (createProfileRes.ok || createProfileRes.status === 409) {
             message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
             message.classList.add("success");
             form.reset();
+          } else {
+            throw new Error(resultJson.error || 'Failed to create profile');
           }
+
         } catch (err) {
           console.error('Signup error:', err);
-          message.textContent = 'Unexpected error occurred. Please try again.';
+          message.textContent = `Error: ${err.message}`;
           message.classList.add("error");
         } finally {
           signupBtn.disabled = false;
