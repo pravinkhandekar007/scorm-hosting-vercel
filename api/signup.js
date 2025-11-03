@@ -13,13 +13,14 @@ export default async function handler(req, res) {
     const { action } = req.body;
 
     if (action === "create-profile") {
-      // Profile creation logic
-      const { user_id, email, full_name, role = "learner", otherProfileData } = req.body;
+      // Destructure and forcibly require role from req.body
+      const { user_id, email, full_name, role, otherProfileData } = req.body;
 
-      if (!user_id || !email || !full_name) {
-        return res.status(400).json({ error: "Missing required fields for profile creation." });
+      if (!user_id || !email || !full_name || !role) {
+        return res.status(400).json({ error: "Missing required fields for profile creation including role." });
       }
 
+      // Check if profile already exists
       const { data: existingProfile, error: selectError } = await supabase
         .from("profiles")
         .select("user_id")
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "Profile already exists." });
       }
 
+      // Insert profile with role exactly as received
       const { error: insertError } = await supabase.from("profiles").insert({
         user_id,
         email,
@@ -48,9 +50,7 @@ export default async function handler(req, res) {
 
       return res.status(201).json({ success: true, message: "Profile created." });
     } else {
-      // Existing signup logic (if any)
-      // If you previously created profiles here, you can omit or handle other signup actions.
-
+      // Handle other actions or return error
       return res.status(400).json({ error: "Missing or invalid action parameter." });
     }
   } catch (error) {
