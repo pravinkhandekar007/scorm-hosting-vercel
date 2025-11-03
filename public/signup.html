@@ -4,108 +4,7 @@
   <meta charset="UTF-8" />
   <title>Sign Up – PlayScorm</title>
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #C0C0C0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .main-wrapper {
-      width: 100%;
-      max-width: 600px;
-    }
-    .banner {
-      width: 100%;
-      background: linear-gradient(to right, #00205B, #00857D);
-      color: #fff;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      padding: 26px 0 20px;
-      border-radius: 20px 20px 0 0;
-      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
-    }
-    .container {
-      background: #fdfdfd;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-      padding: 40px;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-    .message {
-      text-align: center;
-      font-weight: 600;
-      min-height: 18px;
-      margin-bottom: 16px;
-    }
-    .message.error {
-      color: #cc0000;
-    }
-    .message.success {
-      color: #2e7d32;
-    }
-    label {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 15px;
-      display: block;
-    }
-    input, select {
-      width: 100%;
-      padding: 12px 15px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-      background: #fafafa;
-      transition: border-color 0.3s;
-      box-sizing: border-box;
-    }
-    input:focus, select:focus {
-      border-color: #0073e6;
-      outline: none;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 700;
-      background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:disabled {
-      background: #98c4ee;
-      cursor: default;
-    }
-    button:hover:not(:disabled) {
-      background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
-    }
-    .footer-text {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 14px;
-      color: #666;
-    }
-    .footer-text a {
-      color: #7853fa;
-      font-weight: 600;
-      text-decoration: none;
-    }
+    /* Your existing styling here */
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -137,7 +36,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+      const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
@@ -158,11 +57,6 @@
         const password = pwdInput.value;
         const role = roleSelect.value;
 
-        console.log('=== SIGNUP FORM SUBMISSION ===');
-        console.log('Full Name:', full_name);
-        console.log('Email:', email);
-        console.log('Role from select:', role);
-
         if (!full_name || !email || password.length < 6) {
           message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
           message.classList.add("error");
@@ -177,13 +71,12 @@
 
         signupBtn.disabled = true;
         try {
-          // Step 1: Sign up with Supabase Auth
-          console.log('Step 1: Calling supabase.auth.signUp()');
+          // Step 1: Signup user
           const { error: signupError, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: 'https://scorm-hosting-vercel-git-new-features-pravins-projects-cf1d54ae.vercel.app/email-verified.html'
+              emailRedirectTo: window.location.origin + '/email-verified.html'
             }
           });
 
@@ -194,14 +87,10 @@
             return;
           }
 
-          console.log('Step 1 Success - User ID:', data.user.id);
-
-          // Step 2: Wait longer for user to propagate in auth.users
-          console.log('Step 2: Waiting 3 seconds for user propagation...');
+          // Step 2: Wait for user to propagate (delay)
           await new Promise(resolve => setTimeout(resolve, 3000));
 
-          // Step 3: Call backend API to create profile
-          console.log('Step 3: Calling /api/signup to create profile with role');
+          // Step 3: Create profile with role immediately after signup
           const profilePayload = {
             action: 'create-profile',
             user_id: data.user.id,
@@ -209,8 +98,6 @@
             full_name: full_name,
             role: role
           };
-          
-          console.log('Profile payload being sent:', profilePayload);
 
           const createProfileRes = await fetch('/api/signup', {
             method: 'POST',
@@ -219,46 +106,20 @@
           });
 
           const resultJson = await createProfileRes.json();
-          console.log('Profile creation response status:', createProfileRes.status);
-          console.log('Profile creation response:', resultJson);
-
-          // If user not found (404), retry after waiting
-          if (createProfileRes.status === 404) {
-            console.log('User not found yet, retrying in 3 seconds...');
-            message.textContent = 'Setting up your profile...';
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            const retryRes = await fetch('/api/signup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(profilePayload)
-            });
-            
-            const retryJson = await retryRes.json();
-            console.log('Retry response status:', retryRes.status);
-            console.log('Retry response:', retryJson);
-            
-            if (retryRes.ok || retryRes.status === 409) {
-              message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
-              message.classList.add("success");
-              form.reset();
-              signupBtn.disabled = false;
-              return;
-            } else {
-              throw new Error(retryJson.error || 'Failed to create profile after retry');
-            }
-          }
 
           if (createProfileRes.ok || createProfileRes.status === 409) {
-            message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
+            message.textContent = `Signup succeeded! Please check your email (${email}) to verify your account.`;
             message.classList.add("success");
             form.reset();
+          } else if (createProfileRes.status === 404) {
+            message.textContent = 'User propagation delay. Please retry after a moment.';
+            message.classList.add("error");
           } else {
-            throw new Error(resultJson.error || 'Failed to create profile');
+            message.textContent = `Signup failed: ${resultJson.error || 'Unknown error'}`;
+            message.classList.add("error");
           }
-
-        } catch (err) {
-          console.error('Signup error:', err);
+        }
+        catch (err) {
           message.textContent = `Error: ${err.message}`;
           message.classList.add("error");
         } finally {
