@@ -177,13 +177,8 @@
 
         signupBtn.disabled = true;
         try {
-          console.log('Storing signup data in localStorage...');
-          // Store role and full_name in localStorage for email-verified.html to use
-          localStorage.setItem('pendingSignupRole', role);
-          localStorage.setItem('pendingSignupFullName', full_name);
-          console.log('Stored in localStorage - role:', role, 'full_name:', full_name);
-
-          console.log('Calling supabase.auth.signUp()');
+          // Step 1: Sign up with Supabase Auth
+          console.log('Step 1: Calling supabase.auth.signUp()');
           const { error: signupError, data } = await supabase.auth.signUp({
             email,
             password,
@@ -193,26 +188,52 @@
           });
 
           if (signupError) {
-            console.error('Signup error:', signupError);
             message.textContent = signupError.message;
             message.classList.add("error");
-            localStorage.removeItem('pendingSignupRole');
-            localStorage.removeItem('pendingSignupFullName');
             signupBtn.disabled = false;
             return;
           }
 
-          console.log('Signup successful - User ID:', data.user.id);
-          message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
-          message.classList.add("success");
-          form.reset();
+          console.log('Step 1 Success - User ID:', data.user.id);
+
+          // Step 2: Wait for user to propagate in auth.users
+          console.log('Step 2: Waiting 2 seconds for user propagation...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Step 3: Call backend API to create profile immediately after signup
+          console.log('Step 3: Calling /api/signup to create profile with role');
+          const profilePayload = {
+            action: 'create-profile',
+            user_id: data.user.id,
+            email: data.user.email,
+            full_name: full_name,
+            role: role
+          };
+          
+          console.log('Profile payload being sent:', profilePayload);
+
+          const createProfileRes = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profilePayload)
+          });
+
+          const resultJson = await createProfileRes.json();
+          console.log('Profile creation response status:', createProfileRes.status);
+          console.log('Profile creation response:', resultJson);
+
+          if (createProfileRes.ok || createProfileRes.status === 409) {
+            message.textContent = `Signup successful! Please check your email (${email}) to verify your account. Your profile with role "${role}" has been created.`;
+            message.classList.add("success");
+            form.reset();
+          } else {
+            throw new Error(resultJson.error || 'Failed to create profile');
+          }
 
         } catch (err) {
           console.error('Signup error:', err);
           message.textContent = `Error: ${err.message}`;
           message.classList.add("error");
-          localStorage.removeItem('pendingSignupRole');
-          localStorage.removeItem('pendingSignupFullName');
         } finally {
           signupBtn.disabled = false;
         }
