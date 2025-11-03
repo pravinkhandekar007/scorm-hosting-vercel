@@ -2,8 +2,9 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <title>Sign Up – Playscorm</title>
+  <title>Sign Up – PlayScorm</title>
   <style>
+    /* Your original styles here */
     body {
       margin: 0;
       min-height: 100vh;
@@ -137,7 +138,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+      const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // replace actual anon key
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
@@ -158,59 +159,58 @@
         const password = pwdInput.value;
         const role = roleSelect.value || 'learner';
 
-        console.log('Signup data:', { email, full_name, role }); // Debug log
-
         if (!full_name || !email || password.length < 6) {
-          message.textContent = 'Full name, valid email, and password (min 6 chars) are required.';
+          message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
           message.classList.add("error");
           return;
         }
 
         signupBtn.disabled = true;
         try {
+          // 1. Sign up on Supabase Auth
           const { error, data } = await supabase.auth.signUp({
             email,
             password,
-            options: {
-              emailRedirectTo: 'https://playscorm.com/email-verified.html'
-            }
+            options: { emailRedirectTo: 'https://playscorm.com/email-verified.html' }
           });
 
           if (error) {
             message.textContent = error.message;
             message.classList.add("error");
-          } else {
-            console.log('Creating profile with role:', role);
+            signupBtn.disabled = false;
+            return;
+          }
 
-            const createProfileRes = await fetch('/api/signup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'create-profile',
-                user_id: data.user.id,
-                email: data.user.email,
-                full_name,
-                role
-              })
-            });
+          // 2. After successful signup, create profile with role
+          const createProfileRes = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create-profile',
+              user_id: data.user.id,
+              email: data.user.email,
+              full_name,
+              role
+            })
+          });
 
-            const resultJson = await createProfileRes.json();
-            if (!createProfileRes.ok) {
-              console.error('Profile creation error response:', resultJson);
-              if (createProfileRes.status === 409) {
-                // Profile exists, treat as success
-                message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-                message.classList.add("success");
-                form.reset();
-              } else {
-                throw new Error(resultJson.error || 'Failed to create profile.');
-              }
-            } else {
+          const resultJson = await createProfileRes.json();
+
+          if (!createProfileRes.ok) {
+            if (createProfileRes.status === 409) {
+              // Profile already exists, treat as success
               message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
               message.classList.add("success");
               form.reset();
+            } else {
+              throw new Error(resultJson.error || 'Failed to create profile.');
             }
+          } else {
+            message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+            message.classList.add("success");
+            form.reset();
           }
+
         } catch (err) {
           message.textContent = 'Unexpected error occurred. Please try again.';
           message.classList.add("error");
