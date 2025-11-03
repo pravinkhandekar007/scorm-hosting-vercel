@@ -79,6 +79,7 @@
       <h1>Verification Status</h1>
       <div id="message"></div>
       <a id="login-link" class="btn" href="login.html" style="display:none;">Go to Login</a>
+      <a id="dashboard-link" class="btn" href="dashboard.html" style="display:none;">Go to Dashboard</a>
     </div>
   </div>
 
@@ -91,6 +92,7 @@
 
       const message = document.getElementById('message');
       const loginLink = document.getElementById('login-link');
+      const dashboardLink = document.getElementById('dashboard-link');
 
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
@@ -108,8 +110,48 @@
       if (error) {
         message.textContent = `Verification error: ${error.message}`;
         message.className = 'error';
-      } else {
-        message.textContent = 'Your email has been verified! You can now log in.';
+        return;
+      }
+
+      // Session set successfully, now create profile
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          throw new Error('Unable to get user information');
+        }
+
+        const full_name = user.user_metadata?.full_name || '';
+        const role = user.user_metadata?.role || 'learner';
+
+        // Call API to create profile with role
+        const createProfileRes = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create-profile',
+            user_id: user.id,
+            email: user.email,
+            full_name,
+            role
+          })
+        });
+
+        const resultJson = await createProfileRes.json();
+
+        if (createProfileRes.ok || createProfileRes.status === 409) {
+          // Profile created successfully or already exists
+          message.textContent = 'Your email has been verified! Your profile is ready. Redirecting to dashboard...';
+          message.className = 'success';
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 2000);
+        } else {
+          throw new Error(resultJson.error || 'Failed to create profile');
+        }
+      } catch (profileError) {
+        console.error('Profile creation error:', profileError);
+        message.textContent = `Email verified! You can now log in. (Profile: ${profileError.message})`;
         message.className = 'success';
         loginLink.style.display = 'inline-block';
       }
