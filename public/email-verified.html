@@ -31,7 +31,7 @@
     .container {
       background: #fdfdfd;
       border-radius: 0 0 20px 20px;
-      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+      box-shadow: 0 6px 32px rgba(60,45,605,0.07);
       padding: 40px;
       max-width: 600px;
       margin: auto;
@@ -115,16 +115,30 @@
 
       // Session set successfully, now create profile
       try {
+        console.log('=== EMAIL VERIFIED - CREATE PROFILE ===');
+        
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
         if (userError || !user) {
           throw new Error('Unable to get user information');
         }
 
-        const full_name = user.user_metadata?.full_name || '';
-        const role = user.user_metadata?.role || 'learner';
+        console.log('Current user ID:', user.id);
+
+        // Get role and full_name from localStorage
+        const full_name = localStorage.getItem('pendingSignupFullName') || '';
+        const role = localStorage.getItem('pendingSignupRole') || 'learner';
+
+        console.log('Retrieved from localStorage:');
+        console.log('  full_name:', full_name);
+        console.log('  role:', role);
+
+        if (!full_name || !role) {
+          throw new Error('Missing signup data. Please sign up again.');
+        }
 
         // Call API to create profile with role
+        console.log('Calling /api/signup to create profile...');
         const createProfileRes = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -139,10 +153,18 @@
 
         const resultJson = await createProfileRes.json();
 
+        console.log('Profile creation response:');
+        console.log('  Status:', createProfileRes.status);
+        console.log('  Response:', resultJson);
+
         if (createProfileRes.ok || createProfileRes.status === 409) {
-          // Profile created successfully or already exists
           message.textContent = 'Your email has been verified! Your profile is ready. Redirecting to dashboard...';
           message.className = 'success';
+          
+          // Clear localStorage
+          localStorage.removeItem('pendingSignupRole');
+          localStorage.removeItem('pendingSignupFullName');
+          
           setTimeout(() => {
             window.location.href = 'dashboard.html';
           }, 2000);
@@ -151,7 +173,7 @@
         }
       } catch (profileError) {
         console.error('Profile creation error:', profileError);
-        message.textContent = `Email verified! You can now log in. (Profile: ${profileError.message})`;
+        message.textContent = `Email verified! You can now log in.`;
         message.className = 'success';
         loginLink.style.display = 'inline-block';
       }
