@@ -162,7 +162,6 @@
         console.log('Full Name:', full_name);
         console.log('Email:', email);
         console.log('Role from select:', role);
-        console.log('Role type:', typeof role);
 
         if (!full_name || !email || password.length < 6) {
           message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
@@ -178,63 +177,42 @@
 
         signupBtn.disabled = true;
         try {
-          // Step 1: Sign up with Supabase Auth
-          console.log('Step 1: Calling supabase.auth.signUp()');
+          console.log('Storing signup data in localStorage...');
+          // Store role and full_name in localStorage for email-verified.html to use
+          localStorage.setItem('pendingSignupRole', role);
+          localStorage.setItem('pendingSignupFullName', full_name);
+          console.log('Stored in localStorage - role:', role, 'full_name:', full_name);
+
+          console.log('Calling supabase.auth.signUp()');
           const { error: signupError, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: 'https://scorm-hosting-vercel-1to2g9240-pravins-projects-cf1d54ae.vercel.app/email-verified.html'
+              emailRedirectTo: 'https://playscorm.com/email-verified.html'
             }
           });
 
           if (signupError) {
+            console.error('Signup error:', signupError);
             message.textContent = signupError.message;
             message.classList.add("error");
+            localStorage.removeItem('pendingSignupRole');
+            localStorage.removeItem('pendingSignupFullName');
             signupBtn.disabled = false;
             return;
           }
 
-          console.log('Step 1 Success - User ID:', data.user.id);
-
-          // Step 2: Wait for user to propagate
-          console.log('Step 2: Waiting 1 second for user propagation...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          // Step 3: Call backend API to create profile
-          console.log('Step 3: Calling /api/signup to create profile');
-          const profilePayload = {
-            action: 'create-profile',
-            user_id: data.user.id,
-            email: data.user.email,
-            full_name: full_name,
-            role: role
-          };
-          
-          console.log('Profile payload being sent:', profilePayload);
-
-          const createProfileRes = await fetch('/api/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(profilePayload)
-          });
-
-          const resultJson = await createProfileRes.json();
-          console.log('Profile creation response status:', createProfileRes.status);
-          console.log('Profile creation response:', resultJson);
-
-          if (createProfileRes.ok || createProfileRes.status === 409) {
-            message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
-            message.classList.add("success");
-            form.reset();
-          } else {
-            throw new Error(resultJson.error || 'Failed to create profile');
-          }
+          console.log('Signup successful - User ID:', data.user.id);
+          message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
+          message.classList.add("success");
+          form.reset();
 
         } catch (err) {
           console.error('Signup error:', err);
           message.textContent = `Error: ${err.message}`;
           message.classList.add("error");
+          localStorage.removeItem('pendingSignupRole');
+          localStorage.removeItem('pendingSignupFullName');
         } finally {
           signupBtn.disabled = false;
         }
