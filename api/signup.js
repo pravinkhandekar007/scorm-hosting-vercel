@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Service role key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -13,101 +13,49 @@ export default async function handler(req, res) {
     const { action } = req.body;
 
     if (action === "create-profile") {
-      console.log('=== CREATE PROFILE REQUEST ===');
-      console.log('Full request body:', JSON.stringify(req.body, null, 2));
+      const { user_id, email, full_name, role } = req.body;
 
-      const user_id = req.body?.user_id;
-      const email = req.body?.email;
-      const full_name = req.body?.full_name;
-      let role = req.body?.role;
-
-      console.log('Extracted values:');
-      console.log('  user_id:', user_id);
-      console.log('  email:', email);
-      console.log('  full_name:', full_name);
-      console.log('  role:', role);
-
-      // Validation - check for required fields
-      if (!user_id || !email || !full_name) {
-        console.error('✗ Missing required fields');
-        return res.status(400).json({ error: "Missing required fields: user_id, email, full_name" });
+      if (!user_id || !email || !full_name || !role) {
+        return res.status(400).json({ error: "Missing required fields for profile creation including role." });
       }
 
-      if (!role) {
-        console.error('✗ Role is missing');
-        return res.status(400).json({ error: "Missing required field: role" });
+      if (!['learner', 'owner'].includes(role)) {
+        return res.status(400).json({ error: "Invalid role specified." });
       }
 
-      if (role !== 'learner' && role !== 'owner') {
-        console.error('✗ Invalid role:', role);
-        return res.status(400).json({ error: "Invalid role. Must be 'learner' or 'owner'." });
-      }
-
-      console.log('✓ Role validated:', role);
-
-      // Check if profile already exists
-      console.log('Checking if profile already exists...');
-      const { data: existingProfile, error: selectError } = await supabase
-        .from("profiles")
-        .select("user_id, role")
-        .eq("user_id", user_id)
+      // Check if profile exists
+      const { data: profile, error: selectError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user_id)
         .single();
 
-      if (selectError && selectError.code !== "PGRST116") {
-        console.error('✗ Error checking existing profile:', selectError);
-        return res.status(500).json({ error: selectError.message || "Error checking profile" });
+      if (selectError && selectError.code !== 'PGRST116') {
+        return res.status(500).json({ error: selectError.message });
       }
 
-      if (existingProfile) {
-        console.log('⚠ Profile already exists for user:', user_id);
-        console.log('  Existing role:', existingProfile.role);
+      if (profile) {
         return res.status(409).json({ error: "Profile already exists." });
       }
 
-      // Insert profile with explicit role value
-      console.log('Inserting profile with:');
-      console.log('  user_id:', user_id);
-      console.log('  email:', email);
-      console.log('  full_name:', full_name);
-      console.log('  role:', role);
-
-      const { error: insertError, data: insertData } = await supabase
-        .from("profiles")
-        .insert({
-          user_id,
-          email,
-          full_name,
-          role
-        })
-        .select();
+      // Insert new profile
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({ user_id, email, full_name, role });
 
       if (insertError) {
-        console.error('✗ Error inserting profile:', insertError);
-        console.error('  Error code:', insertError.code);
-        console.error('  Error message:', insertError.message);
-        
-        // Check if it's a foreign key error (user doesn't exist yet)
         if (insertError.code === '23503') {
-          console.error('✗ Foreign key error - user not found in auth.users');
-          return res.status(404).json({ error: "User not yet available. Please try again." });
+          // Foreign key violation: user_id does not exist in auth.users yet
+          return res.status(404).json({ error: "User not found yet. Please try again." });
         }
-        
-        throw insertError;
+        return res.status(500).json({ error: insertError.message });
       }
 
-      console.log('✓ Profile created successfully');
-      console.log('Inserted data:', insertData);
-
-      return res.status(201).json({
-        success: true,
-        message: `Profile created with role: ${role}`,
-        data: insertData
-      });
+      return res.status(201).json({ success: true, message: "Profile created." });
     }
 
-    return res.status(400).json({ error: "Missing or invalid action parameter." });
-  } catch (error) {
-    console.error("✗ Signup API fatal error:", error);
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    return res.status(400).json({ error: "Invalid or missing action parameter." });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Internal server error" });
   }
 }
