@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key to bypass RLS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -13,14 +13,12 @@ export default async function handler(req, res) {
     const { action } = req.body;
 
     if (action === "create-profile") {
-      // Destructure and forcibly require role from req.body
       const { user_id, email, full_name, role, otherProfileData } = req.body;
 
       if (!user_id || !email || !full_name || !role) {
         return res.status(400).json({ error: "Missing required fields for profile creation including role." });
       }
 
-      // Check if profile already exists
       const { data: existingProfile, error: selectError } = await supabase
         .from("profiles")
         .select("user_id")
@@ -35,7 +33,6 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "Profile already exists." });
       }
 
-      // Insert profile with role exactly as received
       const { error: insertError } = await supabase.from("profiles").insert({
         user_id,
         email,
@@ -49,10 +46,9 @@ export default async function handler(req, res) {
       }
 
       return res.status(201).json({ success: true, message: "Profile created." });
-    } else {
-      // Handle other actions or return error
-      return res.status(400).json({ error: "Missing or invalid action parameter." });
     }
+
+    return res.status(400).json({ error: "Missing or invalid action parameter." });
   } catch (error) {
     console.error("signup API error:", error);
     return res.status(500).json({ error: error.message || "Internal server error" });
