@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Service role key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -13,49 +13,48 @@ export default async function handler(req, res) {
     const { action } = req.body;
 
     if (action === "create-profile") {
-      const { user_id, email, full_name, role } = req.body;
+      // Profile creation logic
+      const { user_id, email, full_name, role = "learner", otherProfileData } = req.body;
 
-      if (!user_id || !email || !full_name || !role) {
-        return res.status(400).json({ error: "Missing required fields for profile creation including role." });
+      if (!user_id || !email || !full_name) {
+        return res.status(400).json({ error: "Missing required fields for profile creation." });
       }
 
-      if (!['learner', 'owner'].includes(role)) {
-        return res.status(400).json({ error: "Invalid role specified." });
-      }
-
-      // Check if profile exists
-      const { data: profile, error: selectError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', user_id)
+      const { data: existingProfile, error: selectError } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("user_id", user_id)
         .single();
 
-      if (selectError && selectError.code !== 'PGRST116') {
-        return res.status(500).json({ error: selectError.message });
+      if (selectError && selectError.code !== "PGRST116") {
+        return res.status(500).json({ error: selectError.message || "Error checking profile existence" });
       }
 
-      if (profile) {
+      if (existingProfile) {
         return res.status(409).json({ error: "Profile already exists." });
       }
 
-      // Insert new profile
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({ user_id, email, full_name, role });
+      const { error: insertError } = await supabase.from("profiles").insert({
+        user_id,
+        email,
+        full_name,
+        role,
+        ...otherProfileData,
+      });
 
       if (insertError) {
-        if (insertError.code === '23503') {
-          // Foreign key violation: user_id does not exist in auth.users yet
-          return res.status(404).json({ error: "User not found yet. Please try again." });
-        }
-        return res.status(500).json({ error: insertError.message });
+        throw insertError;
       }
 
       return res.status(201).json({ success: true, message: "Profile created." });
-    }
+    } else {
+      // Existing signup logic (if any)
+      // If you previously created profiles here, you can omit or handle other signup actions.
 
-    return res.status(400).json({ error: "Invalid or missing action parameter." });
-  } catch (err) {
-    return res.status(500).json({ error: err.message || "Internal server error" });
+      return res.status(400).json({ error: "Missing or invalid action parameter." });
+    }
+  } catch (error) {
+    console.error("signup API error:", error);
+    return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
