@@ -156,7 +156,9 @@
         const full_name = fullNameInput.value.trim();
         const email = emailInput.value.trim();
         const password = pwdInput.value;
-        const role = roleSelect.value || 'learner';
+        const role = roleSelect.value;
+
+        console.log('Form values:', { full_name, email, role });
 
         if (!full_name || !email || password.length < 6) {
           message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
@@ -179,6 +181,8 @@
             }
           });
 
+          console.log('Signup response:', { error, data });
+
           if (error) {
             message.textContent = error.message;
             message.classList.add("error");
@@ -188,6 +192,7 @@
             form.reset();
           }
         } catch (err) {
+          console.error('Signup error:', err);
           message.textContent = 'Unexpected error occurred. Please try again.';
           message.classList.add("error");
         } finally {
