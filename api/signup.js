@@ -5,7 +5,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper: Wait for user to exist in auth.users
-async function waitForAuthUserExists(userId, maxRetries = 10, delayMs = 500) {
+async function waitForAuthUserExists(userId, maxRetries = 15, delayMs = 300) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       const { data, error } = await supabase.auth.admin.getUserById(userId);
@@ -14,7 +14,7 @@ async function waitForAuthUserExists(userId, maxRetries = 10, delayMs = 500) {
         return true;
       }
     } catch (e) {
-      console.log(`Attempt ${i + 1} to find user: ${e.message}`);
+      console.log(`Attempt ${i + 1} to find user failed`);
     }
     await new Promise(resolve => setTimeout(resolve, delayMs));
   }
@@ -34,17 +34,17 @@ export default async function handler(req, res) {
       console.log('=== CREATE PROFILE REQUEST ===');
       console.log('Full request body:', JSON.stringify(req.body, null, 2));
 
-      // Explicit destructuring with null checks
+      // Explicit destructuring
       const user_id = req.body?.user_id;
       const email = req.body?.email;
       const full_name = req.body?.full_name;
       let role = req.body?.role;
 
       console.log('Extracted values:');
-      console.log('  user_id:', user_id, '(type:', typeof user_id + ')');
-      console.log('  email:', email, '(type:', typeof email + ')');
-      console.log('  full_name:', full_name, '(type:', typeof full_name + ')');
-      console.log('  role:', role, '(type:', typeof role + ')');
+      console.log('  user_id:', user_id);
+      console.log('  email:', email);
+      console.log('  full_name:', full_name);
+      console.log('  role:', role);
 
       // Validation
       if (!user_id || !email || !full_name) {
@@ -52,10 +52,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing required fields: user_id, email, full_name" });
       }
 
-      // Validate and set default role
-      if (!role || (role !== 'learner' && role !== 'owner')) {
-        console.warn('⚠ Invalid or missing role, defaulting to learner');
-        role = 'learner';
+      // Validate role - must be explicit
+      if (!role) {
+        console.error('✗ Role is missing');
+        return res.status(400).json({ error: "Missing required field: role" });
+      }
+
+      if (role !== 'learner' && role !== 'owner') {
+        console.error('✗ Invalid role:', role);
+        return res.status(400).json({ error: "Invalid role. Must be 'learner' or 'owner'." });
       }
 
       console.log('✓ Final role to be inserted:', role);
@@ -65,14 +70,14 @@ export default async function handler(req, res) {
       const userExists = await waitForAuthUserExists(user_id);
       if (!userExists) {
         console.error('✗ User not found in auth.users after retries');
-        return res.status(404).json({ error: "User not found in authentication system. Please try again." });
+        return res.status(404).json({ error: "User not found. Please try signup again." });
       }
 
       // Check if profile already exists
       console.log('Checking if profile already exists for user:', user_id);
       const { data: existingProfile, error: selectError } = await supabase
         .from("profiles")
-        .select("user_id")
+        .select("user_id, role")
         .eq("user_id", user_id)
         .single();
 
@@ -83,17 +88,26 @@ export default async function handler(req, res) {
 
       if (existingProfile) {
         console.log('⚠ Profile already exists for user:', user_id);
+        console.log('  Existing role:', existingProfile.role);
         return res.status(409).json({ error: "Profile already exists." });
       }
 
-      // Insert profile with explicit role
-      console.log('Inserting profile with role:', role);
-      const { error: insertError, data: insertData } = await supabase.from("profiles").insert({
-        user_id,
-        email,
-        full_name,
-        role
-      }).select();
+      // Insert profile with explicit role value
+      console.log('Inserting profile with:');
+      console.log('  user_id:', user_id);
+      console.log('  email:', email);
+      console.log('  full_name:', full_name);
+      console.log('  role:', role);
+
+      const { error: insertError, data: insertData } = await supabase
+        .from("profiles")
+        .insert({
+          user_id,
+          email,
+          full_name,
+          role
+        })
+        .select();
 
       if (insertError) {
         console.error('✗ Error inserting profile:', insertError);
@@ -102,10 +116,10 @@ export default async function handler(req, res) {
 
       console.log('✓ Profile created successfully');
       console.log('Inserted data:', insertData);
-      return res.status(201).json({ 
-        success: true, 
-        message: "Profile created successfully",
-        role: role,
+
+      return res.status(201).json({
+        success: true,
+        message: `Profile created with role: ${role}`,
         data: insertData
       });
     }
