@@ -4,24 +4,6 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Helper: Wait for user to exist in auth.users
-async function waitForAuthUserExists(userId, maxRetries = 15, delayMs = 300) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const { data, error } = await supabase.auth.admin.getUserById(userId);
-      if (data && !error) {
-        console.log(`✓ User found on attempt ${i + 1}`);
-        return true;
-      }
-    } catch (e) {
-      console.log(`Attempt ${i + 1} to find user failed`);
-    }
-    await new Promise(resolve => setTimeout(resolve, delayMs));
-  }
-  console.log('✗ User not found after all retries');
-  return false;
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -34,7 +16,6 @@ export default async function handler(req, res) {
       console.log('=== CREATE PROFILE REQUEST ===');
       console.log('Full request body:', JSON.stringify(req.body, null, 2));
 
-      // Explicit destructuring
       const user_id = req.body?.user_id;
       const email = req.body?.email;
       const full_name = req.body?.full_name;
@@ -52,7 +33,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing required fields: user_id, email, full_name" });
       }
 
-      // Validate role - must be explicit
       if (!role) {
         console.error('✗ Role is missing');
         return res.status(400).json({ error: "Missing required field: role" });
@@ -63,18 +43,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Invalid role. Must be 'learner' or 'owner'." });
       }
 
-      console.log('✓ Final role to be inserted:', role);
-
-      // Wait for user to exist
-      console.log('Waiting for user to exist in auth.users...');
-      const userExists = await waitForAuthUserExists(user_id);
-      if (!userExists) {
-        console.error('✗ User not found in auth.users after retries');
-        return res.status(404).json({ error: "User not found. Please try signup again." });
-      }
+      console.log('✓ Role validated:', role);
 
       // Check if profile already exists
-      console.log('Checking if profile already exists for user:', user_id);
+      console.log('Checking if profile already exists...');
       const { data: existingProfile, error: selectError } = await supabase
         .from("profiles")
         .select("user_id, role")
@@ -111,6 +83,13 @@ export default async function handler(req, res) {
 
       if (insertError) {
         console.error('✗ Error inserting profile:', insertError);
+        
+        // Check if it's a foreign key error (user doesn't exist yet)
+        if (insertError.code === '23503') {
+          console.error('✗ Foreign key error - user not found in auth.users');
+          return res.status(404).json({ error: "User not yet available. Please try again in a moment." });
+        }
+        
         throw insertError;
       }
 
