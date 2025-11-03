@@ -2,116 +2,138 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <title>Sign Up – PlayScorm</title>
+  <title>Sign Up – Playscorm</title>
   <style>
     body {
       margin: 0;
       min-height: 100vh;
-      background: #d1d5db; /* light grey */
+      background: #C0C0C0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    .container {
-      background: #fff;
-      width: 400px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 30px 25px 40px;
+    .main-wrapper {
+      width: 100%;
+      max-width: 600px;
+    }
+    .banner {
+      width: 100%;
+      background: linear-gradient(to right, #00205B, #00857D);
+      color: #fff;
       text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      padding: 26px 0 20px;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+    }
+    .container {
+      background: #fdfdfd;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
     }
     h1 {
-      margin-bottom: 18px;
-      font-weight: 700;
+      color: #333;
+      text-align: center;
       font-size: 1.8rem;
-      color: #0f172a;
+      margin-bottom: 20px;
     }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 10px;
+    .message {
+      text-align: center;
+      font-weight: 600;
+      min-height: 18px;
+      margin-bottom: 16px;
+    }
+    .message.error {
+      color: #cc0000;
+    }
+    .message.success {
+      color: #2e7d32;
     }
     label {
-      text-align: left;
       font-weight: 600;
-      color: #334155;
-      font-size: 0.95rem;
+      color: #333;
+      margin-bottom: 6px;
+      font-size: 15px;
+      display: block;
     }
-    input {
-      padding: 10px 14px;
-      font-size: 16px;
-      border: 1px solid #cbd5e1;
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 20px;
       border-radius: 8px;
-      outline-offset: 2px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      background: #fafafa;
       transition: border-color 0.3s;
+      box-sizing: border-box;
     }
-    input:focus {
-      border-color: #2563eb;
+    input:focus, select:focus {
+      border-color: #0073e6;
       outline: none;
     }
     button {
-      margin-top: 15px;
-      padding: 12px 0;
-      background-color: #2563eb;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
       border: none;
       border-radius: 8px;
-      font-weight: 700;
       color: white;
-      font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover:not(:disabled) {
-      background-color: #1e40af;
+      transition: background 0.3s;
     }
     button:disabled {
-      background-color: #93c5fd;
-      cursor: not-allowed;
+      background: #98c4ee;
+      cursor: default;
     }
-    #message {
-      min-height: 22px;
-      font-weight: 600;
-    }
-    #message.error {
-      color: #dc2626;
-    }
-    #message.success {
-      color: #16a34a;
+    button:hover:not(:disabled) {
+      background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
     }
     .footer-text {
-      margin-top: 18px;
+      text-align: center;
+      margin-top: 24px;
       font-size: 14px;
-      color: #64748b;
+      color: #666;
     }
     .footer-text a {
-      color: #2563eb;
+      color: #7853fa;
       font-weight: 600;
       text-decoration: none;
-    }
-    .footer-text a:hover {
-      text-decoration: underline;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Login to PlayScorm</h1>
-    <form id="signup-form" autocomplete="off" novalidate>
-      <div id="message"></div>
-      <label for="email">Email</label>
-      <input id="email" type="email" name="email" placeholder="you@example.com" required />
-      <label for="password">Password</label>
-      <input id="password" type="password" name="password" placeholder="Your password" required minlength="6" />
-      <button id="signup-button" type="submit">Sign Up</button>
-    </form>
-    <p class="footer-text">
-      Already have an account? <a href="login.html">Sign In</a>
-    </p>
+  <div class="main-wrapper">
+    <div class="banner">Create Your PlayScorm Account</div>
+    <div class="container">
+      <h1>Sign Up</h1>
+      <form id="signup-form" autocomplete="off">
+        <div id="message" class="message"></div>
+        <label for="full-name">Full Name</label>
+        <input type="text" id="full-name" placeholder="Your full name" required />
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Choose a password" required minlength="6" />
+        <label for="role">Sign up as</label>
+        <select id="role" name="role">
+          <option value="learner" selected>Learner</option>
+          <option value="owner">Course Owner</option>
+        </select>
+        <button type="submit" id="signup-button">Sign Up</button>
+      </form>
+      <p class="footer-text">
+        Already have an account? <a href="login.html">Log In</a>
+      </p>
+    </div>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
@@ -119,65 +141,74 @@
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const form = document.getElementById('signup-form');
+      const fullNameInput = document.getElementById('full-name');
       const emailInput = document.getElementById('email');
-      const passwordInput = document.getElementById('password');
+      const pwdInput = document.getElementById('password');
+      const roleSelect = document.getElementById('role');
       const message = document.getElementById('message');
       const signupBtn = document.getElementById('signup-button');
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         message.textContent = '';
-        message.className = '';
+        message.className = 'message';
 
+        const full_name = fullNameInput.value.trim();
         const email = emailInput.value.trim();
-        const password = passwordInput.value;
+        const password = pwdInput.value;
+        const role = roleSelect.value || 'learner';
 
-        if (!email || password.length < 6) {
-          message.textContent = 'Please enter a valid email and password (min 6 characters)';
-          message.className = 'error';
+        if (!full_name || !email || password.length < 6) {
+          message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
+          message.classList.add("error");
           return;
         }
 
         signupBtn.disabled = true;
-
         try {
-          const { error: signupError, data } = await supabase.auth.signUp({
+          const { error, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: window.location.origin + '/email-verified.html'
+              emailRedirectTo: 'https://playscorm.com/email-verified.html'
             }
           });
 
-          if (signupError) {
-            message.textContent = signupError.message;
-            message.className = 'error';
-            signupBtn.disabled = false;
-            return;
-          }
-
-          // Create profile with default role "learner"
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              email: email,
-              full_name: '', // No full name, remove or add input as needed
-              role: 'learner'
-            });
-
-          if (profileError) {
-            message.textContent = 'Signup succeeded but profile creation failed: ' + profileError.message;
-            message.className = 'error';
+          if (error) {
+            message.textContent = error.message;
+            message.classList.add("error");
           } else {
-            message.textContent = 'Signup successful! Please check your email to verify your account.';
-            message.className = 'success';
-            form.reset();
+            try {
+              // Create user profile with selected role
+              const createProfileRes = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create-profile',
+                  user_id: data.user.id,
+                  email: data.user.email,
+                  full_name,
+                  role
+                })
+              });
+
+              if (!createProfileRes.ok) {
+                const err = await createProfileRes.json();
+                throw new Error(err.error || 'Failed to create profile.');
+              }
+
+              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
+              message.classList.add("success");
+              form.reset();
+
+            } catch (profileError) {
+              message.textContent = `Signup succeeded, but profile creation failed: ${profileError.message}`;
+              message.classList.add("error");
+            }
           }
         } catch (err) {
           message.textContent = 'Unexpected error occurred. Please try again.';
-          message.className = 'error';
-          console.error(err);
+          message.classList.add("error");
         } finally {
           signupBtn.disabled = false;
         }
