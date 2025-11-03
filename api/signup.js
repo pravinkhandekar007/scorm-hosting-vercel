@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       console.log('  full_name:', full_name);
       console.log('  role:', role);
 
-      // Validation
+      // Validation - check for required fields
       if (!user_id || !email || !full_name) {
         console.error('✗ Missing required fields');
         return res.status(400).json({ error: "Missing required fields: user_id, email, full_name" });
@@ -83,11 +83,13 @@ export default async function handler(req, res) {
 
       if (insertError) {
         console.error('✗ Error inserting profile:', insertError);
+        console.error('  Error code:', insertError.code);
+        console.error('  Error message:', insertError.message);
         
         // Check if it's a foreign key error (user doesn't exist yet)
         if (insertError.code === '23503') {
           console.error('✗ Foreign key error - user not found in auth.users');
-          return res.status(404).json({ error: "User not yet available. Please try again in a moment." });
+          return res.status(404).json({ error: "User not yet available. Please try again." });
         }
         
         throw insertError;
