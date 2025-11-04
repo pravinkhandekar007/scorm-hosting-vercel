@@ -2,163 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login - PlayScorm</title>
   <style>
     body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #C0C0C0;
       margin: 0;
       min-height: 100vh;
-      background: #C0C0C0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
     }
-    .main-wrapper {
-      width: 100%;
-      max-width: 600px;
-    }
-    .banner {
-      width: 100%;
-      background: linear-gradient(to right, #00205B, #00857D);
-      color: #fff;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      padding: 26px 0 20px;
-      border-radius: 20px 20px 0 0;
-      box-shadow: 0 2px 8px rgba(80,100,255,0.09);
-    }
     .container {
-      background: #fdfdfd;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-      padding: 40px 40px 60px;
-      max-width: 600px;
-      margin: auto;
-      box-sizing: border-box;
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     h2 {
-      color: #333;
       text-align: center;
-      font-size: 1.8rem;
-      margin-top: 0;
       margin-bottom: 24px;
-      font-weight: 700;
+      color: #333;
     }
     label {
       font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 15px;
       display: block;
+      margin-bottom: 8px;
+      color: #444;
     }
-    input[type="email"], input[type="password"] {
+    input {
       width: 100%;
-      padding: 12px 15px;
+      padding: 12px;
       margin-bottom: 20px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 15px;
-      background: #fafafa;
+      font-size: 1rem;
       transition: border-color 0.3s;
-      box-sizing: border-box;
     }
-    input[type="email"]:focus, input[type="password"]:focus {
-      border-color: #0073e6;
+    input:focus {
       outline: none;
+      border-color: #0073e6;
     }
     button {
       width: 100%;
       padding: 14px;
-      font-size: 16px;
       font-weight: 700;
-      background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+      font-size: 1rem;
       border: none;
       border-radius: 8px;
-      color: white;
+      background: #0073e6;
+      color: #fff;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background-color 0.3s;
     }
     button:disabled {
-      background: #98c4ee;
-      cursor: default;
+      background: #a3c5f7;
+      cursor: not-allowed;
     }
-    button:hover:not(:disabled) {
-      background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
+    button:not(:disabled):hover {
+      background: #005bb5;
     }
     .error-message {
       color: #cc0000;
-      font-weight: 600;
       margin-bottom: 16px;
       min-height: 20px;
       text-align: center;
-    }
-    .footer-text {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 14px;
-      color: #666;
-    }
-    .footer-text a {
-      color: #7853fa;
       font-weight: 600;
-      text-decoration: none;
     }
-</style>
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="main-wrapper">
-    <div class="banner">Welcome to PlayScorm</div>
-    <div class="container">
-      <h2>Login to PlayScorm</h2>
-      <div id="error-message" class="error-message"></div>
-      <form id="login-form" autocomplete="off">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="you@example.com" required />
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Your password" required />
-        <button type="submit" id="login-btn" disabled>Sign In</button>
-      </form>
-      <p class="footer-text">
-        Don't have an account? <a href="signup.html">Sign Up</a>
-      </p>
-    </div>
+  <div class="container">
+    <h2>Login to PlayScorm</h2>
+    <div id="error-message" class="error-message"></div>
+    <form id="login-form" autocomplete="off" novalidate>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Your password" required />
+      
+      <button type="submit" id="login-btn" disabled>Sign In</button>
+    </form>
   </div>
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const loginBtn = document.getElementById('login-btn');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('login-btn');
     const errorMessage = document.getElementById('error-message');
 
-    function validateInputs() {
-      // Require min email length and min password length (6 chars)
-      const emailValid = emailInput.value.trim().length > 5;
-      const passwordValid = passwordInput.value.trim().length >= 6;
-      loginBtn.disabled = !(emailValid && passwordValid);
+    function validate() {
+      // Enable button only if email has "@" and password length >=6
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const validEmail = email.includes('@');
+      const validPassword = password.length >= 6;
+      loginBtn.disabled = !(validEmail && validPassword);
     }
 
-    emailInput.addEventListener('input', validateInputs);
-    passwordInput.addEventListener('input', validateInputs);
-    validateInputs();
+    emailInput.addEventListener('input', validate);
+    passwordInput.addEventListener('input', validate);
+    validate();
 
-    document.getElementById('login-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
       errorMessage.textContent = '';
       loginBtn.disabled = true;
       loginBtn.textContent = 'Signing in...';
 
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
       try {
-        const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           errorMessage.textContent = error.message;
           loginBtn.disabled = false;
@@ -166,28 +130,8 @@
           return;
         }
 
-        const user = data.user;
-
-        // Fetch profile; do not create/modify profile here
-        const profileRes = await fetch(`/api/profiles?id=${user.id}`);
-        const profileData = await profileRes.json();
-
-        if (!profileRes.ok) {
-          errorMessage.textContent = `Error fetching profile: ${profileData.error || profileRes.statusText}`;
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
-        if (!profileData.length) {
-          errorMessage.textContent = 'Profile record missing. Please contact support.';
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
+        // Redirect to dashboard on success
         window.location.href = 'dashboard.html';
-
       } catch (err) {
         errorMessage.textContent = 'Unexpected error occurred.';
         loginBtn.disabled = false;
