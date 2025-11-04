@@ -27,7 +27,7 @@ async function createUser(email, fullName) {
 
 async function sendInviteEmail(email) {
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${frontendUrl}/invite-accept`,
+    redirectTo: `https://playscorm.com/signup.html`,
   });
   if (error) throw error;
   return data;
