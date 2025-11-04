@@ -27,7 +27,7 @@ async function createUser(email, fullName) {
 
 async function sendInviteEmail(email) {
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `https://playscorm.com/forgot-password.html`,
+    redirectTo: `https://scorm-hosting-vercel-git-new-features-pravins-projects-cf1d54ae.vercel.app/forgot-password.html`,
   });
   if (error) throw error;
   return data;
