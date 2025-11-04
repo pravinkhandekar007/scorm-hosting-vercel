@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login - PlayScorm</title>
   <style>
-    /* Keep your existing styles */
     body {
       margin: 0;
       min-height: 100vh;
@@ -107,7 +106,7 @@
       font-weight: 600;
       text-decoration: none;
     }
-  </style>
+</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -119,10 +118,8 @@
       <form id="login-form" autocomplete="off">
         <label for="email">Email</label>
         <input type="email" id="email" placeholder="you@example.com" required />
-        
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Your password" required />
-        
         <button type="submit" id="login-btn" disabled>Sign In</button>
       </form>
       <p class="footer-text">
@@ -130,7 +127,6 @@
       </p>
     </div>
   </div>
-
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
@@ -142,7 +138,10 @@
     const errorMessage = document.getElementById('error-message');
 
     function validateInputs() {
-      loginBtn.disabled = !(emailInput.value.trim() && passwordInput.value.trim());
+      // Require min email length and min password length (6 chars)
+      const emailValid = emailInput.value.trim().length > 5;
+      const passwordValid = passwordInput.value.trim().length >= 6;
+      loginBtn.disabled = !(emailValid && passwordValid);
     }
 
     emailInput.addEventListener('input', validateInputs);
@@ -169,7 +168,7 @@
 
         const user = data.user;
 
-        // Fetch profile here, no profile creation
+        // Fetch profile; do not create/modify profile here
         const profileRes = await fetch(`/api/profiles?id=${user.id}`);
         const profileData = await profileRes.json();
 
@@ -180,15 +179,13 @@
           return;
         }
 
-        // If profile missing, show error to contact support (do NOT create automatic profile)
         if (!profileData.length) {
-          errorMessage.textContent = 'Profile missing. Please contact support.';
+          errorMessage.textContent = 'Profile record missing. Please contact support.';
           loginBtn.disabled = false;
           loginBtn.textContent = 'Sign In';
           return;
         }
 
-        // Redirect to dashboard
         window.location.href = 'dashboard.html';
 
       } catch (err) {
