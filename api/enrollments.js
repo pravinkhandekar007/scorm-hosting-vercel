@@ -16,21 +16,34 @@ async function fetchUserByEmail(email) {
 async function createUser(email, fullName) {
   const { data, error } = await supabase.auth.admin.createUser({
     email,
-    password: Math.random().toString(36).slice(-10) + "A1!",
+    password: Math.random().toString(36).slice(-10) + "A1!", // temp password
     email_confirm: false,
     user_metadata: { full_name: fullName }
   });
   if (error) throw error;
-  // Return the user object inside data, not the full response
   return data.user;
 }
 
 async function sendInviteEmail(email) {
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `https://playscorm.com/signup.html`,
+  // Send magic link reset password email to let user set password at custom page
+  const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email,
+      redirect_to: `${frontendUrl}/set-password.html` // your custom password set page
+    })
   });
-  if (error) throw error;
-  return data;
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to send magic link email: ${errorText}`);
+  }
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -56,7 +69,6 @@ export default async function handler(req, res) {
 
     if (courseError || !course) return res.status(404).json({ error: "Course not found." });
 
-    // Check if learner exists by email
     const { data: existingLearner, error: learnerError } = await supabase
       .from("learners")
       .select("id")
@@ -72,8 +84,8 @@ export default async function handler(req, res) {
     if (existingLearner) {
       learner_id = existingLearner.id;
     } else {
-      // Create new user and send invite
       let user = await fetchUserByEmail(learner_email);
+
       if (!user) {
         user = await createUser(learner_email, learner_name);
         await sendInviteEmail(learner_email);
@@ -85,7 +97,6 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Failed to determine learner id." });
       }
 
-      // Insert into learners table
       const { error: insertLearnerError } = await supabase
         .from("learners")
         .insert({
@@ -97,7 +108,6 @@ export default async function handler(req, res) {
       if (insertLearnerError) throw insertLearnerError;
     }
 
-    // Check if enrollment exists already for this learner and course
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -107,7 +117,6 @@ export default async function handler(req, res) {
 
     if (existingEnrollment) return res.status(409).json({ error: "Already enrolled." });
 
-    // Insert enrollment record
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
@@ -124,7 +133,7 @@ export default async function handler(req, res) {
     res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: "User enrolled; invitation email sent if user new.",
+      message: "User enrolled; magic link email sent if user new.",
     });
 
   } catch (error) {
