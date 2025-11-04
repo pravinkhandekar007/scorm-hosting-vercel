@@ -10,49 +10,44 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { action } = req.body;
+    const { full_name, email, password, role = "learner", ...otherProfileData } = req.body;
 
-    if (action === "create-profile") {
-      // Profile creation logic
-      const { user_id, email, full_name, role = "learner", otherProfileData } = req.body;
+    if (!email || !password || !full_name) {
+      return res.status(400).json({ error: "Missing required signup fields." });
+    }
 
-      if (!user_id || !email || !full_name) {
-        return res.status(400).json({ error: "Missing required fields for profile creation." });
-      }
+    // Step 1: Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
 
-      const { data: existingProfile, error: selectError } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("user_id", user_id)
-        .single();
+    if (authError) {
+      return res.status(400).json({ error: authError.message });
+    }
 
-      if (selectError && selectError.code !== "PGRST116") {
-        return res.status(500).json({ error: selectError.message || "Error checking profile existence" });
-      }
+    const user = authData?.user;
+    if (!user || !user.id) {
+      return res.status(500).json({ error: "User creation failed." });
+    }
 
-      if (existingProfile) {
-        return res.status(409).json({ error: "Profile already exists." });
-      }
-
-      const { error: insertError } = await supabase.from("profiles").insert({
-        user_id,
+    // Step 2: Upsert profile to avoid 409 conflict
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .upsert({
+        user_id: user.id,
         email,
         full_name,
         role,
         ...otherProfileData,
       });
 
-      if (insertError) {
-        throw insertError;
-      }
-
-      return res.status(201).json({ success: true, message: "Profile created." });
-    } else {
-      // Existing signup logic (if any)
-      // If you previously created profiles here, you can omit or handle other signup actions.
-
-      return res.status(400).json({ error: "Missing or invalid action parameter." });
+    if (profileError) {
+      return res.status(400).json({ error: profileError.message });
     }
+
+    return res.status(201).json({ success: true, message: "Signup and profile creation successful." });
   } catch (error) {
     console.error("signup API error:", error);
     return res.status(500).json({ error: error.message || "Internal server error" });
