@@ -26,6 +26,8 @@ export default async function handler(req, res) {
           email,
           full_name,
           role
+        }, {
+          onConflict: 'user_id'
         });
 
       if (profileError) {
