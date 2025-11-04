@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const { action } = req.body;
 
     if (action === "create-profile") {
-      const { user_id, email, full_name, role = "learner", ...otherProfileData } = req.body;
+      const { user_id, email, full_name, role = "learner" } = req.body;
 
       if (!user_id || !email || !full_name) {
         return res.status(400).json({ error: "Missing required fields for profile creation." });
@@ -25,8 +25,7 @@ export default async function handler(req, res) {
           user_id,
           email,
           full_name,
-          role,
-          ...otherProfileData
+          role
         });
 
       if (profileError) {
