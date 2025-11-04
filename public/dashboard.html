@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
-        /* Insert your existing CSS styles here */
+        /* Your existing CSS styles here */
         body {
             margin: 0;
             min-height: 100vh;
@@ -35,7 +35,7 @@
             padding: 40px 50px;
             min-height: 500px;
         }
-        /* ... other styles ... */
+        /* More CSS omitted for brevity */
         .courses-section h2 {
             color: #00205B;
             font-size: 1.5rem;
@@ -100,7 +100,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let userRole = 'learner';
@@ -117,7 +117,6 @@
             }
             
             try {
-                // Fetch user profile to get full name & role
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('full_name, role')
@@ -139,135 +138,45 @@
                     uploadBtn.style.display = 'none';
                 }
 
+                await loadCourses(session.user.id, userRole);
+
             } catch (error) {
                 document.getElementById('user-email').textContent = session.user.email;
+                await loadCourses(session.user.id, userRole);
             }
-            
-            await loadCourses(session.user.id);
         }
 
-        async function loadCourses(userId) {
+        async function loadCourses(userId, userRole) {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
-            try {
-                // Fetch enrolled courses for the logged-in learner using enrollments join courses
-                const { data: enrollments, error } = await supabase
-                    .from('enrollments')
-                    .select(`
-                        courses (
-                            id,
-                            course_slug,
-                            title,
-                            is_public,
-                            public_token,
-                            expires_at
-                        )
-                    `)
-                    .eq('learner_id', userId)
-                    .order('created_at', { ascending: false });
+            let courses;
+            let error;
 
-                loadingDiv.style.display = 'none';
-
-                if (error) {
-                    coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
-                    return;
-                }
-
-                if (!enrollments || enrollments.length === 0) {
-                    coursesDiv.innerHTML = `
-                        <div class="empty-state">
-                            <p>No courses enrolled yet.</p>
-                            <a href="upload.html" class="btn btn-success" style="display:none;" id="empty-upload-btn">Upload Your First Course</a>
-                        </div>`;
-                    return;
-                }
-
-                coursesDiv.innerHTML = enrollments.map(enroll => {
-                    const course = enroll.courses;
-                    const expiresAt = course.expires_at;
-                    const timeRemaining = calculateTimeRemaining(expiresAt);
-                    const badgeClass = timeRemaining.status === 'active' ? 'active'
-                        : timeRemaining.status === 'warning' ? 'warning' : 'expiring';
-
-                    return `
-                        <div class="course-item">
-                            <div class="course-info">
-                                <div class="course-title">${course.title}</div>
-                                <div class="valid-for-badge ${badgeClass}">
-                                    ⏱️ Valid for: ${timeRemaining.display}
-                                </div>
-                            </div>
-                            <div class="course-actions">
-                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
-                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                const emptyUploadBtn = document.getElementById('empty-upload-btn');
-                if (emptyUploadBtn) {
-                    emptyUploadBtn.style.display = userRole === 'owner' ? 'inline-block' : 'none';
-                }
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
-            }
-        }
-
-        function calculateTimeRemaining(expiresAt) {
-            if (!expiresAt) {
-                return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
-            }
-            const now = new Date();
-            const expiryDate = new Date(expiresAt);
-            const timeDiff = expiryDate - now;
-
-            if (timeDiff <= 0) {
-                return { days: 0, hours: 0, minutes: 0, status: 'expired', display: 'Expired' };
-            }
-
-            const totalMinutes = Math.floor(timeDiff / (1000 * 60));
-            const days = Math.floor(totalMinutes / (60 * 24));
-            const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-            const minutes = totalMinutes % 60;
-
-            let status = 'active';
-            if (days < 1) {
-                status = 'expiring';
-            } else if (days <= 7) {
-                status = 'warning';
-            }
-
-            let display = '';
-            if (days > 0) {
-                display = `${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`;
-            } else if (hours > 0) {
-                display = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            if (userRole === 'owner') {
+                // Owners see all courses
+                ({ data: courses, error } = await supabase
+                    .from('courses')
+                    .select('id, course_slug, title, is_public, public_token, expires_at')
+                    .order('created_at', { ascending: false }));
             } else {
-                display = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                // Learners see only enrolled courses
+                ({ data: courses, error } = await supabase
+                    .from('enrollments')
+                    .select('course_id, courses (id, course_slug, title, is_public, public_token, expires_at)')
+                    .eq('learner_id', userId));
+
+                if (courses) courses = courses.map(e => e.courses);
             }
 
-            return { days, hours, minutes, status, display };
-        }
+            loadingDiv.style.display = 'none';
 
-        async function refreshCourses() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                await loadCourses(session.user.id);
+            if (error) {
+                coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
+                return;
             }
-        }
 
-        function logout() {
-            supabase.auth.signOut().then(() => {
-                window.location.href = 'login.html';
-            }).catch(err => {
-                console.error('Logout error:', err);
-            });
-        }
-    </script>
-</body>
-</html>
+            if (!courses || courses.length === 0) {
+                coursesDiv.inner
