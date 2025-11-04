@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Service role key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -10,65 +10,52 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { user_id, email, full_name, role } = req.body;
+    const { email, password, full_name, role } = req.body;
 
-    console.log('=== CREATE PROFILE REQUEST ===');
-    console.log('Request body:', req.body);
-
-    // Validate required fields
-    if (!user_id || !email || !full_name) {
-      return res.status(400).json({ error: "Missing required fields: user_id, email, full_name" });
+    if (!email || !password || !full_name) {
+      return res.status(400).json({ error: "Email, password, and full name required." });
     }
 
-    // Validate role, default to 'learner' if invalid or missing
-    let finalRole = 'learner';
-    if (role && typeof role === 'string' && (role === 'learner' || role === 'owner')) {
-      finalRole = role;
-    }
-    console.log('Role to use:', finalRole);
+    const { data: signUpData, error: signUpError } = await supabase.auth.admin.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${process.env.APP_URL}/email-verified.html`
+      }
+    });
 
-    // Check if profile already exists
-    const { data: existingProfile, error: selectError } = await supabase
+    if (signUpError) {
+      return res.status(400).json({ error: signUpError.message });
+    }
+
+    const user_id = signUpData.user.id;
+
+    // Insert or upsert profile with role along with full_name and email
+    const { error: profileError, data: profileData } = await supabase
       .from("profiles")
-      .select("user_id")
-      .eq("user_id", user_id)
-      .single();
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      console.error('Error checking existing profile:', selectError);
-      return res.status(500).json({ error: selectError.message || "Error checking profile" });
-    }
-
-    if (existingProfile) {
-      console.log('Profile already exists for user_id:', user_id);
-      return res.status(409).json({ error: "Profile already exists." });
-    }
-
-    // Insert profile
-    const { error: insertError, data: insertData } = await supabase
-      .from("profiles")
-      .insert({
+      .upsert({
         user_id,
         email,
         full_name,
-        role: finalRole
-      })
-      .select();
+        role: role && (role === 'owner' || role === 'learner') ? role : 'learner',
+      }, { onConflict: 'user_id' })
+      .select()
+      .single();
 
-    if (insertError) {
-      console.error('Error inserting profile:', insertError);
-      return res.status(500).json({ error: insertError.message });
+    if (profileError) {
+      console.error("Profile upsert error:", profileError);
+      return res.status(500).json({ error: "Error creating profile: " + profileError.message });
     }
 
-    console.log('Profile created successfully:', insertData);
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Profile created successfully.",
-      data: insertData
+      message: "User signed up and profile created successfully. Please check your email for verification.",
+      user: signUpData.user,
+      profile: profileData
     });
 
-  } catch (err) {
-    console.error('Signup API error:', err);
-    return res.status(500).json({ error: err.message || "Internal server error" });
+  } catch (error) {
+    console.error("Signup API error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
