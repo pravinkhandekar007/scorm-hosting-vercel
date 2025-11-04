@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login - PlayScorm</title>
   <style>
+    /* Keep your existing styles */
     body {
       margin: 0;
       min-height: 100vh;
@@ -131,92 +132,70 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const emailInput = document.getElementById('email');
-      const passwordInput = document.getElementById('password');
-      const loginBtn = document.getElementById('login-btn');
-      const errorMessage = document.getElementById('error-message');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('login-btn');
+    const errorMessage = document.getElementById('error-message');
 
-      function validateInputs() {
-        loginBtn.disabled = !(emailInput.value.trim() && passwordInput.value.trim());
-      }
+    function validateInputs() {
+      loginBtn.disabled = !(emailInput.value.trim() && passwordInput.value.trim());
+    }
 
-      emailInput.addEventListener('input', validateInputs);
-      passwordInput.addEventListener('input', validateInputs);
-      validateInputs();
+    emailInput.addEventListener('input', validateInputs);
+    passwordInput.addEventListener('input', validateInputs);
+    validateInputs();
 
-      document.getElementById('login-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        errorMessage.textContent = '';
-        loginBtn.disabled = true;
-        loginBtn.textContent = 'Signing in...';
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorMessage.textContent = '';
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
 
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
 
-        try {
-          const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) {
-            errorMessage.textContent = error.message;
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Sign In';
-            return;
-          }
-
-          const user = data.user;
-
-          // Check if profile exists
-          const profileRes = await fetch(`/api/profiles?id=${user.id}`);
-          const profileData = await profileRes.json();
-
-          if (!profileRes.ok) {
-            errorMessage.textContent = `Error fetching profile: ${profileData.error || profileRes.statusText}`;
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Sign In';
-            return;
-          }
-
-          // If profile doesn't exist, create it
-          if (!profileData.length) {
-            const createProfileRes = await fetch('/api/signup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'create-profile',
-                user_id: user.id,
-                email: user.email,
-                full_name: user.user_metadata?.full_name || user.email,
-                role: 'learner'
-              })
-            });
-
-            if (!createProfileRes.ok) {
-              const err = await createProfileRes.json();
-              if (createProfileRes.status === 409) {
-                // Profile already exists, ignore error and continue
-                window.location.href = 'dashboard.html';
-                return;
-              }
-              errorMessage.textContent = `Failed to create profile: ${err.error || createProfileRes.statusText}`;
-              loginBtn.disabled = false;
-              loginBtn.textContent = 'Sign In';
-              return;
-            }
-          }
-
-          // Redirect after successful login and profile check/creation
-          window.location.href = 'dashboard.html';
-
-        } catch (err) {
-          errorMessage.textContent = 'Unexpected error occurred.';
+      try {
+        const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          errorMessage.textContent = error.message;
           loginBtn.disabled = false;
           loginBtn.textContent = 'Sign In';
+          return;
         }
-      });
+
+        const user = data.user;
+
+        // Fetch profile here, no profile creation
+        const profileRes = await fetch(`/api/profiles?id=${user.id}`);
+        const profileData = await profileRes.json();
+
+        if (!profileRes.ok) {
+          errorMessage.textContent = `Error fetching profile: ${profileData.error || profileRes.statusText}`;
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Sign In';
+          return;
+        }
+
+        // If profile missing, show error to contact support (do NOT create automatic profile)
+        if (!profileData.length) {
+          errorMessage.textContent = 'Profile missing. Please contact support.';
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Sign In';
+          return;
+        }
+
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+
+      } catch (err) {
+        errorMessage.textContent = 'Unexpected error occurred.';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
     });
   </script>
 </body>
