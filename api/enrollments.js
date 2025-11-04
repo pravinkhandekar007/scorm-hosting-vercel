@@ -9,22 +9,23 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function fetchUserByEmail(email) {
   const { data, error } = await supabase.auth.admin.listUsers({ email });
   if (error) throw error;
-  return data.users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+  const matchedUser = data.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  return matchedUser || null;
 }
 
 async function createUser(email, fullName) {
-  const { data: newUser, error } = await supabase.auth.admin.createUser({
+  const { data, error } = await supabase.auth.admin.createUser({
     email,
     password: Math.random().toString(36).slice(-10) + "A1!",
     email_confirm: false,
-    user_metadata: { full_name: fullName },
+    user_metadata: { full_name: fullName }
   });
   if (error) throw error;
-  return newUser;
+  // Return the user object inside data, not the full response
+  return data.user;
 }
 
 async function sendInviteEmail(email) {
-  // Use Supabase invite method
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${frontendUrl}/invite-accept`,
   });
@@ -55,15 +56,14 @@ export default async function handler(req, res) {
 
     if (courseError || !course) return res.status(404).json({ error: "Course not found." });
 
-    // Look for existing learner record by email in learners table
+    // Check if learner exists by email
     const { data: existingLearner, error: learnerError } = await supabase
       .from("learners")
       .select("id")
       .eq("email", learner_email.toLowerCase())
       .single();
 
-    if (learnerError && learnerError.code !== "PGRST116") {
-      // If error is not "No rows found" throw error
+    if (learnerError && learnerError.code !== 'PGRST116') {
       throw learnerError;
     }
 
@@ -72,33 +72,32 @@ export default async function handler(req, res) {
     if (existingLearner) {
       learner_id = existingLearner.id;
     } else {
-      // Learner not found, create user in auth and send invite
+      // Create new user and send invite
       let user = await fetchUserByEmail(learner_email);
-
       if (!user) {
         user = await createUser(learner_email, learner_name);
         await sendInviteEmail(learner_email);
       }
 
-      learner_id = user.id;
+      learner_id = user?.id;
 
-      // Insert new learner record in learners table
+      if (!learner_id) {
+        return res.status(500).json({ error: "Failed to determine learner id." });
+      }
+
+      // Insert into learners table
       const { error: insertLearnerError } = await supabase
         .from("learners")
         .insert({
           id: learner_id,
           email: learner_email.toLowerCase(),
-          name: learner_name,
+          name: learner_name
         });
 
       if (insertLearnerError) throw insertLearnerError;
     }
 
-    if (!learner_id) {
-      return res.status(500).json({ error: "Failed to determine learner id." });
-    }
-
-    // Check if enrollment already exists for learner in this course
+    // Check if enrollment exists already for this learner and course
     const { data: existingEnrollment } = await supabase
       .from("enrollments")
       .select("id")
@@ -106,9 +105,7 @@ export default async function handler(req, res) {
       .eq("learner_id", learner_id)
       .single();
 
-    if (existingEnrollment) {
-      return res.status(409).json({ error: "Already enrolled." });
-    }
+    if (existingEnrollment) return res.status(409).json({ error: "Already enrolled." });
 
     // Insert enrollment record
     const { data: enrollment, error: enrollmentError } = await supabase
@@ -129,6 +126,7 @@ export default async function handler(req, res) {
       enrollment: enrollment[0],
       message: "User enrolled; invitation email sent if user new.",
     });
+
   } catch (error) {
     console.error("enrollments API error:", error);
     res.status(500).json({ error: error.message || "Internal server error" });
