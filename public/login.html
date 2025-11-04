@@ -183,7 +183,7 @@
           return;
         }
 
-        if (!profileData.length) {
+        if (!profileData) {
           errorMessage.textContent = 'Profile record missing. Please contact support.';
           loginBtn.disabled = false;
           loginBtn.textContent = 'Sign In';
