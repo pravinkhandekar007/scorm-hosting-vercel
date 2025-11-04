@@ -35,7 +35,7 @@ async function sendInviteEmail(email) {
     },
     body: JSON.stringify({
       email,
-      redirect_to: `https://scorm-hosting-vercel-git-new-features-pravins-projects-cf1d54ae.vercel.app/set-password.html` // your custom password set page
+      redirect_to: `${frontendUrl}/set-password.html` // your custom password set page
     })
   });
 
