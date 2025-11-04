@@ -21,13 +21,12 @@ async function createUser(email, fullName) {
     user_metadata: { full_name: fullName }
   });
   if (error) throw error;
-  // Return the user object inside data, not the full response
   return data.user;
 }
 
 async function sendInviteEmail(email) {
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `https://scorm-hosting-vercel-git-new-features-pravins-projects-cf1d54ae.vercel.app/forgot-password.html`,
+    redirectTo: `https://playscorm.com/forgot-password.html`,
   });
   if (error) throw error;
   return data;
@@ -121,10 +120,21 @@ export default async function handler(req, res) {
 
     if (enrollmentError) throw enrollmentError;
 
+    // Update `profiles` table role to "learner"
+    const { error: updateProfileError } = await supabase
+      .from("profiles")
+      .update({ role: "learner" })
+      .eq("user_id", learner_id);
+
+    if (updateProfileError) {
+      console.warn(`Failed to update role for learner: ${learner_id}`, updateProfileError);
+      // Continue without throwing error to not block enrollment success
+    }
+
     res.status(201).json({
       success: true,
       enrollment: enrollment[0],
-      message: "User enrolled; invitation email sent if user new.",
+      message: "User enrolled; invitation email sent if user new; role updated.",
     });
 
   } catch (error) {
