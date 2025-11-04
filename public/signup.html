@@ -2,7 +2,7 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <title>Sign Up – Playscorm</title>
+  <title>Sign Up – PlayScorm</title>
   <style>
     body {
       margin: 0;
@@ -61,7 +61,7 @@
       font-size: 15px;
       display: block;
     }
-    input, select {
+    input {
       width: 100%;
       padding: 12px 15px;
       margin-bottom: 20px;
@@ -72,7 +72,7 @@
       transition: border-color 0.3s;
       box-sizing: border-box;
     }
-    input:focus, select:focus {
+    input:focus {
       border-color: #0073e6;
       outline: none;
     }
@@ -122,11 +122,6 @@
         <input type="email" id="email" placeholder="you@example.com" required />
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Choose a password" required minlength="6" />
-        <label for="role">Sign up as</label>
-        <select id="role" name="role">
-          <option value="learner" selected>Learner</option>
-          <option value="owner">Course Owner</option>
-        </select>
         <button type="submit" id="signup-button">Sign Up</button>
       </form>
       <p class="footer-text">
@@ -134,6 +129,7 @@
       </p>
     </div>
   </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
@@ -143,8 +139,7 @@
       const form = document.getElementById('signup-form');
       const fullNameInput = document.getElementById('full-name');
       const emailInput = document.getElementById('email');
-      const pwdInput = document.getElementById('password');
-      const roleSelect = document.getElementById('role');
+      const passwordInput = document.getElementById('password');
       const message = document.getElementById('message');
       const signupBtn = document.getElementById('signup-button');
 
@@ -155,18 +150,24 @@
 
         const full_name = fullNameInput.value.trim();
         const email = emailInput.value.trim();
-        const password = pwdInput.value;
-        const role = roleSelect.value || 'learner';
+        const password = passwordInput.value;
+
+        console.log('=== SIGNUP FORM SUBMISSION ===');
+        console.log('Full Name:', full_name);
+        console.log('Email:', email);
 
         if (!full_name || !email || password.length < 6) {
-          message.textContent = 'Full name, valid email and password (min 6 chars) are required.';
-          message.classList.add("error");
+          message.textContent = 'Full name, valid email and password (min 6 chars) required.';
+          message.className = 'message error';
           return;
         }
 
         signupBtn.disabled = true;
+
         try {
-          const { error, data } = await supabase.auth.signUp({
+          // Step 1: Sign up user with Supabase Auth
+          console.log('Step 1: Calling supabase.auth.signUp()');
+          const { error: authError, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
@@ -174,41 +175,57 @@
             }
           });
 
-          if (error) {
-            message.textContent = error.message;
-            message.classList.add("error");
-          } else {
-            try {
-              // Create user profile with selected role
-              const createProfileRes = await fetch('/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'create-profile',
-                  user_id: data.user.id,
-                  email: data.user.email,
-                  full_name,
-                  role
-                })
-              });
-
-              if (!createProfileRes.ok) {
-                const err = await createProfileRes.json();
-                throw new Error(err.error || 'Failed to create profile.');
-              }
-
-              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-              message.classList.add("success");
-              form.reset();
-
-            } catch (profileError) {
-              message.textContent = `Signup succeeded, but profile creation failed: ${profileError.message}`;
-              message.classList.add("error");
-            }
+          if (authError) {
+            console.error('Auth signup error:', authError);
+            message.textContent = authError.message;
+            message.className = 'message error';
+            signupBtn.disabled = false;
+            return;
           }
+
+          console.log('Step 1 Success - User ID:', data.user.id);
+
+          // Step 2: Wait for user to be available in database
+          console.log('Step 2: Waiting 2 seconds for user propagation...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Step 3: Create profile via backend API
+          console.log('Step 3: Creating profile with role=learner');
+          const profilePayload = {
+            user_id: data.user.id,
+            email: email,
+            full_name: full_name,
+            role: 'learner'  // Default role for new signups
+          };
+
+          console.log('Profile payload:', profilePayload);
+
+          const profileRes = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profilePayload)
+          });
+
+          const profileData = await profileRes.json();
+          console.log('Profile creation response status:', profileRes.status);
+          console.log('Profile creation response:', profileData);
+
+          if (profileRes.ok) {
+            message.textContent = `Signup successful! Please check your email (${email}) to verify your account.`;
+            message.className = 'message success';
+            form.reset();
+          } else if (profileRes.status === 409) {
+            // Profile already exists - likely a duplicate signup attempt
+            message.textContent = `This email is already registered. Please log in or use a different email.`;
+            message.className = 'message error';
+          } else {
+            throw new Error(profileData.error || 'Profile creation failed');
+          }
+
         } catch (err) {
-          message.textContent = 'Unexpected error occurred. Please try again.';
-          message.classList.add("error");
+          console.error('Signup error:', err);
+          message.textContent = `Error: ${err.message}`;
+          message.className = 'message error';
         } finally {
           signupBtn.disabled = false;
         }
