@@ -9,51 +9,63 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #0a486d 0%, #3199cc 100%);
+      background: #ececec;
       min-height: 100vh;
       width: 100vw;
-      overflow: hidden;
       box-sizing: border-box;
+    }
+    #outer {
+      min-height: 100vh;
+      background: #f8f9fa; /* Light grey */
+      width: 100vw;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
     }
     #container {
       display: flex;
       flex-direction: column;
       height: 92vh;
-      max-width: 960px;
-      width: 96vw;
-      margin: 2vh auto 0 auto;
+      max-width: 1200px;
+      width: 98vw;
+      margin: 32px 0;
       background: #fff;
       border-radius: 20px;
-      box-shadow: 0 6px 32px rgba(0,0,0,0.12);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.14);
       overflow: hidden;
     }
     #course-header {
       display: flex;
       align-items: center;
+      position: relative;
       background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
-      padding: 8px 12px;
-      min-height: 44px;
+      min-height: 54px;
+      padding: 6px 24px 6px 18px;
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
     }
     #logo {
-      height: 32px;
+      height: 36px;
       width: auto;
-      margin-right: 14px;
+      margin-right: 18px;
       flex-shrink: 0;
       display: block;
     }
     #course-title {
       margin: 0;
       color: #fff;
-      font-size: 1.13em;
+      font-size: 1.21em;
       font-weight: 500;
-      text-align: left;
-      letter-spacing: 0.5px;
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      letter-spacing: 0.4px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+      pointer-events: none;
+      /* The width of the logo and padding allows centering over the header band */
     }
     #message {
       padding: 18px;
@@ -96,33 +108,31 @@
       border-bottom-right-radius: 20px;
       box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
     }
-    @media (max-width: 1000px) {
-      #container {
-        max-width: 100vw;
-        border-radius: 0;
-      }
-      #course-header, #footer {
-        border-radius: 0;
-      }
-      #logo {
-        height: 24px;
-        margin-right: 10px;
-      }
+    @media (max-width: 1280px) {
+      #container { max-width: 98vw; }
+    }
+    @media (max-width: 800px) {
+      #container { border-radius: 0; }
+      #course-header, #footer { border-radius: 0; }
+      #logo { height: 26px; margin-right: 10px; }
+      #course-title { font-size: 1em; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div id="container">
-    <div id="course-header">
-      <img id="logo" src="/logo.png" alt="PlayScorm Logo"/>
-      <h2 id="course-title">Loading…</h2>
+  <div id="outer">
+    <div id="container">
+      <div id="course-header">
+        <img id="logo" src="/logo.png" alt="PlayScorm Logo"/>
+        <h2 id="course-title">Loading…</h2>
+      </div>
+      <div id="main-player">
+        <div id="message">Loading…</div>
+        <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+      <div id="footer">PlayScorm by Compass EduTech</div>
     </div>
-    <div id="main-player">
-      <div id="message">Loading…</div>
-      <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-    </div>
-    <div id="footer">PlayScorm by Compass EduTech</div>
   </div>
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
