@@ -90,6 +90,59 @@
         frame.style.display = 'none';
       }
     })();
+    /**
+ * Minimal SCORM 1.2 API for tracking; only adds a global API object
+ * Used by SCORM content to push tracking data to your backend.
+ */
+window.API = {
+  LMSInitialize: () => 'true',
+  LMSSetValue: function(element, value) {
+    // Post each value set by the SCORM content
+    sendScormTracking(element, value);
+    return 'true';
+  },
+  LMSGetValue: () => '',
+  LMSCommit: () => 'true',
+  LMSFinish: () => 'true',
+  LMSGetLastError: () => '0',
+  LMSGetErrorString: () => '',
+  LMSGetDiagnostic: () => ''
+};
+
+async function sendScormTracking(element, value) {
+  // Update with your parameter management if needed:
+  const params = new URLSearchParams(window.location.search);
+  const courseSlug = params.get('course');
+  // Optionally inject enrollmentId, courseId, learnerId via localStorage/session as established in your enrollment flow.
+  const enrollmentId = localStorage.getItem('enrollmentId');
+  const courseId = localStorage.getItem('courseId');
+  const learnerId = localStorage.getItem('learnerId');
+  if (!enrollmentId || !courseId || !learnerId) {
+    // You should ensure these are available when launching player.html!
+    return;
+  }
+  await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/update-scorm-tracking', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      enrollment_id: enrollmentId,
+      course_id: courseId,
+      learner_id: learnerId,
+      scorm_version: '1.2',
+      cmi_data: {scorm_element: element, value: value}
+    })
+  });
+}
+
+// Optional: For *same-origin* SCORM content, inject API for iframe contentWindow on load (for maximum compatibility)
+document.getElementById('courseFrame').addEventListener('load', function() {
+  try {
+    this.contentWindow.API = window.API;
+    // Only works if SCORM iframe is same-origin!
+  } catch (e) {
+    // Ignore if cross-origin
+  }
+});
   </script>
 </body>
 </html>
