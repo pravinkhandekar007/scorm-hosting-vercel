@@ -19,6 +19,7 @@
     <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
   </div>
 
+  <!-- Main player logic stays the same -->
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
@@ -90,6 +91,49 @@
         frame.style.display = 'none';
       }
     })();
+  </script>
+
+  <!-- Add SCORM API tracking bridge here -->
+  <script>
+    // Minimal LMS SCORM 1.2 API exposed to SCORM content
+    window.API = {
+      LMSInitialize: () => 'true',
+      LMSSetValue: function(element, value) {
+        sendScormTracking(element, value);
+        return 'true';
+      },
+      LMSGetValue: () => '',
+      LMSCommit: () => 'true',
+      LMSFinish: () => 'true',
+      LMSGetLastError: () => '0',
+      LMSGetErrorString: () => '',
+      LMSGetDiagnostic: () => ''
+    };
+
+    // Sends SCORM tracking data to your Edge Function
+    async function sendScormTracking(element, value) {
+      const params = new URLSearchParams(window.location.search);
+      const enrollmentId = localStorage.getItem('enrollmentId');
+      const courseId = localStorage.getItem('courseId');
+      const learnerId = localStorage.getItem('learnerId');
+      if (!enrollmentId || !courseId || !learnerId) return;
+      await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/update-scorm-tracking', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          enrollment_id: enrollmentId,
+          course_id: courseId,
+          learner_id: learnerId,
+          scorm_version: '1.2',
+          cmi_data: {scorm_element: element, value: value}
+        })
+      });
+    }
+
+    // For same-origin SCORM, inject API into the iframe
+    document.getElementById('courseFrame').addEventListener('load', function() {
+      try { this.contentWindow.API = window.API; } catch (e) {}
+    });
   </script>
 </body>
 </html>
