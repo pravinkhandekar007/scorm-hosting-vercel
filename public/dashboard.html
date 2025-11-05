@@ -435,38 +435,30 @@
                     
                     console.log('📦 Owner courses result:', courses, error);
                 } else {
-                    // Learners see only enrolled courses (two-step approach)
-                    console.log('👤 Fetching learner enrolled courses...');
+                    // Learners see only enrolled courses (via backend API)
+                    console.log('👤 Fetching learner enrolled courses via API...');
+                    
+                    const { data: { session } } = await supabase.auth.getSession();
+                    
+                    const response = await fetch('/api/get-learner-courses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ learner_id: userId })
+                    });
 
-                    // Step 1: Fetch enrollments
-                    const { data: enrollments, error: enrollmentsError } = await supabase
-                        .from('enrollments')
-                        .select('course_id')
-                        .eq('learner_id', userId);
-
-                    console.log('👤 Enrollments IDs:', enrollments, enrollmentsError);
-
-                    if (enrollmentsError) {
-                        error = enrollmentsError;
-                        courses = [];
-                    } else if (enrollments && enrollments.length > 0) {
-                        // Step 2: Fetch courses for those enrollment IDs
-                        const courseIds = enrollments.map(e => e.course_id);
-                        console.log('👤 Course IDs to fetch:', courseIds);
-
-                        const { data: coursesList, error: coursesError } = await supabase
-                            .from('courses')
-                            .select('id, course_slug, title, is_public, public_token, expires_at')
-                            .in('id', courseIds);
-
-                        courses = coursesList;
-                        error = coursesError;
-
-                        console.log('👤 Fetched courses:', courses, error);
-                    } else {
-                        courses = [];
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        courses = result.data;
                         error = null;
-                        console.log('👤 No enrollments found for learner');
+                        console.log('👤 Fetched courses via API:', courses);
+                    } else {
+                        error = new Error(result.error || 'Failed to fetch courses');
+                        courses = [];
+                        console.error('👤 API error:', error);
                     }
                 }
 
