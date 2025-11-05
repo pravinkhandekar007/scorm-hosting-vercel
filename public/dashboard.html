@@ -322,6 +322,7 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let userRole = 'learner';
+        let userId = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuthAndLoadData();
@@ -334,12 +335,15 @@
                 return;
             }
             
+            userId = session.user.id;
+            console.log('✅ Session found. User ID:', userId);
+            
             try {
                 // Fetch user profile to get full name & role
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('full_name, role')
-                    .eq('user_id', session.user.id)  // use user_id here consistently
+                    .eq('user_id', session.user.id)
                     .single();
 
                 let displayName = session.user.email;
@@ -347,6 +351,9 @@
                 if (profile) {
                     displayName = profile.full_name || displayName;
                     userRole = profile.role || 'learner';
+                    console.log('✅ Profile fetched. Role:', userRole, 'Name:', displayName);
+                } else {
+                    console.warn('⚠️ Profile not found for user:', session.user.id);
                 }
 
                 document.getElementById('user-email').textContent = displayName;
@@ -355,18 +362,24 @@
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (userRole === 'owner') {
                     uploadBtn.style.display = 'inline-block';
+                    console.log('✅ Upload button shown (owner)');
                 } else {
                     uploadBtn.style.display = 'none';
+                    console.log('✅ Upload button hidden (learner)');
                 }
 
             } catch (error) {
+                console.error('❌ Error fetching profile:', error);
                 document.getElementById('user-email').textContent = session.user.email;
             }
             
-            await loadCourses();
+            await loadCourses(userId, userRole);
         }
 
         function calculateTimeRemaining(expiresAt) {
+            if (!expiresAt) {
+                return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
+            }
             const now = new Date();
             const expiryDate = new Date(expiresAt);
             const timeDiff = expiryDate - now;
@@ -399,83 +412,144 @@
             return { days, hours, minutes, status, display };
         }
 
-        async function loadCourses() {
+        async function loadCourses(userId, userRole) {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
+
+            console.log('🔄 Loading courses... User ID:', userId, 'Role:', userRole);
+
+            let courses;
+            let error;
+
             try {
-                const { data: courses, error } = await supabase
-                    .from('courses')
-                    .select('id, course_slug, title, is_public, public_token, expires_at')
-                    .order('created_at', { ascending: false });
+                if (userRole === 'owner') {
+                    // Owners see all their courses
+                    console.log('📦 Fetching owner courses...');
+                    ({ data: courses, error } = await supabase
+                        .from('courses')
+                        .select('id, course_slug, title, is_public, public_token, expires_at')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false }));
+                    
+                    console.log('📦 Owner courses result:', courses, error);
+                } else {
+                    // Learners see only enrolled courses
+                    console.log('👤 Fetching learner enrolled courses...');
+                    ({ data: courses, error } = await supabase
+                        .from('enrollments')
+                        .select(`
+                            courses (
+                                id,
+                                course_slug,
+                                title,
+                                is_public,
+                                public_token,
+                                expires_at
+                            )
+                        `)
+                        .eq('learner_id', userId));
+
+                    console.log('👤 Enrollments query result:', courses, error);
+
+                    if (courses) {
+                        courses = courses.map(e => e.courses).filter(c => c !== null);
+                        console.log('👤 Flattened courses:', courses);
+                    }
+                }
+
                 loadingDiv.style.display = 'none';
+
                 if (error) {
+                    console.error('❌ Query error:', error);
                     coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
                     return;
                 }
+
                 if (!courses || courses.length === 0) {
+                    console.log('⚠️ No courses found');
                     coursesDiv.innerHTML = `
                         <div class="empty-state">
-                            <p>No courses uploaded yet.</p>
-                            <a href="upload.html" class="btn btn-success" style="display:none;" id="empty-upload-btn">Upload Your First Course</a>
+                            <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
+                            <a href="upload.html" class="btn btn-success" style="display:${userRole === 'owner' ? 'inline-block' : 'none'};" id="empty-upload-btn">Upload Your First Course</a>
                         </div>`;
                     return;
                 }
+
+                console.log('✅ Found', courses.length, 'courses');
+
                 coursesDiv.innerHTML = courses.map(course => {
                     const timeInfo = calculateTimeRemaining(course.expires_at);
                     const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
                     
-                    return `
-                    <div class="course-item">
-                        <div class="course-info">
-                            <div class="course-title">${course.title}</div>
-                            <div class="valid-for-badge ${badgeClass}">
-                                ⏱️ Valid for: ${timeInfo.display}
+                    if (userRole === 'owner') {
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
+                                <button class="btn btn-secondary btn-small"
+                                        onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
+                                <button class="btn btn-danger btn-small"
+                                        onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
+                                <div class="public-controls">
+                                    ${course.is_public
+                                        ? `<span class="public-badge">🌐 Public</span>
+                                           <button class="btn btn-small btn-success"
+                                                   onclick="copyPublicLink('${course.public_token}')">
+                                                   Copy Public Link
+                                           </button>
+                                           <button class="btn btn-small btn-danger"
+                                                   onclick="revokePublicAccess('${course.course_slug}')">
+                                                   Revoke Public
+                                           </button>`
+                                        : `<button class="btn btn-small btn-success"
+                                                   onclick="generatePublicLink('${course.course_slug}')">
+                                                   Make Public
+                                           </button>`
+                                    }
+                                </div>
                             </div>
                         </div>
-                        <div class="course-actions">
-                            <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
-                               target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
-                            <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
-                               class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
-                            <button class="btn btn-secondary btn-small"
-                                    onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
-                            <button class="btn btn-danger btn-small"
-                                    onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
-                            <div class="public-controls">
-                                ${course.is_public
-                                    ? `<span class="public-badge">🌐 Public</span>
-                                       <button class="btn btn-small btn-success"
-                                               onclick="copyPublicLink('${course.public_token}')">
-                                               Copy Public Link
-                                       </button>
-                                       <button class="btn btn-small btn-danger"
-                                               onclick="revokePublicAccess('${course.course_slug}')">
-                                               Revoke Public
-                                       </button>`
-                                    : `<button class="btn btn-small btn-success"
-                                               onclick="generatePublicLink('${course.course_slug}')">
-                                               Make Public
-                                       </button>`
-                                }
+                    `;
+                    } else {
+                        // Learner view - simplified
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
                             </div>
                         </div>
-                    </div>
-                `}).join('');
-                // Show upload button in empty state only if owner
-                const emptyUploadBtn = document.getElementById('empty-upload-btn');
-                if (emptyUploadBtn) {
-                    emptyUploadBtn.style.display = userRole === 'owner' ? 'inline-block' : 'none';
-                }
+                        `;
+                    }
+                }).join('');
+
             } catch (error) {
                 loadingDiv.style.display = 'none';
+                console.error('❌ Error loading courses:', error);
                 coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
             }
         }
 
         window.refreshCourses = async function() {
-            await loadCourses();
+            console.log('🔄 Refreshing courses...');
+            await loadCourses(userId, userRole);
         }
 
         window.copyURL = function(courseSlug) {
@@ -500,7 +574,7 @@
                 const url = `${window.location.origin}/public-player.html?token=${data.public_token}`;
                 navigator.clipboard.writeText(url);
                 alert('Public link copied to clipboard!');
-                loadCourses();
+                loadCourses(userId, userRole);
             } catch (err) {
                 alert('Error: ' + err.message);
             }
@@ -515,7 +589,7 @@
                     .eq('course_slug', courseSlug);
                 if (error) throw error;
                 alert('Public access revoked');
-                loadCourses();
+                loadCourses(userId, userRole);
             } catch (err) {
                 alert('Error: ' + err.message);
             }
@@ -538,7 +612,7 @@
                 const result = await response.json();
                 if (response.ok) {
                     alert("Course deleted successfully.");
-                    loadCourses();
+                    loadCourses(userId, userRole);
                 } else {
                     alert(`Delete failed: ${result.error || "Unknown error"}`);
                 }
