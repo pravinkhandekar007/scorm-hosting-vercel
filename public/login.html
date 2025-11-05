@@ -106,6 +106,20 @@
       font-weight: 600;
       text-decoration: none;
     }
+    .forgot-link {
+      text-align: center;
+      margin-top: -15px;
+      margin-bottom: 18px;
+    }
+    .forgot-link a {
+      color: #008fd5;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 15px;
+    }
+    .forgot-link a:hover {
+      text-decoration: underline;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -120,6 +134,9 @@
         <input type="email" id="email" placeholder="you@example.com" required />
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Your password" required />
+        <div class="forgot-link">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
         <button type="submit" id="login-btn" disabled>Sign In</button>
       </form>
       <p class="footer-text">

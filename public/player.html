@@ -4,21 +4,135 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <style>
-    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
-    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
-    #message { padding: 20px; text-align: center; }
-    iframe { width: 100%; height: 80vh; border: none; display: none; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #e5e6ea;
+      min-height: 100vh;
+      width: 100vw;
+      box-sizing: border-box;
+    }
+    #outer {
+      min-height: 100vh;
+      background: #e5e6ea;
+      width: 100vw;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      height: 94vh;
+      max-width: 1200px;
+      width: 98vw;
+      margin: 16px 0;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 32px rgba(0,0,0,0.14);
+      overflow: hidden;
+    }
+    #course-header {
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
+      min-height: 54px;
+      padding: 6px 24px 6px 18px;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+    #logo {
+      height: 36px;
+      width: auto;
+      margin-right: 18px;
+      flex-shrink: 0;
+      display: block;
+    }
+    #course-title {
+      margin: 0;
+      color: #fff;
+      font-size: 1.5em;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    #message {
+      padding: 18px;
+      text-align: center;
+      color: #1f374f;
+      font-size: 1em;
+      font-weight: 500;
+      background: #f9fbfd;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+    #main-player {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: stretch;
+      align-items: stretch;
+      min-height: 0;
+      min-width: 0;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+      border-radius: 0 0 16px 16px;
+      background: #fafafa;
+      flex: 1;
+      min-height: 0;
+    }
+    #footer {
+      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
+      color: #fff;
+      text-align: center;
+      padding: 7px 0;
+      font-size: 0.93em;
+      letter-spacing: 0.6px;
+      font-weight: 500;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    }
+    @media (max-width: 1280px) {
+      #container { max-width: 98vw; }
+    }
+    @media (max-width: 800px) {
+      #container { border-radius: 0; }
+      #course-header, #footer { border-radius: 0; }
+      #logo { height: 26px; margin-right: 10px; }
+      #course-title { font-size: 1em; }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div id="container">
-    <h2 id="course-title">Loading…</h2>
-    <div id="message">Loading…</div>
-    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  <div id="outer">
+    <div id="container">
+      <div id="course-header">
+        <img id="logo" src="/logo.png" alt="PlayScorm Logo"/>
+        <h2 id="course-title">Loading…</h2>
+      </div>
+      <div id="main-player">
+        <div id="message">Loading…</div>
+        <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+      <div id="footer">PlayScorm by Compass EduTech</div>
+    </div>
   </div>
-
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
@@ -55,7 +169,6 @@
 
         const course = await res.json();
 
-        // Set the course title only (no static label)
         titleElem.textContent = course.title || 'Untitled Course';
 
         const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
