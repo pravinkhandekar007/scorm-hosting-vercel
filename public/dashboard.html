@@ -435,7 +435,7 @@
                     
                     console.log('📦 Owner courses result:', courses, error);
                 } else {
-                    // Learners see only enrolled courses
+                    // Learners see only enrolled courses (query through enrollments, not courses directly)
                     console.log('👤 Fetching learner enrolled courses...');
                     ({ data: courses, error } = await supabase
                         .from('enrollments')
