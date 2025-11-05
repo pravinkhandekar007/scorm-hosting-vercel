@@ -4,21 +4,100 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <style>
-    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f4f4f4; }
-    #container { max-width: 1200px; margin: 20px auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    #course-title { margin: 0; padding: 20px; background: #2c3e50; color: #fff; font-size: 1.5em; }
-    #message { padding: 20px; text-align: center; }
-    iframe { width: 100%; height: 80vh; border: none; display: none; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a486d 0%, #3199cc 100%);
+      min-height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 100vw;
+      margin: 0;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+    #course-title {
+      margin: 0;
+      padding: 24px;
+      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
+      color: #fff;
+      font-size: 2em;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.5px;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+    #message {
+      padding: 24px;
+      text-align: center;
+      color: #1f374f;
+      font-size: 1.1em;
+      font-weight: 500;
+      background: #f9fbfd;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+    #main-player {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: stretch;
+      align-items: stretch;
+      min-height: 0;
+      min-width: 0;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+      border-radius: 0 0 16px 16px;
+      background: #fafafa;
+      flex: 1;
+      min-height: 0;
+    }
+    #footer {
+      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
+      color: #fff;
+      text-align: center;
+      padding: 14px 0;
+      font-size: 1em;
+      letter-spacing: 0.7px;
+      font-weight: 500;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    }
+    @media (max-width: 800px) {
+      #container {
+        border-radius: 0;
+      }
+      #course-title, #footer {
+        border-radius: 0;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="container">
     <h2 id="course-title">Loading…</h2>
-    <div id="message">Loading…</div>
-    <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    <div id="main-player">
+      <div id="message">Loading…</div>
+      <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    </div>
+    <div id="footer">PlayScorm by Compass EduTech</div>
   </div>
-
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
@@ -90,59 +169,6 @@
         frame.style.display = 'none';
       }
     })();
-    /**
- * Minimal SCORM 1.2 API for tracking; only adds a global API object
- * Used by SCORM content to push tracking data to your backend.
- */
-window.API = {
-  LMSInitialize: () => 'true',
-  LMSSetValue: function(element, value) {
-    // Post each value set by the SCORM content
-    sendScormTracking(element, value);
-    return 'true';
-  },
-  LMSGetValue: () => '',
-  LMSCommit: () => 'true',
-  LMSFinish: () => 'true',
-  LMSGetLastError: () => '0',
-  LMSGetErrorString: () => '',
-  LMSGetDiagnostic: () => ''
-};
-
-async function sendScormTracking(element, value) {
-  // Update with your parameter management if needed:
-  const params = new URLSearchParams(window.location.search);
-  const courseSlug = params.get('course');
-  // Optionally inject enrollmentId, courseId, learnerId via localStorage/session as established in your enrollment flow.
-  const enrollmentId = localStorage.getItem('enrollmentId');
-  const courseId = localStorage.getItem('courseId');
-  const learnerId = localStorage.getItem('learnerId');
-  if (!enrollmentId || !courseId || !learnerId) {
-    // You should ensure these are available when launching player.html!
-    return;
-  }
-  await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/update-scorm-tracking', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      enrollment_id: enrollmentId,
-      course_id: courseId,
-      learner_id: learnerId,
-      scorm_version: '1.2',
-      cmi_data: {scorm_element: element, value: value}
-    })
-  });
-}
-
-// Optional: For *same-origin* SCORM content, inject API for iframe contentWindow on load (for maximum compatibility)
-document.getElementById('courseFrame').addEventListener('load', function() {
-  try {
-    this.contentWindow.API = window.API;
-    // Only works if SCORM iframe is same-origin!
-  } catch (e) {
-    // Ignore if cross-origin
-  }
-});
   </script>
 </body>
 </html>
