@@ -106,6 +106,19 @@
       font-weight: 600;
       text-decoration: none;
     }
+    .forgot-link {
+      text-align: right;
+      margin-bottom: 18px;
+    }
+    .forgot-link a {
+      color: #008fd5;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 15px;
+    }
+    .forgot-link a:hover {
+      text-decoration: underline;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -120,84 +133,7 @@
         <input type="email" id="email" placeholder="you@example.com" required />
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Your password" required />
-        <button type="submit" id="login-btn" disabled>Sign In</button>
-      </form>
-      <p class="footer-text">
-        Don't have an account? <a href="signup.html">Sign Up</a>
-      </p>
-    </div>
-  </div>
-  <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('login-btn');
-    const errorMessage = document.getElementById('error-message');
-
-    function validateInputs() {
-      const emailValid = emailInput.value.trim().length > 5;
-      const passwordValid = passwordInput.value.trim().length >= 6;
-      loginBtn.disabled = !(emailValid && passwordValid);
-    }
-
-    emailInput.addEventListener('input', validateInputs);
-    passwordInput.addEventListener('input', validateInputs);
-    validateInputs();
-
-    document.getElementById('login-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      errorMessage.textContent = '';
-      loginBtn.disabled = true;
-      loginBtn.textContent = 'Signing in...';
-
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      try {
-        const { error, data } = await client.auth.signInWithPassword({ email, password });
-        if (error) {
-          errorMessage.textContent = error.message;
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
-        const user = data.user;
-        if (!user || !user.id) {
-          errorMessage.textContent = 'Login succeeded, but user data is missing.';
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
-        const profileRes = await fetch(`/api/profiles?id=${user.id}`);
-        const profileData = await profileRes.json();
-
-        if (!profileRes.ok) {
-          errorMessage.textContent = `Error fetching profile: ${profileData.error || profileRes.statusText}`;
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
-        if (!profileData) {
-          errorMessage.textContent = 'Profile record missing. Please contact support.';
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Sign In';
-          return;
-        }
-
-        window.location.href = 'dashboard.html';
-
-      } catch (err) {
-        errorMessage.textContent = 'Unexpected error occurred.';
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Sign In';
-      }
-    });
-  </script>
-</body>
-</html>
+        <div class="forgot-link">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
+        <button type="submit" id="login-btn" disabled
