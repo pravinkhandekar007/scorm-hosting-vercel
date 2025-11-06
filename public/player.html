@@ -402,6 +402,89 @@
         frame.style.display = 'none';
       }
     })();
+    (async () => {
+  const msg = document.getElementById('message');
+  const frame = document.getElementById('courseFrame');
+  const titleElem = document.getElementById('course-title');
+  const params = new URLSearchParams(window.location.search);
+  const courseSlug = params.get('course');
+
+  if (!courseSlug) {
+    titleElem.textContent = 'Error';
+    msg.textContent = 'Error: Missing course slug.';
+    return;
+  }
+
+  msg.textContent = 'Fetching course metadata…';
+  const { data: { session } } = await supabase.auth.getSession();
+
+  try {
+    const headers = {};
+    if (session && session.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
+    const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
+      headers,
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const course = await res.json();
+    console.log('[DEBUG] Course object from API:', course);
+
+    titleElem.textContent = course.title || 'Untitled Course';
+
+    // Extract IDs for tracking context
+    scormContext.enrollmentId = params.get('enrollment_id');
+    scormContext.courseId = course.id;  // Make sure this is populated
+    scormContext.learnerId = params.get('learner_id') || session?.user?.id || null;
+    scormContext.scormVersion = course.scorm_version || '1.2';
+    scormContext.sessionId = session?.user?.id || null;
+
+    console.log('[DEBUG] SCORM Context after assignment:', scormContext);
+
+    const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+
+    msg.textContent = 'Fetching manifest…';
+    const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
+    if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
+
+    const manifestText = await mf.text();
+    msg.textContent = 'Parsing manifest…';
+
+    let launchFile = course.launch_url || 'index.html';
+    try {
+      const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
+      const resource = xml.querySelector('resource[href]');
+      if (resource) launchFile = resource.getAttribute('href');
+    } catch {
+      // fallback
+    }
+
+    msg.textContent = 'Launching course…';
+    frame.src = proxyBaseUrl + launchFile;
+    frame.style.display = 'block';
+    msg.style.display = 'none';
+
+    frame.onload = () => {
+      try {
+        frame.contentWindow.API = window.API;
+        frame.contentWindow.API_1484_11 = window.API;
+        console.log('[iframe] API injected successfully');
+      } catch (e) {
+        console.warn('[iframe] Cross-origin fallback, using postMessage:', e.message);
+      }
+    };
+
+  } catch (err) {
+    console.error('[ERROR]', err);
+    titleElem.textContent = 'Error';
+    msg.textContent = `Failed to load course: ${err.message}`;
+    frame.style.display = 'none';
+  }
+})();
+
   </script>
 </body>
 </html>
