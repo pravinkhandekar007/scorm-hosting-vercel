@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing learner_id" });
     }
 
-    // Fetch enrollments joined with course data, no expires_at in enrollment select
+    // Join enrollments with course info
     const { data: enrollments, error } = await supabase
       .from("enrollments")
       .select(`
@@ -50,7 +50,6 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({ success: true, data: enrollments });
-
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: error.message || "Internal server error" });
