@@ -139,9 +139,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ============================================
     // Global SCORM Context
-    // ============================================
     let scormContext = {
       enrollmentId: null,
       courseId: null,
@@ -151,56 +149,44 @@
       cmiCache: {}
     };
 
-    // ============================================
     // SCORM API Wrapper - Exposed to iframe
-    // ============================================
     window.API = {
       LMSInitialize: function(param) {
         console.log('[SCORM API] LMSInitialize called');
         return "true";
       },
-
       LMSFinish: function(param) {
         console.log('[SCORM API] LMSFinish called');
         return "true";
       },
-
       LMSGetValue: function(key) {
         console.log('[SCORM API] LMSGetValue called with key:', key);
         return scormContext.cmiCache[key] || "";
       },
-
       LMSSetValue: function(key, value) {
         console.log('[SCORM API] LMSSetValue called:', key, '=', value);
         scormContext.cmiCache[key] = value;
         sendSCORMTracking(key, value);
         return "true";
       },
-
       LMSCommit: function(param) {
         console.log('[SCORM API] LMSCommit called');
         return "true";
       },
-
       LMSGetLastError: function() {
         return "0";
       },
-
       LMSGetErrorString: function(errorCode) {
         return "No error";
       },
-
       LMSGetDiagnostic: function(errorCode) {
         return "No diagnostic information";
       }
     };
-
     // SCORM 2004 API alias
     window.API_1484_11 = window.API;
 
-    // ============================================
     // Send SCORM tracking data to Edge Function
-    // ============================================
     async function sendSCORMTracking(key, value) {
       if (!scormContext.enrollmentId || !scormContext.courseId || !scormContext.learnerId) {
         console.warn('[SCORM Tracking] Missing context. Enrollment:', scormContext.enrollmentId, 'Course:', scormContext.courseId, 'Learner:', scormContext.learnerId);
@@ -221,7 +207,7 @@
 
         console.log('[SCORM Tracking] Sending to update-scorm-tracking:', payload);
 
-        const response = await fetch('/api/update-scorm-tracking', {
+        const response = await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/functions/v1/update-scorm-tracking', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -233,7 +219,6 @@
           console.error(`[SCORM Tracking] Error: HTTP ${response.status}`);
           return;
         }
-
         const result = await response.json();
         console.log('[SCORM Tracking] Success:', result);
       } catch (error) {
@@ -241,12 +226,10 @@
       }
     }
 
-    // ============================================
     // Listen for postMessage from iframe
-    // ============================================
     window.addEventListener('message', (event) => {
       const msg = event.data;
-      
+
       if (!msg || typeof msg !== 'object') {
         return;
       }
@@ -289,9 +272,7 @@
       }
     });
 
-    // ============================================
-    // Main initialization - SINGLE FUNCTION
-    // ============================================
+    // Main initialization
     (async () => {
       const msg = document.getElementById('message');
       const frame = document.getElementById('courseFrame');
@@ -326,11 +307,9 @@
 
         titleElem.textContent = course.title || 'Untitled Course';
 
-        // Extract IDs for tracking context - FROM URL PARAMS
         const enrollmentId = params.get('enrollment_id');
         const learnerId = params.get('learner_id');
 
-        // Set SCORM context
         scormContext.enrollmentId = enrollmentId;
         scormContext.courseId = course.id;
         scormContext.learnerId = learnerId || session?.user?.id || null;
@@ -370,7 +349,6 @@
         frame.style.display = 'block';
         msg.style.display = 'none';
 
-        // After iframe loads, inject API
         frame.onload = () => {
           console.log('[iframe] onload event fired');
           try {
@@ -382,6 +360,40 @@
           }
         };
 
+        // Manual SCORM tracking test call – can be removed after verifying
+        setTimeout(async () => {
+          try {
+            if (scormContext.enrollmentId && scormContext.courseId && scormContext.learnerId) {
+              const testPayload = {
+                enrollment_id: scormContext.enrollmentId,
+                course_id: scormContext.courseId,
+                learner_id: scormContext.learnerId,
+                scorm_version: scormContext.scormVersion,
+                session_id: scormContext.sessionId,
+                cmi_data: {
+                  'cmi.core.lesson_status': 'incomplete',
+                  'test_field': 'tracking test'
+                }
+              };
+              console.log('[SCORM Test] Sending manual test tracking data:', testPayload);
+              const response = await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/functions/v1/update-scorm-tracking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(testPayload)
+              });
+              if (!response.ok) {
+                throw new Error(`Failed to send test tracking: HTTP ${response.status}`);
+              }
+              const result = await response.json();
+              console.log('[SCORM Test] Tracking test success:', result);
+            } else {
+              console.warn('[SCORM Test] Missing context, test tracking skipped');
+            }
+          } catch (err) {
+            console.error('[SCORM Test] Tracking test error:', err);
+          }
+        }, 3000);
+
       } catch (err) {
         console.error('[ERROR]', err);
         titleElem.textContent = 'Error';
@@ -389,7 +401,6 @@
         frame.style.display = 'none';
       }
     })();
-
   </script>
 </body>
 </html>
