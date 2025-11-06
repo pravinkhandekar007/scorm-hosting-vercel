@@ -36,7 +36,7 @@
             height: 54px;
             width: auto;
             margin-left: 38px;
-            maring-right: 22px;
+            margin-right: 22px;
             flex-shrink: 0;
             display: block;
         }
@@ -338,7 +338,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+
         let userRole = 'learner';
         let userId = null;
 
@@ -352,13 +352,12 @@
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             userId = session.user.id;
-            console.log('✅ Session found. User ID:', userId);
-            
+
             try {
                 // Fetch user profile to get full name & role
-                const { data: profile, error: profileError } = await supabase
+                const { data: profile } = await supabase
                     .from('profiles')
                     .select('full_name, role')
                     .eq('user_id', session.user.id)
@@ -369,9 +368,6 @@
                 if (profile) {
                     displayName = profile.full_name || displayName;
                     userRole = profile.role || 'learner';
-                    console.log('✅ Profile fetched. Role:', userRole, 'Name:', displayName);
-                } else {
-                    console.warn('⚠️ Profile not found for user:', session.user.id);
                 }
 
                 document.getElementById('user-email').textContent = displayName;
@@ -380,17 +376,14 @@
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (userRole === 'owner') {
                     uploadBtn.style.display = 'inline-block';
-                    console.log('✅ Upload button shown (owner)');
                 } else {
                     uploadBtn.style.display = 'none';
-                    console.log('✅ Upload button hidden (learner)');
                 }
 
             } catch (error) {
-                console.error('❌ Error fetching profile:', error);
                 document.getElementById('user-email').textContent = session.user.email;
             }
-            
+
             await loadCourses(userId, userRole);
         }
 
@@ -436,28 +429,22 @@
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
-            console.log('🔄 Loading courses... User ID:', userId, 'Role:', userRole);
-
             let courses;
             let error;
 
             try {
                 if (userRole === 'owner') {
                     // Owners see all their courses
-                    console.log('📦 Fetching owner courses...');
                     ({ data: courses, error } = await supabase
                         .from('courses')
                         .select('id, course_slug, title, is_public, public_token, expires_at')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false }));
-                    
-                    console.log('📦 Owner courses result:', courses, error);
+
                 } else {
-                    // Learners see only enrolled courses (via backend API)
-                    console.log('👤 Fetching learner enrolled courses via API...');
-                    
+                    // Learner: fetch enrollments joined with course info
                     const { data: { session } } = await supabase.auth.getSession();
-                    
+
                     const response = await fetch('/api/get-learner-courses', {
                         method: 'POST',
                         headers: {
@@ -468,28 +455,36 @@
                     });
 
                     const result = await response.json();
-                    
-                    if (response.ok) {
-                        courses = result.data;
+
+                    if (response.ok && result.data) {
+                        // Merge enrollment ID and course info for correct launch URLs
+                        courses = result.data.map(enrollment => {
+                            const c = enrollment.course || {};
+                            return {
+                                id: c.id,
+                                course_slug: c.course_slug,
+                                title: c.title,
+                                expires_at: c.expires_at,
+                                is_public: c.is_public,
+                                public_token: c.public_token,
+                                enrollment_id: enrollment.id
+                            };
+                        });
                         error = null;
-                        console.log('👤 Fetched courses via API:', courses);
                     } else {
-                        error = new Error(result.error || 'Failed to fetch courses');
+                        error = new Error(result.error || 'Failed to fetch enrolled courses');
                         courses = [];
-                        console.error('👤 API error:', error);
                     }
                 }
 
                 loadingDiv.style.display = 'none';
 
                 if (error) {
-                    console.error('❌ Query error:', error);
                     coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
                     return;
                 }
 
                 if (!courses || courses.length === 0) {
-                    console.log('⚠️ No courses found');
                     coursesDiv.innerHTML = `
                         <div class="empty-state">
                             <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
@@ -498,13 +493,12 @@
                     return;
                 }
 
-                console.log('✅ Found', courses.length, 'courses');
-
                 coursesDiv.innerHTML = courses.map(course => {
                     const timeInfo = calculateTimeRemaining(course.expires_at);
                     const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
-                    
+
                     if (userRole === 'owner') {
+                        // Owner markup and controls
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -541,9 +535,10 @@
                                 </div>
                             </div>
                         </div>
-                    `;
+                        `;
                     } else {
-                        // Learner view - simplified
+                        // Learner markup – launch with enrollment_id and learner_id for SCORM tracking
+                        const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -553,7 +548,7 @@
                                 </div>
                             </div>
                             <div class="course-actions">
-                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                <a href="${launchUrl}"
                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
                             </div>
                         </div>
@@ -563,13 +558,11 @@
 
             } catch (error) {
                 loadingDiv.style.display = 'none';
-                console.error('❌ Error loading courses:', error);
                 coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
             }
         }
 
         window.refreshCourses = async function() {
-            console.log('🔄 Refreshing courses...');
             await loadCourses(userId, userRole);
         }
 

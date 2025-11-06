@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <style>
+    /* Your original styles unchanged, pasted from your code */
     html, body {
       height: 100%;
       margin: 0;
@@ -133,10 +134,189 @@
       <div id="footer">PlayScorm by Compass EduTech</div>
     </div>
   </div>
+
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+    const SUPABASE_ANON_KEY = 'your-anon-key';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let scormContext = {
+      enrollmentId: null,
+      courseId: null,
+      learnerId: null,
+      scormVersion: '1.2',
+      sessionId: null,
+      cmiCache: {},
+      initialized: false,
+      terminated: false,
+    };
+
+    const SCORM_API = {
+      LMSInitialize(param) { 
+        if(scormContext.initialized) { 
+          console.warn('LMSInitialize already called'); 
+          return "false"; 
+        }
+        scormContext.initialized = true;
+        console.log('[SCORM API] LMSInitialize called:', param);
+        return "true";
+      },
+      LMSFinish(param) {
+        if(!scormContext.initialized) {
+          console.warn('LMSFinish before initialize');
+          return "false";
+        }
+        if(scormContext.terminated) {
+          console.warn('LMSFinish already called');
+          return "false";
+        }
+        scormContext.terminated = true;
+        console.log('[SCORM API] LMSFinish called');
+        return "true";
+      },
+      LMSGetValue(key) {
+        console.log('[SCORM API] LMSGetValue:', key);
+        return scormContext.cmiCache[key] || "";
+      },
+      LMSSetValue(key,value) {
+        console.log('[SCORM API] LMSSetValue:', key, '=', value);
+        scormContext.cmiCache[key] = value;
+        sendSCORMTracking(key,value);
+        return "true";
+      },
+      LMSCommit(param) {
+        console.log('[SCORM API] LMSCommit called');
+        return "true";
+      },
+      LMSGetLastError() { return "0"; },
+      LMSGetErrorString(errorCode) { return "No error"; },
+      LMSGetDiagnostic(errorCode) { return "No diagnostic information"; }
+    };
+
+    const SCORM_2004_API = {
+      Initialize(param) {
+        if(scormContext.initialized) {
+          console.warn('Initialize already called');
+          return "false";
+        }
+        scormContext.initialized = true;
+        console.log('[SCORM 2004 API] Initialize:', param);
+        return "true";
+      },
+      Terminate(param) {
+        if(!scormContext.initialized){
+          console.warn('Terminate before initialize');
+          return "false";
+        }
+        if(scormContext.terminated){
+          console.warn('Terminate already called');
+          return "false";
+        }
+        scormContext.terminated = true;
+        console.log('[SCORM 2004 API] Terminate called');
+        return "true";
+      },
+      GetValue(key) {
+        console.log('[SCORM 2004 API] GetValue:', key);
+        return scormContext.cmiCache[key] || "";
+      },
+      SetValue(key, value) {
+        console.log('[SCORM 2004 API] SetValue:', key, '=', value);
+        scormContext.cmiCache[key] = value;
+        sendSCORMTracking(key,value);
+        return "true";
+      },
+      Commit(param) {
+        console.log('[SCORM 2004 API] Commit called');
+        return "true";
+      },
+      GetLastError() { return "0"; },
+      GetErrorString(errorCode) { return "No error"; },
+      GetDiagnostic(errorCode) { return "No diagnostic information"; }
+    };
+
+    window.API = SCORM_API;
+    window.API_1484_11 = SCORM_2004_API;
+
+    // Cross origin postMessage handler for SCORM 1.2 & 2004
+    window.addEventListener('message', (event) => {
+      const msg = event.data;
+      if(!msg || typeof msg !== 'object') return;
+      switch(msg.type) {
+        case 'LMSInitialize':
+          event.source.postMessage({type:'LMSInitializeResponse', result: SCORM_API.LMSInitialize(msg.param)}, event.origin);
+          break;
+        case 'LMSFinish':
+          event.source.postMessage({type:'LMSFinishResponse', result: SCORM_API.LMSFinish(msg.param)}, event.origin);
+          break;
+        case 'LMSGetValue':
+          event.source.postMessage({type:'LMSGetValueResponse', key: msg.key, value: SCORM_API.LMSGetValue(msg.key)}, event.origin);
+          break;
+        case 'LMSSetValue':
+          SCORM_API.LMSSetValue(msg.key, msg.value);
+          event.source.postMessage({type:'LMSSetValueResponse', key: msg.key, result: "true"}, event.origin);
+          break;
+        case 'LMSCommit':
+          event.source.postMessage({type:'LMSCommitResponse', result: SCORM_API.LMSCommit(msg.param)}, event.origin);
+          break;
+
+        case 'Initialize':
+          event.source.postMessage({type:'InitializeResponse', result: SCORM_2004_API.Initialize(msg.param)}, event.origin);
+          break;
+        case 'Terminate':
+          event.source.postMessage({type:'TerminateResponse', result: SCORM_2004_API.Terminate(msg.param)}, event.origin);
+          break;
+        case 'GetValue':
+          event.source.postMessage({type:'GetValueResponse', key: msg.key, value: SCORM_2004_API.GetValue(msg.key)}, event.origin);
+          break;
+        case 'SetValue':
+          SCORM_2004_API.SetValue(msg.key, msg.value);
+          event.source.postMessage({type:'SetValueResponse', key: msg.key, result: "true"}, event.origin);
+          break;
+        case 'Commit':
+          event.source.postMessage({type:'CommitResponse', result: SCORM_2004_API.Commit(msg.param)}, event.origin);
+          break;
+      }
+    });
+
+    async function sendSCORMTracking(key, value) {
+      if(!scormContext.enrollmentId || !scormContext.courseId || !scormContext.learnerId) {
+        console.warn('[SCORM Tracking] Missing Context');
+        return;
+      }
+      scormContext.cmiCache[key] = value;
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const payload = {
+          enrollment_id: scormContext.enrollmentId,
+          course_id: scormContext.courseId,
+          learner_id: scormContext.learnerId,
+          scorm_version: scormContext.scormVersion,
+          session_id: scormContext.sessionId,
+          timestamp: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          raw_scorm_data: scormContext.cmiCache
+        };
+        const response = await fetch('https://mfooewemvofleynanjkb.functions.supabase.co/functions/v1/update-scorm-tracking', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        if(!response.ok) {
+          console.error(`[SCORM Tracking] Error: HTTP ${response.status}`);
+          return;
+        }
+        const result = await response.json();
+        console.log('[SCORM Tracking] Success:', result);
+      } catch (e) {
+        console.error('[SCORM Tracking] Error sending tracking:', e);
+      }
+    }
 
     (async () => {
       const msg = document.getElementById('message');
@@ -145,7 +325,7 @@
       const params = new URLSearchParams(window.location.search);
       const courseSlug = params.get('course');
 
-      if (!courseSlug) {
+      if(!courseSlug) {
         titleElem.textContent = 'Error';
         msg.textContent = 'Error: Missing course slug.';
         return;
@@ -157,7 +337,7 @@
 
       try {
         const headers = {};
-        if (session && session.access_token) {
+        if(session && session.access_token) {
           headers['Authorization'] = `Bearer ${session.access_token}`;
         }
 
@@ -165,44 +345,73 @@
           headers,
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const course = await res.json();
 
+        console.log('[DEBUG] Full Course object:', JSON.stringify(course, null, 2));
+
         titleElem.textContent = course.title || 'Untitled Course';
+
+        const enrollmentId = params.get('enrollment_id');
+        const learnerId = params.get('learner_id');
+
+        scormContext.enrollmentId = enrollmentId;
+        scormContext.courseId = course.id;
+        scormContext.learnerId = learnerId || session?.user?.id || null;
+        scormContext.scormVersion = course.scorm_version || '1.2';
+        scormContext.sessionId = session?.user?.id || null;
+
+        console.log('[DEBUG] scormContext:', JSON.stringify(scormContext, null, 2));
+
+        if(!enrollmentId || !learnerId) {
+          console.warn('[SCORM Context] Missing enrollment_id or learner_id in URL params');
+        }
 
         const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
 
         msg.textContent = 'Fetching manifest…';
 
         const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
+        if(!mf.ok) throw new Error(`HTTP ${mf.status}`);
 
         const manifestText = await mf.text();
 
         msg.textContent = 'Parsing manifest…';
 
         let launchFile = course.launch_url || 'index.html';
+
         try {
           const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
           const resource = xml.querySelector('resource[href]');
-          if (resource) launchFile = resource.getAttribute('href');
-        } catch {
-          // fallback
-        }
+          if(resource) launchFile = resource.getAttribute('href');
+        } catch { /* fallback */ }
 
         msg.textContent = 'Launching course…';
 
         frame.src = proxyBaseUrl + launchFile;
         frame.style.display = 'block';
         msg.style.display = 'none';
-      } catch (err) {
-        console.error(err);
+
+        frame.onload = () => {
+          console.log('[iframe] onload fired');
+          try {
+            frame.contentWindow.API = window.API;
+            frame.contentWindow.API_1484_11 = window.API_1484_11;
+            console.log('[iframe] SCORM API objects injected');
+          } catch(e) {
+            console.warn('[iframe] Injection failed (cross-origin?), using postMessage fallback:', e.message);
+          }
+        };
+
+      } catch(e) {
+        console.error('[ERROR]', e);
         titleElem.textContent = 'Error';
-        msg.textContent = `Failed to load course: ${err.message}`;
+        msg.textContent = `Failed to load course: ${e.message}`;
         frame.style.display = 'none';
       }
     })();
   </script>
+
 </body>
 </html>
