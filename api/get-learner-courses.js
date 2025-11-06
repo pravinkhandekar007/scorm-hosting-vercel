@@ -27,29 +27,30 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing learner_id" });
     }
 
-    // Use service role to bypass RLS
-    const { data: enrollments, error: enrollmentsError } = await supabase
+    // fetch enrollments joined with course details using Supabase foreign table syntax
+    const { data: enrollments, error } = await supabase
       .from("enrollments")
-      .select("course_id")
+      .select(`
+        id,
+        expires_at,
+        course: courses (
+          id,
+          course_slug,
+          title,
+          is_public,
+          public_token,
+          expires_at
+        )
+      `)
       .eq("learner_id", learner_id);
 
-    if (enrollmentsError) throw enrollmentsError;
+    if (error) throw error;
 
-    if (!enrollments || enrollments.length === 0) {
+    if (!enrollments) {
       return res.status(200).json({ success: true, data: [] });
     }
 
-    const courseIds = enrollments.map(e => e.course_id);
-
-    // Fetch courses using service role (bypasses RLS)
-    const { data: courses, error: coursesError } = await supabase
-      .from("courses")
-      .select("id, course_slug, title, is_public, public_token, expires_at")
-      .in("id", courseIds);
-
-    if (coursesError) throw coursesError;
-
-    return res.status(200).json({ success: true, data: courses });
+    return res.status(200).json({ success: true, data: enrollments });
 
   } catch (error) {
     console.error("Error:", error);
