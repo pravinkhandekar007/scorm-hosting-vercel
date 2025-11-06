@@ -27,12 +27,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing learner_id" });
     }
 
-    // fetch enrollments joined with course details using Supabase foreign table syntax
+    // Fetch enrollments joined with course data, no expires_at in enrollment select
     const { data: enrollments, error } = await supabase
       .from("enrollments")
       .select(`
         id,
-        expires_at,
         course: courses (
           id,
           course_slug,
