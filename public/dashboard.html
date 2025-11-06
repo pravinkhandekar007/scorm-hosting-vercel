@@ -440,6 +440,7 @@
 
             let courses;
             let error;
+            let enrollmentMap = {}; // Map course_id to enrollment_id for learners
 
             try {
                 if (userRole === 'owner') {
@@ -470,7 +471,20 @@
                     const result = await response.json();
                     
                     if (response.ok) {
-                        courses = result.data;
+                        // Build course list from enrollments
+                        courses = result.data.map(enrollment => ({
+                            id: enrollment.courses.id,
+                            course_slug: enrollment.courses.course_slug,
+                            title: enrollment.courses.title,
+                            expires_at: enrollment.expires_at,
+                            enrollment_id: enrollment.id // Store enrollment_id for learner launches
+                        }));
+                        
+                        // Build enrollment map for quick lookup
+                        result.data.forEach(enrollment => {
+                            enrollmentMap[enrollment.courses.id] = enrollment.id;
+                        });
+                        
                         error = null;
                         console.log('👤 Fetched courses via API:', courses);
                     } else {
@@ -543,7 +557,10 @@
                         </div>
                     `;
                     } else {
-                        // Learner view - simplified
+                        // Learner view - include enrollment_id and learner_id in launch URL
+                        const enrollmentId = course.enrollment_id || enrollmentMap[course.id];
+                        const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(enrollmentId)}&learner_id=${encodeURIComponent(userId)}`;
+                        
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -553,7 +570,7 @@
                                 </div>
                             </div>
                             <div class="course-actions">
-                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                <a href="${launchUrl}"
                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
                             </div>
                         </div>
