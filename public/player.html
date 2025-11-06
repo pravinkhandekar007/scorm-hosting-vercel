@@ -138,6 +138,175 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Global context to store current enrollment and course info
+    let scormContext = {
+      enrollmentId: null,
+      courseId: null,
+      learnerId: null,
+      scormVersion: '1.2',
+      sessionId: null,
+      cmiCache: {} // Cache CMI data to avoid redundant calls
+    };
+
+    // ============================================
+    // SCORM API Wrapper - Exposed to iframe
+    // ============================================
+    window.API = {
+      LMSInitialize: function(param) {
+        console.log('[SCORM API] LMSInitialize called with param:', param);
+        return "true";
+      },
+
+      LMSFinish: function(param) {
+        console.log('[SCORM API] LMSFinish called');
+        // Optionally flush any pending tracking data
+        return "true";
+      },
+
+      LMSGetValue: function(key) {
+        console.log('[SCORM API] LMSGetValue called with key:', key);
+        // Return cached value or empty string
+        return scormContext.cmiCache[key] || "";
+      },
+
+      LMSSetValue: function(key, value) {
+        console.log('[SCORM API] LMSSetValue called:', key, '=', value);
+        
+        // Cache the value locally
+        scormContext.cmiCache[key] = value;
+
+        // Queue tracking data and post to Edge Function
+        sendSCORMTracking(key, value);
+        
+        return "true";
+      },
+
+      LMSCommit: function(param) {
+        console.log('[SCORM API] LMSCommit called');
+        return "true";
+      },
+
+      LMSGetLastError: function() {
+        return "0";
+      },
+
+      LMSGetErrorString: function(errorCode) {
+        return "No error";
+      },
+
+      LMSGetDiagnostic: function(errorCode) {
+        return "No diagnostic information";
+      }
+    };
+
+    // ============================================
+    // SCORM 2004 API (if needed)
+    // ============================================
+    window.API_1484_11 = window.API; // Alias for SCORM 2004 compatibility
+
+    // ============================================
+    // Function to send SCORM tracking data to Edge Function
+    // ============================================
+    async function sendSCORMTracking(key, value) {
+      if (!scormContext.enrollmentId || !scormContext.courseId || !scormContext.learnerId) {
+        console.warn('[SCORM Tracking] Missing context. Enrollment:', scormContext.enrollmentId, 'Course:', scormContext.courseId, 'Learner:', scormContext.learnerId);
+        return;
+      }
+
+      try {
+        const payload = {
+          enrollment_id: scormContext.enrollmentId,
+          course_id: scormContext.courseId,
+          learner_id: scormContext.learnerId,
+          scorm_version: scormContext.scormVersion,
+          session_id: scormContext.sessionId,
+          cmi_data: {
+            [key]: value
+          }
+        };
+
+        console.log('[SCORM Tracking] Sending to update-scorm-tracking:', payload);
+
+        const response = await fetch('/api/update-scorm-tracking', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          console.error(`[SCORM Tracking] Error: HTTP ${response.status}`);
+          return;
+        }
+
+        const result = await response.json();
+        console.log('[SCORM Tracking] Success:', result);
+      } catch (error) {
+        console.error('[SCORM Tracking] Error sending tracking data:', error);
+      }
+    }
+
+    // ============================================
+    // Listen for postMessage from iframe (cross-origin fallback)
+    // ============================================
+    window.addEventListener('message', (event) => {
+      // IMPORTANT: Validate origin for security
+      // Adjust this to match your SCORM content domain
+      // if (event.origin !== 'https://your-scorm-domain.com') {
+      //   console.warn('[postMessage] Invalid origin:', event.origin);
+      //   return;
+      // }
+
+      const msg = event.data;
+      console.log('[postMessage] Received:', msg);
+
+      if (!msg || typeof msg !== 'object') {
+        return;
+      }
+
+      // Handle SCORM API calls via postMessage
+      if (msg.type === 'LMSSetValue' && msg.payload) {
+        const { key, value } = msg.payload;
+        console.log('[postMessage] LMSSetValue via postMessage:', key, '=', value);
+        scormContext.cmiCache[key] = value;
+        sendSCORMTracking(key, value);
+      }
+
+      if (msg.type === 'LMSGetValue' && msg.payload) {
+        const { key } = msg.payload;
+        const cachedValue = scormContext.cmiCache[key] || "";
+        event.source.postMessage(
+          { type: 'LMSGetValueResponse', key, value: cachedValue },
+          event.origin
+        );
+      }
+
+      if (msg.type === 'LMSInitialize') {
+        event.source.postMessage(
+          { type: 'LMSInitializeResponse', result: "true" },
+          event.origin
+        );
+      }
+
+      if (msg.type === 'LMSFinish') {
+        event.source.postMessage(
+          { type: 'LMSFinishResponse', result: "true" },
+          event.origin
+        );
+      }
+
+      if (msg.type === 'LMSCommit') {
+        event.source.postMessage(
+          { type: 'LMSCommitResponse', result: "true" },
+          event.origin
+        );
+      }
+    });
+
+    // ============================================
+    // Main initialization
+    // ============================================
     (async () => {
       const msg = document.getElementById('message');
       const frame = document.getElementById('courseFrame');
@@ -171,6 +340,21 @@
 
         titleElem.textContent = course.title || 'Untitled Course';
 
+        // Extract enrollment_id and learner_id from query params or session
+        const enrollmentId = params.get('enrollment_id');
+        const learnerId = params.get('learner_id');
+
+        if (enrollmentId && learnerId) {
+          scormContext.enrollmentId = enrollmentId;
+          scormContext.courseId = course.id;
+          scormContext.learnerId = learnerId;
+          scormContext.scormVersion = course.scorm_version || '1.2';
+          scormContext.sessionId = session?.user?.id || null;
+          console.log('[SCORM Context] Updated:', scormContext);
+        } else {
+          console.warn('[SCORM Context] Missing enrollment_id or learner_id in URL params');
+        }
+
         const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
 
         msg.textContent = 'Fetching manifest…';
@@ -196,6 +380,21 @@
         frame.src = proxyBaseUrl + launchFile;
         frame.style.display = 'block';
         msg.style.display = 'none';
+
+        // After iframe loads, try to inject API directly (for same-origin SCORM content)
+        frame.onload = () => {
+          console.log('[iframe] onload event fired');
+          try {
+            // Attempt to inject API into iframe's window for same-origin content
+            frame.contentWindow.API = window.API;
+            frame.contentWindow.API_1484_11 = window.API;
+            console.log('[iframe] API injected successfully (same-origin)');
+          } catch (e) {
+            console.warn('[iframe] Could not inject API (likely cross-origin). Falling back to postMessage:', e.message);
+            // postMessage handling is already set up above
+          }
+        };
+
       } catch (err) {
         console.error(err);
         titleElem.textContent = 'Error';
