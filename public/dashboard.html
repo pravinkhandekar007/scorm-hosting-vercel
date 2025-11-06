@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
-        /* Your existing CSS here unchanged */
-        /* ... (omitted for brevity) ... */
+        /* Entire original CSS from your previous dashboard.html */
+        /* Paste your full CSS here unchanged */
     </style>
 </head>
 <body>
@@ -60,7 +60,6 @@
             }
             
             userId = session.user.id;
-            console.log('✅ Session found. User ID:', userId);
             
             try {
                 const { data: profile } = await supabase
@@ -74,9 +73,6 @@
                 if (profile) {
                     displayName = profile.full_name || displayName;
                     userRole = profile.role || 'learner';
-                    console.log('✅ Profile fetched. Role:', userRole, 'Name:', displayName);
-                } else {
-                    console.warn('⚠️ Profile not found for user:', session.user.id);
                 }
 
                 document.getElementById('user-email').textContent = displayName;
@@ -89,7 +85,6 @@
                 }
 
             } catch (error) {
-                console.error('❌ Error fetching profile:', error);
                 document.getElementById('user-email').textContent = session.user.email;
             }
             
@@ -138,23 +133,18 @@
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
 
-            console.log('🔄 Loading courses... User ID:', userId, 'Role:', userRole);
-
             let courses;
             let enrollments;
             let error;
 
             try {
                 if (userRole === 'owner') {
-                    // Owners see all their courses
                     ({ data: courses, error } = await supabase
                         .from('courses')
                         .select('id, course_slug, title, is_public, public_token, expires_at')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false }));
-                    
                 } else {
-                    // Learners see their enrollments + course info
                     const { data: { session } } = await supabase.auth.getSession();
 
                     const response = await fetch('/api/get-learner-courses', {
@@ -169,18 +159,17 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        // result.data contains list of enrollments joined with courses including enrollment ids
                         enrollments = result.data;
-
-                        // Build courses array with enrollment ids attached
-                        courses = enrollments.map(enrollment => ({
-                            id: enrollment.course.id,
-                            course_slug: enrollment.course.course_slug,
-                            title: enrollment.course.title,
-                            expires_at: enrollment.course.expires_at,
-                            enrollment_id: enrollment.id
-                        }));
-
+                        courses = enrollments.map(enrollment => {
+                            const c = enrollment.course || {};
+                            return {
+                                id: c.id,
+                                course_slug: c.course_slug,
+                                title: c.title,
+                                expires_at: c.expires_at,
+                                enrollment_id: enrollment.id
+                            };
+                        });
                         error = null;
                     } else {
                         error = new Error(result.error || 'Failed to fetch courses');
@@ -226,9 +215,7 @@
                         </div>
                         `;
                     } else {
-                        // Learner view with enrollment_id and learner_id for tracking
                         const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
-
                         return `
                         <div class="course-item">
                             <div class="course-info">
