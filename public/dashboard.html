@@ -1,444 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Dashboard - PlayScorm</title>
-<style>
-/* Your original CSS styles, unchanged */
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #C0C0C0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
-  box-sizing: border-box;
-}
-.main-wrapper {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  background: linear-gradient(to right, #00205B, #00857D);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 15px 0 12px 0;
-  letter-spacing: 1px;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 2px 8px rgba(80,100,255,0.09);
-}
-.banner-logo {
-  height: 54px;
-  width: auto;
-  margin-left: 38px;
-  margin-right: 22px;
-  flex-shrink: 0;
-  display: block;
-}
-.banner-title {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-}
-.container {
-  background: #fdfdfd;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-  padding: 40px 50px;
-  min-height: 500px;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 35px;
-  padding-bottom: 25px;
-  border-bottom: 2px solid #e9ecef;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-.header h1 {
-  color: #0073e6;
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  color: #333;
-  font-weight: 500;
-}
-.user-email {
-  color: #666;
-  font-size: 15px;
-}
-.nav-buttons {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 35px;
-  flex-wrap: wrap;
-}
-.btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.3s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.btn-primary {
-  background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
-  color: white;
-}
-.btn-primary:hover {
-  background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(120,83,250,0.3);
-}
-.btn-success {
-  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
-  color: white;
-}
-.btn-success:hover {
-  background: linear-gradient(90deg, #218838 0%, #1aa179 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(40,167,69,0.3);
-}
-.btn-secondary {
-  background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
-  color: white;
-}
-.btn-secondary:hover {
-  background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
-  transform: translateY(-2px);
-}
-.btn-info {
-  background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
-  color: white;
-}
-.btn-info:hover {
-  background: linear-gradient(90deg, #138496 0%, #0c5460 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(23,162,184,0.3);
-}
-.btn-danger {
-  background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
-  color: white;
-}
-.btn-danger:hover {
-  background: linear-gradient(90deg, #c82333 0%, #bd2130 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220,53,69,0.3);
-}
-.btn-small {
-  padding: 8px 16px;
-  font-size: 14px;
-}
-.courses-section {
-  margin-top: 20px;
-}
-.courses-section h2 {
-  color: #00205B;
-  font-size: 1.5rem;
-  margin-bottom: 25px;
-  font-weight: 600;
-}
-.course-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 25px;
-  margin-bottom: 15px;
-  background: #fafafa;
-  border-radius: 12px;
-  border-left: 5px solid #0073e6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  transition: all 0.3s;
-}
-.course-item:hover {
-  box-shadow: 0 4px 16px rgba(0,115,230,0.15);
-  transform: translateX(5px);
-}
-.course-info {
-  flex: 1;
-}
-.course-title {
-  font-weight: 600;
-  color: #204060;
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-}
-.valid-for-badge {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  width: fit-content;
-}
-.valid-for-badge.active {
-  background-color: #d4edda;
-  color: #155724;
-  border-left: 3px solid #28a745;
-}
-.valid-for-badge.warning {
-  background-color: #fff3cd;
-  color: #856404;
-  border-left: 3px solid #ffc107;
-}
-.valid-for-badge.expiring {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-left: 3px solid #dc3545;
-}
-.course-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.public-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 10px;
-  padding-left: 10px;
-  border-left: 2px solid #ddd;
-}
-.public-badge {
-  color: #28a745;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-#tracking-section {
-  margin-top: 50px;
-}
-#tracking-section h2 {
-  color: #00205B;
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  font-weight: 600;
-}
-#tracking-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-#tracking-table th,
-#tracking-table td {
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-  text-align: left;
-}
-#tracking-table th {
-  background: #f0f0f0;
-  font-weight: 700;
-}
-#tracking-table tbody tr:hover {
-  background: #e6f2ff;
-}
-</style>
+    <meta charset="UTF-8" />
+    <title>Dashboard - PlayScorm</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #C0C0C0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .main-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: linear-gradient(to right, #00205B, #00857D);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 15px 0 12px 0;
+            letter-spacing: 1px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+        }
+        .banner-logo {
+            height: 54px;
+            width: auto;
+            margin-left: 38px;
+            margin-right: 22px;
+            flex-shrink: 0;
+            display: block;
+        }
+        .banner-title {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+        }
+        .container {
+            background: #fdfdfd;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+            padding: 40px 50px;
+            min-height: 500px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h1 {
+            color: #0073e6;
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        .user-email {
+            color: #666;
+            font-size: 15px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(120,83,250,0.3);
+        }
+        .btn-success {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .btn-success:hover {
+            background: linear-gradient(90deg, #218838 0%, #1aa179 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
+            transform: translateY(-2px);
+        }
+        .btn-info {
+            background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+        .btn-info:hover {
+            background: linear-gradient(90deg, #138496 0%, #0c5460 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(23,162,184,0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(90deg, #c82333 0%, #bd2130 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+        }
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .courses-section {
+            margin-top: 20px;
+        }
+        .courses-section h2 {
+            color: #00205B;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .course-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            border-radius: 12px;
+            border-left: 5px solid #0073e6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        .course-item:hover {
+            box-shadow: 0 4px 16px rgba(0,115,230,0.15);
+            transform: translateX(5px);
+        }
+        .course-info {
+            flex: 1;
+        }
+        .course-title {
+            font-weight: 600;
+            color: #204060;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .valid-for-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            width: fit-content;
+        }
+        .valid-for-badge.active {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 3px solid #28a745;
+        }
+        .valid-for-badge.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 3px solid #ffc107;
+        }
+        .valid-for-badge.expiring {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 3px solid #dc3545;
+        }
+        .course-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .public-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 2px solid #ddd;
+        }
+        .public-badge {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #loading {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            padding: 40px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: #666;
+            background: rgba(0,115,230,0.03);
+            border-radius: 12px;
+            border: 2px dashed #ccc;
+        }
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #555;
+        }
+        .error-message {
+            background: #ffe6e6;
+            color: #cc0000;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            font-weight: 500;
+        }
+        @media (max-width: 1200px) {
+            .course-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .course-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .public-controls {
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                padding-top: 10px;
+                border-top: 2px solid #ddd;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+            }
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 25px;
+            }
+            .banner {
+                font-size: 1.5rem;
+                padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .nav-buttons {
+                flex-direction: column;
+            }
+            .nav-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="main-wrapper">
-  <div class="banner">
-    <img src="logo.png" alt="PlayScorm Logo" class="banner-logo" />
-    <h1 class="banner-title">PlayScorm Dashboard</h1>
-  </div>
-  <div class="container">
-    <div class="header">
-      <h1>🎓 My Courses</h1>
-      <div class="header-actions">
-        <div class="user-info">
-          <span class="user-email" id="user-email">Loading...</span>
-          <a href="profile.html" class="btn btn-info btn-small">👤 Profile</a>
-          <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+    <div class="main-wrapper">
+        <div class="banner">
+            <img src="logo.png" alt="PlayScorm Logo" class="banner-logo" />
+            <h1 class="banner-title">PlayScorm Dashboard</h1>
         </div>
-      </div>
+        <div class="container">
+            <div class="header">
+                <h1>🎓 My Courses</h1>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <span class="user-email" id="user-email">Loading...</span>
+                        <a href="profile.html" class="btn btn-info btn-small">👤 Profile</a>
+                        <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="upload.html" class="btn btn-success" id="upload-course-btn">📤 Upload New Course</a>
+                <button class="btn btn-primary" onclick="refreshCourses()">🔄 Refresh List</button>
+            </div>
+
+            <div class="courses-section">
+               <div id="loading">Loading your courses...</div>
+                <div id="courses-list"></div>
+            </div>
+        </div>
     </div>
-    <div class="nav-buttons">
-      <a href="upload.html" class="btn btn-success" id="upload-course-btn">📤 Upload New Course</a>
-      <button class="btn btn-primary" onclick="refreshCourses()">🔄 Refresh List</button>
-    </div>
-    <div class="courses-section">
-      <div id="loading">Loading your courses...</div>
-      <div id="courses-list"></div>
-    </div>
 
-    <!-- New Tracking Data Section -->
-    <div id="tracking-section">
-      <h2>Learner Progress</h2>
-      <table id="tracking-table">
-        <thead>
-          <tr>
-            <th>Learner</th>
-            <th>Score</th>
-            <th>Status</th>
-            <th>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
-<script>
-const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let userRole = 'learner';
+        let userId = null;
 
-let userRole = 'learner';
-let userId = null;
-let currentCourses = [];
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthAndLoadData();
+        });
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const session = supabase.auth.getSession();
-  initUser(session);
-});
+        async function checkAuthAndLoadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-async function initUser(session) {
-  const { data: { session: userSession } } = await supabase.auth.getSession();
+            userId = session.user.id;
 
-  if (!userSession) {
-    window.location.href = 'login.html';
-    return;
-  }
-  userId = userSession.user.id;
+            try {
+                // Fetch user profile to get full name & role
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, role')
+                    .eq('user_id', session.user.id)
+                    .single();
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, role')
-    .eq('user_id', userId)
-    .single();
+                let displayName = session.user.email;
 
-  userRole = profile?.role || 'learner';
-  document.getElementById('user-email').textContent = profile?.full_name || userSession.user.email;
+                if (profile) {
+                    displayName = profile.full_name || displayName;
+                    userRole = profile.role || 'learner';
+                }
 
-  await loadCourses();
-}
+                document.getElementById('user-email').textContent = displayName;
 
-// Load courses for the user (owner or learner)
-async function loadCourses() {
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('courses-list').innerHTML = '';
+                // Show upload button only for owners
+                const uploadBtn = document.getElementById('upload-course-btn');
+                if (userRole === 'owner') {
+                    uploadBtn.style.display = 'inline-block';
+                } else {
+                    uploadBtn.style.display = 'none';
+                }
 
-  if (userRole === 'owner') {
-    let { data: courses, error } = await supabase
-      .from('courses')
-      .select('id, course_slug, title, is_public, public_token, expires_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+            } catch (error) {
+                document.getElementById('user-email').textContent = session.user.email;
+            }
 
-    if (error) {
-      document.getElementById('loading').textContent = 'Failed to load courses';
-      return;
-    }
-    currentCourses = courses || [];
-    renderCourses(currentCourses);
-    await loadTrackingForCourses(currentCourses);
-  } else {
-    // Learners
-    const response = await fetch('/api/get-learner-courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({learner_id: userId}) });
-    const result = await response.json();
-    currentCourses = result.data || [];
-    renderCourses(currentCourses);
-  }
-  document.getElementById('loading').style.display = 'none';
-}
+            await loadCourses(userId, userRole);
+        }
 
-function renderCourses(courses) {
-  const list = document.getElementById('courses-list');
-  if (!courses || courses.length === 0) {
-    list.innerHTML = '<p>No courses found</p>';
-    return;
-  }
-  list.innerHTML = courses.map(course => `
-    <div class="course-item">
-      <div class="course-info">
-        <div class="course-title">${course.title}</div>
-      </div>
-    </div>
-  `).join('');
-}
+        function calculateTimeRemaining(expiresAt) {
+            if (!expiresAt) {
+                return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
+            }
+            const now = new Date();
+            const expiryDate = new Date(expiresAt);
+            const timeDiff = expiryDate - now;
 
-// Load tracking data for owner’s courses and display in tracking table
-async function loadTrackingForCourses(courses) {
-  const tbody = document.querySelector('#tracking-table tbody');
-  tbody.innerHTML = ''; // Clear old rows
+            if (timeDiff <= 0) {
+                return { days: 0, hours: 0, minutes: 0, status: 'expired', display: 'Expired' };
+            }
 
-  // For simplicity, load tracking for the first course in list as example
-  if (!courses.length) {
-    tbody.innerHTML = '<tr><td colspan="4">No courses uploaded yet</td></tr>';
-    return;
-  }
+            const totalMinutes = Math.floor(timeDiff / (1000 * 60));
+            const days = Math.floor(totalMinutes / (60 * 24));
+            const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+            const minutes = totalMinutes % 60;
 
-  const courseId = courses[0].id;
-  const { data, error } = await supabase
-    .from('scorm_tracking')
-    .select(`
-      learner_id,
-      max_score: max(cmi_core_score_raw),
-      latest_lesson_status: max(cmi_core_lesson_status),
-      last_update: max(timestamp),
-      learner:profiles(full_name,email)
-    `)
-    .eq('course_id', courseId)
-    .group('learner_id, learner.full_name, learner.email')
-    .order('last_update', { ascending: false });
+            let status = 'active';
+            if (days < 1) {
+                status = 'expiring';
+            } else if (days <= 7) {
+                status = 'warning';
+            }
 
-  if (error) {
-    tbody.innerHTML = `<tr><td colspan="4">Error loading tracking data</td></tr>`;
-    return;
-  }
+            let display = '';
+            if (days > 0) {
+                display = `${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`;
+            } else if (hours > 0) {
+                display = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            } else {
+                display = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
 
-  if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="4">No tracking data available</td></tr>`;
-    return;
-  }
+            return { days, hours, minutes, status, display };
+        }
 
-  for (const row of data) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${row.learner?.full_name || row.learner_id}</td>
-      <td>${row.max_score ?? 'N/A'}</td>
-      <td>${row.latest_lesson_status ?? 'N/A'}</td>
-      <td>${row.last_update ? new Date(row.last_update).toLocaleString() : 'N/A'}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
+        async function loadCourses(userId, userRole) {
+            const loadingDiv = document.getElementById('loading');
+            const coursesDiv = document.getElementById('courses-list');
+            loadingDiv.style.display = 'block';
+            coursesDiv.innerHTML = '';
 
-function logout() {
-  supabase.auth.signOut();
-  window.location.href = 'login.html';
-}
+            let courses;
+            let error;
 
-function refreshCourses() {
-  loadCourses();
-}
-</script>
+            try {
+                if (userRole === 'owner') {
+                    // Owners see all their courses
+                    ({ data: courses, error } = await supabase
+                        .from('courses')
+                        .select('id, course_slug, title, is_public, public_token, expires_at')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false }));
+
+                } else {
+                    // Learner: fetch enrollments joined with course info
+                    const { data: { session } } = await supabase.auth.getSession();
+
+                    const response = await fetch('/api/get-learner-courses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ learner_id: userId })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.data) {
+                        // Merge enrollment ID and course info for correct launch URLs
+                        courses = result.data.map(enrollment => {
+                            const c = enrollment.course || {};
+                            return {
+                                id: c.id,
+                                course_slug: c.course_slug,
+                                title: c.title,
+                                expires_at: c.expires_at,
+                                is_public: c.is_public,
+                                public_token: c.public_token,
+                                enrollment_id: enrollment.id
+                            };
+                        });
+                        error = null;
+                    } else {
+                        error = new Error(result.error || 'Failed to fetch enrolled courses');
+                        courses = [];
+                    }
+                }
+
+                loadingDiv.style.display = 'none';
+
+                if (error) {
+                    coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
+                    return;
+                }
+
+                if (!courses || courses.length === 0) {
+                    coursesDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
+                            <a href="upload.html" class="btn btn-success" style="display:${userRole === 'owner' ? 'inline-block' : 'none'};" id="empty-upload-btn">Upload Your First Course</a>
+                        </div>`;
+                    return;
+                }
+
+                coursesDiv.innerHTML = courses.map(course => {
+                    const timeInfo = calculateTimeRemaining(course.expires_at);
+                    const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
+
+                    if (userRole === 'owner') {
+                        // Owner markup and controls
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
+                                <button class="btn btn-secondary btn-small"
+                                        onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
+                                <button class="btn btn-danger btn-small"
+                                        onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
+                                <div class="public-controls">
+                                    ${course.is_public
+                                        ? `<span class="public-badge">🌐 Public</span>
+                                           <button class="btn btn-small btn-success"
+                                                   onclick="copyPublicLink('${course.public_token}')">
+                                                   Copy Public Link
+                                           </button>
+                                           <button class="btn btn-small btn-danger"
+                                                   onclick="revokePublicAccess('${course.course_slug}')">
+                                                   Revoke Public
+                                           </button>`
+                                        : `<button class="btn btn-small btn-success"
+                                                   onclick="generatePublicLink('${course.course_slug}')">
+                                                   Make Public
+                                           </button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    } else {
+                        // Learner markup – launch with enrollment_id and learner_id for SCORM tracking
+                        const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="${launchUrl}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                            </div>
+                        </div>
+                        `;
+                    }
+                }).join('');
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
+            }
+        }
+
+        window.refreshCourses = async function() {
+            await loadCourses(userId, userRole);
+        }
+
+        window.copyURL = function(courseSlug) {
+            const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
+            navigator.clipboard.writeText(link).then(() => alert('Course link copied to clipboard!'));
+        }
+
+        window.copyPublicLink = function(publicToken) {
+            const url = `${window.location.origin}/public-player.html?token=${publicToken}`;
+            navigator.clipboard.writeText(url).then(() => alert('Public link copied to clipboard!'));
+        }
+
+        window.generatePublicLink = async function(courseSlug) {
+            try {
+                const { data, error } = await supabase
+                    .from('courses')
+                    .update({ is_public: true, public_created_at: new Date().toISOString() })
+                    .eq('course_slug', courseSlug)
+                    .select('public_token')
+                    .single();
+                if (error) throw error;
+                const url = `${window.location.origin}/public-player.html?token=${data.public_token}`;
+                navigator.clipboard.writeText(url);
+                alert('Public link copied to clipboard!');
+                loadCourses(userId, userRole);
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        window.revokePublicAccess = async function(courseSlug) {
+            if (!confirm('Revoke public access?')) return;
+            try {
+                const { error } = await supabase
+                    .from('courses')
+                    .update({ is_public: false })
+                    .eq('course_slug', courseSlug);
+                if (error) throw error;
+                alert('Public access revoked');
+                loadCourses(userId, userRole);
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        window.deleteCourse = async function(courseSlug) {
+            if (!confirm("Are you sure you want to delete this course?")) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert("Login required to delete courses.");
+                return;
+            }
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(courseSlug)}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`
+                    }
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert("Course deleted successfully.");
+                    loadCourses(userId, userRole);
+                } else {
+                    alert(`Delete failed: ${result.error || "Unknown error"}`);
+                }
+            } catch (error) {
+                alert("Delete error: " + error.message);
+            }
+        }
+
+        window.logout = async function() {
+            const { error } = await supabase.auth.signOut();
+            if (error) console.error('Logout error:', error);
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html>
