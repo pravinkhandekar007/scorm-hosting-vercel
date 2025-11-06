@@ -1,295 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SCORM Course Player</title>
-  <style>
-    /* All your original CSS unchanged */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #e5e6ea;
-      min-height: 100vh;
-      width: 100vw;
-      box-sizing: border-box;
-    }
-    #outer {
-      min-height: 100vh;
-      background: #e5e6ea;
-      width: 100vw;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-    }
-    #container {
-      display: flex;
-      flex-direction: column;
-      height: 94vh;
-      max-width: 1200px;
-      width: 98vw;
-      margin: 16px 0;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 10px 32px rgba(0,0,0,0.14);
-      overflow: hidden;
-    }
-    #course-header {
-      display: flex;
-      align-items: center;
-      position: relative;
-      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
-      min-height: 54px;
-      padding: 6px 24px 6px 18px;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-    }
-    #logo {
-      height: 36px;
-      width: auto;
-      margin-right: 18px;
-      flex-shrink: 0;
-      display: block;
-    }
-    #course-title {
-      margin: 0;
-      color: #fff;
-      font-size: 1.5em;
-      font-weight: 500;
-      letter-spacing: 0.4px;
-      position: absolute;
-      left: 0;
-      right: 0;
-      text-align: center;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1;
-      pointer-events: none;
-    }
-    #message {
-      padding: 18px;
-      text-align: center;
-      color: #1f374f;
-      font-size: 1em;
-      font-weight: 500;
-      background: #f9fbfd;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-    #main-player {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: stretch;
-      align-items: stretch;
-      min-height: 0;
-      min-width: 0;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: none;
-      border-radius: 0 0 16px 16px;
-      background: #fafafa;
-      flex: 1;
-      min-height: 0;
-    }
-    #footer {
-      background: linear-gradient(90deg, #195663 0%, #3085d6 100%);
-      color: #fff;
-      text-align: center;
-      padding: 7px 0;
-      font-size: 0.93em;
-      letter-spacing: 0.6px;
-      font-weight: 500;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
-    }
-    @media (max-width: 1280px) {
-      #container { max-width: 98vw; }
-    }
-    @media (max-width: 800px) {
-      #container { border-radius: 0; }
-      #course-header, #footer { border-radius: 0; }
-      #logo { height: 26px; margin-right: 10px; }
-      #course-title { font-size: 1em; }
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <meta charset="UTF-8" />
+    <title>Dashboard - PlayScorm</title>
+    <style>
+        /* Entire original CSS from your previous dashboard.html */
+        /* Paste your full CSS here unchanged */
+    </style>
 </head>
 <body>
-  <div id="outer">
-    <div id="container">
-      <div id="course-header">
-        <img id="logo" src="/logo.png" alt="PlayScorm Logo"/>
-        <h2 id="course-title">Loading…</h2>
-      </div>
-      <div id="main-player">
-        <div id="message">Loading…</div>
-        <iframe id="courseFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-      </div>
-      <div id="footer">PlayScorm by Compass EduTech</div>
+    <div class="main-wrapper">
+        <div class="banner">
+            <img src="logo.png" alt="PlayScorm Logo" class="banner-logo" />
+            <h1 class="banner-title">PlayScorm Dashboard</h1>
+        </div>
+        <div class="container">
+            <div class="header">
+                <h1>🎓 My Courses</h1>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <span class="user-email" id="user-email">Loading...</span>
+                        <a href="profile.html" class="btn btn-info btn-small">👤 Profile</a>
+                        <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="upload.html" class="btn btn-success" id="upload-course-btn">📤 Upload New Course</a>
+                <button class="btn btn-primary" onclick="refreshCourses()">🔄 Refresh List</button>
+            </div>
+
+            <div class="courses-section">
+               <div id="loading">Loading your courses...</div>
+                <div id="courses-list"></div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
 
-    // Context for tracking
-    const scormContext = {
-      enrollmentId: null,
-      courseId: null,
-      learnerId: null,
-      scormVersion: '1.2',
-      sessionId: null,
-      cmiCache: {}
-    };
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let userRole = 'learner';
+        let userId = null;
 
-    // SCORM API Wrapper exposed for SCORM iframe content
-    window.API = {
-      LMSInitialize: () => "true",
-      LMSFinish: () => "true",
-      LMSGetValue: (key) => {
-        return scormContext.cmiCache[key] || "";
-      },
-      LMSSetValue: (key, value) => {
-        scormContext.cmiCache[key] = value;
-        sendSCORMTracking(key, value);
-        return "true";
-      },
-      LMSCommit: () => "true",
-      LMSGetLastError: () => "0",
-      LMSGetErrorString: () => "No error",
-      LMSGetDiagnostic: () => "No diagnostic"
-    };
-    window.API_1484_11 = window.API; // SCORM 2004 alias
-
-    // Send tracking data to your backend via Edge Function
-    async function sendSCORMTracking(key, value) {
-      if (!scormContext.enrollmentId || !scormContext.courseId || !scormContext.learnerId) {
-        console.warn('Missing tracking context', scormContext);
-        return;
-      }
-      try {
-        await fetch('/api/update-scorm-tracking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            enrollment_id: scormContext.enrollmentId,
-            course_id: scormContext.courseId,
-            learner_id: scormContext.learnerId,
-            scorm_version: scormContext.scormVersion,
-            session_id: scormContext.sessionId,
-            cmi_data: { [key]: value }
-          })
-        });
-      } catch (e) {
-        console.error('Error sending SCORM tracking', e);
-      }
-    }
-
-    // Receive postMessage from iframe (cross-origin fallback)
-    window.addEventListener('message', e => {
-      const msg = e.data;
-      if (!msg || typeof msg !== 'object') return;
-
-      if (msg.type === 'LMSSetValue' && msg.payload) {
-        const { key, value } = msg.payload;
-        scormContext.cmiCache[key] = value;
-        sendSCORMTracking(key, value);
-      }
-      // Could implement LMSGetValue and other methods similarly if needed
-    });
-
-    (async () => {
-      const msg = document.getElementById('message');
-      const frame = document.getElementById('courseFrame');
-      const titleElem = document.getElementById('course-title');
-      const params = new URLSearchParams(window.location.search);
-      const courseSlug = params.get('course');
-
-      if (!courseSlug) {
-        titleElem.textContent = 'Error';
-        msg.textContent = 'Error: Missing course slug.';
-        return;
-      }
-
-      msg.textContent = 'Fetching course metadata…';
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      try {
-        // Get auth headers if session exists
-        const headers = {};
-        if (session && session.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-
-        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
-          headers,
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthAndLoadData();
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        async function checkAuthAndLoadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            userId = session.user.id;
+            
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, role')
+                    .eq('user_id', session.user.id)
+                    .single();
 
-        const course = await res.json();
+                let displayName = session.user.email;
 
-        titleElem.textContent = course.title || 'Untitled Course';
+                if (profile) {
+                    displayName = profile.full_name || displayName;
+                    userRole = profile.role || 'learner';
+                }
 
-        // Extract IDs for tracking context (pass via query params or session user id)
-        scormContext.enrollmentId = params.get('enrollment_id'); // must be passed via URL
-        scormContext.courseId = course.id;
-        scormContext.learnerId = params.get('learner_id') || session?.user?.id || null;
-        scormContext.scormVersion = course.scorm_version || '1.2';
-        scormContext.sessionId = session?.user?.id || null;
+                document.getElementById('user-email').textContent = displayName;
 
-        const proxyBaseUrl = `/scorm-content/${course.package_path}/`;
+                const uploadBtn = document.getElementById('upload-course-btn');
+                if (userRole === 'owner') {
+                    uploadBtn.style.display = 'inline-block';
+                } else {
+                    uploadBtn.style.display = 'none';
+                }
 
-        msg.textContent = 'Fetching manifest…';
-
-        const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if (!mf.ok) throw new Error(`HTTP ${mf.status}`);
-
-        const manifestText = await mf.text();
-
-        msg.textContent = 'Parsing manifest…';
-
-        let launchFile = course.launch_url || 'index.html';
-        try {
-          const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
-          const resource = xml.querySelector('resource[href]');
-          if (resource) launchFile = resource.getAttribute('href');
-        } catch {
-          // fallback ignored
+            } catch (error) {
+                document.getElementById('user-email').textContent = session.user.email;
+            }
+            
+            await loadCourses(userId, userRole);
         }
 
-        msg.textContent = 'Launching course…';
+        function calculateTimeRemaining(expiresAt) {
+            if (!expiresAt) {
+                return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
+            }
+            const now = new Date();
+            const expiryDate = new Date(expiresAt);
+            const timeDiff = expiryDate - now;
 
-        frame.src = proxyBaseUrl + launchFile;
-        frame.style.display = 'block';
-        msg.style.display = 'none';
+            if (timeDiff <= 0) {
+                return { days: 0, hours: 0, minutes: 0, status: 'expired', display: 'Expired' };
+            }
 
-        // Attempt to inject API directly for same-origin iframe
-        frame.onload = () => {
-          try {
-            frame.contentWindow.API = window.API;
-            frame.contentWindow.API_1484_11 = window.API;
-          } catch (e) {
-            // Cross-origin fallback uses postMessage
-          }
-        };
+            const totalMinutes = Math.floor(timeDiff / (1000 * 60));
+            const days = Math.floor(totalMinutes / (60 * 24));
+            const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+            const minutes = totalMinutes % 60;
 
-      } catch (err) {
-        console.error(err);
-        titleElem.textContent = 'Error';
-        msg.textContent = `Failed to load course: ${err.message}`;
-        frame.style.display = 'none';
-      }
-    })();
-  </script>
+            let status = 'active';
+            if (days < 1) {
+                status = 'expiring';
+            } else if (days <= 7) {
+                status = 'warning';
+            }
+
+            let display = '';
+            if (days > 0) {
+                display = `${days} day${days > 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`;
+            } else if (hours > 0) {
+                display = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            } else {
+                display = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
+
+            return { days, hours, minutes, status, display };
+        }
+
+        async function loadCourses(userId, userRole) {
+            const loadingDiv = document.getElementById('loading');
+            const coursesDiv = document.getElementById('courses-list');
+            loadingDiv.style.display = 'block';
+            coursesDiv.innerHTML = '';
+
+            let courses;
+            let enrollments;
+            let error;
+
+            try {
+                if (userRole === 'owner') {
+                    ({ data: courses, error } = await supabase
+                        .from('courses')
+                        .select('id, course_slug, title, is_public, public_token, expires_at')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false }));
+                } else {
+                    const { data: { session } } = await supabase.auth.getSession();
+
+                    const response = await fetch('/api/get-learner-courses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ learner_id: userId })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        enrollments = result.data;
+                        courses = enrollments.map(enrollment => {
+                            const c = enrollment.course || {};
+                            return {
+                                id: c.id,
+                                course_slug: c.course_slug,
+                                title: c.title,
+                                expires_at: c.expires_at,
+                                enrollment_id: enrollment.id
+                            };
+                        });
+                        error = null;
+                    } else {
+                        error = new Error(result.error || 'Failed to fetch courses');
+                        courses = [];
+                    }
+                }
+
+                loadingDiv.style.display = 'none';
+
+                if (error) {
+                    coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
+                    return;
+                }
+
+                if (!courses || courses.length === 0) {
+                    coursesDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
+                            <a href="upload.html" class="btn btn-success" style="display:${userRole === 'owner' ? 'inline-block' : 'none'};">Upload Your First Course</a>
+                        </div>`;
+                    return;
+                }
+
+                coursesDiv.innerHTML = courses.map(course => {
+                    const timeInfo = calculateTimeRemaining(course.expires_at);
+                    const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
+
+                    if (userRole === 'owner') {
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
+                                class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
+                            </div>
+                        </div>
+                        `;
+                    } else {
+                        const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="${launchUrl}"
+                                target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                            </div>
+                        </div>
+                        `;
+                    }
+                }).join('');
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
+            }
+        }
+
+        window.refreshCourses = async function() {
+            await loadCourses(userId, userRole);
+        }
+
+        function copyURL(courseSlug) {
+            const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
+            navigator.clipboard.writeText(link).then(() => alert('Course link copied to clipboard!'));
+        }
+
+        function logout() {
+            supabase.auth.signOut().then(({ error }) => {
+                if (error) console.error('Logout error:', error);
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
 </body>
 </html>
