@@ -378,6 +378,7 @@
       }
 
       const courseSlug = 'course-' + Date.now() + '-' + crypto.randomUUID();
+      const fileSizeMB = file.size / (1024 * 1024);
 
       try {
         statusDiv.textContent = 'Uploading course, please wait...';
@@ -415,6 +416,27 @@
             user_id: user.id
           })
         });
+
+        // **NEW: Call update-usage Edge Function to track storage and course count**
+        try {
+          const usageResponse = await fetch(`${SUPABASE_URL}/functions/v1/update-usage`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_id: user.id,
+              additional_storage_mb: fileSizeMB,
+              additional_courses: 1
+            })
+          });
+          if (!usageResponse.ok) {
+            console.warn('Warning: Usage tracking update failed, but course uploaded successfully.');
+          }
+        } catch (usageError) {
+          console.warn('Warning: Could not update usage tracking:', usageError);
+        }
 
         statusDiv.textContent = `✓ Upload successful! Course "${courseTitle}" is ready to launch.`;
         statusDiv.className = 'success';
