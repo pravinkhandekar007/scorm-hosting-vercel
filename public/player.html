@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>SCORM Course Player</title>
   <style>
-    /* Your original styles unchanged, pasted from your code */
     html, body {
       height: 100%;
       margin: 0;
@@ -137,7 +136,7 @@
 
   <script>
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let scormContext = {
@@ -328,27 +327,58 @@
       if(!courseSlug) {
         titleElem.textContent = 'Error';
         msg.textContent = 'Error: Missing course slug.';
+        console.error('[ERROR] Missing course slug');
         return;
       }
 
       msg.textContent = 'Fetching course metadata…';
+      console.log('[DEBUG] Course slug:', courseSlug);
 
       const { data: { session } } = await supabase.auth.getSession();
 
+      if(!session) {
+        titleElem.textContent = 'Error';
+        msg.textContent = 'Error: You must be logged in to access courses.';
+        console.error('[ERROR] No session found');
+        return;
+      }
+
+      console.log('✅ Session found for user:', session.user.id);
+      console.log('✅ Access token present:', !!session.access_token);
+
       try {
-        const headers = {};
+        // Prepare headers with Authorization
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
         if(session && session.access_token) {
           headers['Authorization'] = `Bearer ${session.access_token}`;
+          console.log('✅ Authorization header added');
+        } else {
+          console.warn('⚠️ No access token in session');
         }
 
-        const res = await fetch(`https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`, {
+        console.log('[DEBUG] Fetching course from edge function...');
+        const fetchUrl = `https://mfooewemvofleynanjkb.functions.supabase.co/get-course?slug=${encodeURIComponent(courseSlug)}`;
+        console.log('[DEBUG] Fetch URL:', fetchUrl);
+
+        const res = await fetch(fetchUrl, {
+          method: 'GET',
           headers,
         });
 
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log('[DEBUG] Response status:', res.status);
+
+        if(!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('[ERROR] Edge function error:', errorData);
+          throw new Error(`HTTP ${res.status}: ${errorData.error || 'Unknown error'}`);
+        }
 
         const course = await res.json();
 
+        console.log('✅ Course fetched successfully:', course.title);
         console.log('[DEBUG] Full Course object:', JSON.stringify(course, null, 2));
 
         titleElem.textContent = course.title || 'Untitled Course';
@@ -373,7 +403,7 @@
         msg.textContent = 'Fetching manifest…';
 
         const mf = await fetch(proxyBaseUrl + 'imsmanifest.xml');
-        if(!mf.ok) throw new Error(`HTTP ${mf.status}`);
+        if(!mf.ok) throw new Error(`HTTP ${mf.status} loading manifest`);
 
         const manifestText = await mf.text();
 
@@ -385,9 +415,12 @@
           const xml = new DOMParser().parseFromString(manifestText, 'application/xml');
           const resource = xml.querySelector('resource[href]');
           if(resource) launchFile = resource.getAttribute('href');
-        } catch { /* fallback */ }
+        } catch(e) {
+          console.warn('[DEBUG] Manifest parsing error, using default launch file');
+        }
 
         msg.textContent = 'Launching course…';
+        console.log('[DEBUG] Launching file:', launchFile);
 
         frame.src = proxyBaseUrl + launchFile;
         frame.style.display = 'block';
@@ -398,14 +431,19 @@
           try {
             frame.contentWindow.API = window.API;
             frame.contentWindow.API_1484_11 = window.API_1484_11;
-            console.log('[iframe] SCORM API objects injected');
+            console.log('[iframe] SCORM API objects injected successfully');
           } catch(e) {
             console.warn('[iframe] Injection failed (cross-origin?), using postMessage fallback:', e.message);
           }
         };
 
+        frame.onerror = () => {
+          console.error('[iframe] iframe loading error');
+        };
+
       } catch(e) {
-        console.error('[ERROR]', e);
+        console.error('[ERROR] Exception caught:', e.message);
+        console.error('[ERROR] Stack:', e.stack);
         titleElem.textContent = 'Error';
         msg.textContent = `Failed to load course: ${e.message}`;
         frame.style.display = 'none';
