@@ -386,6 +386,10 @@
         
         const encodedCourseTitle = encodeURIComponent(courseTitle);
 
+        // Calculate expiration date based on retention_days
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + parseFloat(retentionDays));
+
         // Step 1: Upload SCORM file to storage
         console.log('[UPLOAD] Step 1: Uploading SCORM file...');
         const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodedCourseTitle}`;
@@ -418,7 +422,7 @@
             title: courseTitle,
             package_path: courseSlug,
             launch_url: 'index.html',
-            expires_at: new Date().toISOString(),
+            expires_at: expirationDate.toISOString(),
             user_id: user.id
           })
         });
@@ -436,7 +440,7 @@
               title: courseTitle,
               package_path: courseSlug,
               launch_url: 'index.html',
-              expires_at: new Date().toISOString()
+              expires_at: expirationDate.toISOString()
             })
           });
 
@@ -456,7 +460,12 @@
         // Step 3: Update usage tracking (FIRE-AND-FORGET - don't wait for it)
         if (courseInserted) {
           console.log('[UPLOAD] Step 3: Triggering usage tracking update (non-blocking)...');
-          // Send usage tracking update but don't wait for response
+          console.log('[UPLOAD] Sending data:', {
+            user_id: user.id,
+            additional_storage_mb: fileSizeMB,
+            additional_courses: 1
+          });
+          
           fetch(`${SUPABASE_URL}/functions/v1/update-usage`, {
             method: 'POST',
             headers: {
@@ -469,13 +478,17 @@
               additional_courses: 1
             })
           }).then(response => {
+            console.log('[UPLOAD] Step 3: Response status:', response.status);
+            console.log('[UPLOAD] Step 3: Response headers:', response.headers);
+            
             if (response.ok) {
-              console.log('[UPLOAD] Step 3: Usage tracking updated successfully');
-              return response.json();
+              return response.json().then(data => {
+                console.log('[UPLOAD] Step 3: Success response:', data);
+              });
             } else {
-              console.warn('[UPLOAD] Step 3: Usage tracking failed with status', response.status);
               return response.text().then(text => {
-                console.warn('[UPLOAD] Step 3 Error details:', text);
+                console.warn('[UPLOAD] Step 3: Error response:', text);
+                console.warn('[UPLOAD] Step 3: Status code:', response.status);
               });
             }
           }).catch(usageError => {
