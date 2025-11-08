@@ -388,7 +388,8 @@
 
         // Calculate expiration date based on retention_days
         const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + parseFloat(retentionDays));
+expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24 * 60 * 60 * 1000);
+
 
         // Step 1: Upload SCORM file to storage
         console.log('[UPLOAD] Step 1: Uploading SCORM file...');
