@@ -386,6 +386,7 @@
         
         const encodedCourseTitle = encodeURIComponent(courseTitle);
 
+        // Step 1: Upload SCORM file to storage
         const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodedCourseTitle}`;
         const response = await fetch(uploadUrl, {
           method: 'POST',
@@ -400,7 +401,9 @@
           throw new Error(`Upload error ${response.status} - ${errorText}`);
         }
 
-        await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
+        // Step 2: Insert course into database, handle 409 conflict
+        let courseInserted = false;
+        const courseInsertResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
           method: 'POST',
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -417,27 +420,61 @@
           })
         });
 
-        // **NEW: Call update-usage Edge Function to track storage and course count**
-        try {
-          const usageResponse = await fetch(`${SUPABASE_URL}/functions/v1/update-usage`, {
-            method: 'POST',
+        if (courseInsertResponse.status === 409) {
+          // Course already exists, try to update instead
+          console.warn('Course slug conflict, attempting update...');
+          const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses?course_slug=eq.${courseSlug}`, {
+            method: 'PATCH',
             headers: {
+              apikey: SUPABASE_ANON_KEY,
               Authorization: `Bearer ${session.access_token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              user_id: user.id,
-              additional_storage_mb: fileSizeMB,
-              additional_courses: 1
+              title: courseTitle,
+              package_path: courseSlug,
+              launch_url: 'index.html',
+              expires_at: new Date().toISOString()
             })
           });
-          if (!usageResponse.ok) {
-            console.warn('Warning: Usage tracking update failed, but course uploaded successfully.');
+
+          if (!updateResponse.ok) {
+            throw new Error(`Course update failed: ${updateResponse.status}`);
           }
-        } catch (usageError) {
-          console.warn('Warning: Could not update usage tracking:', usageError);
+          courseInserted = true;
+        } else if (courseInsertResponse.ok) {
+          courseInserted = true;
+        } else {
+          const errorText = await courseInsertResponse.text();
+          throw new Error(`Course insert failed: ${courseInsertResponse.status} - ${errorText}`);
         }
 
+        // Step 3: Update usage tracking if course was successfully inserted/updated
+        if (courseInserted) {
+          try {
+            const usageResponse = await fetch(`${SUPABASE_URL}/functions/v1/update-usage`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                user_id: user.id,
+                additional_storage_mb: fileSizeMB,
+                additional_courses: 1
+              })
+            });
+            if (!usageResponse.ok) {
+              console.warn('Warning: Usage tracking update failed, but course uploaded successfully.');
+            } else {
+              console.log('Usage tracking updated successfully.');
+            }
+          } catch (usageError) {
+            console.warn('Warning: Could not update usage tracking:', usageError);
+          }
+        }
+
+        // Step 4: Show success and display action buttons
         statusDiv.textContent = `✓ Upload successful! Course "${courseTitle}" is ready to launch.`;
         statusDiv.className = 'success';
         document.getElementById('upload-button').style.display = 'none';
@@ -462,6 +499,7 @@
       } catch (error) {
         statusDiv.textContent = `Error: ${error.message}`;
         statusDiv.className = 'error';
+        console.error('Upload error:', error);
       }
     }
 
