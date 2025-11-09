@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
+        /* Your original styles exactly as provided */
         body {
             margin: 0;
             min-height: 100vh;
@@ -300,6 +301,30 @@
                 width: 100%;
             }
         }
+
+        /* Added styles for SCORM tracking container */
+        .scorm-tracking-section {
+            margin-top: 40px;
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 25px 35px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .scorm-tracking-section h2 {
+            color: #00205B;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .tracking-record {
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .tracking-record hr {
+            border-color: #ddd;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -329,6 +354,11 @@
                <div id="loading">Loading your courses...</div>
                 <div id="courses-list"></div>
             </div>
+
+            <div id="scorm-tracking-section" class="scorm-tracking-section" style="display:none;">
+                <h2>📊 SCORM Tracking Details</h2>
+                <div id="scorm-tracking-container">Loading SCORM tracking data...</div>
+            </div>
         </div>
     </div>
 
@@ -356,7 +386,6 @@
             userId = session.user.id;
 
             try {
-                // Fetch user profile to get full name & role
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('full_name, role')
@@ -372,7 +401,6 @@
 
                 document.getElementById('user-email').textContent = displayName;
 
-                // Show upload button only for owners
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (userRole === 'owner') {
                     uploadBtn.style.display = 'inline-block';
@@ -426,23 +454,24 @@
         async function loadCourses(userId, userRole) {
             const loadingDiv = document.getElementById('loading');
             const coursesDiv = document.getElementById('courses-list');
+            const trackingSection = document.getElementById('scorm-tracking-section');
+            const trackingContainer = document.getElementById('scorm-tracking-container');
             loadingDiv.style.display = 'block';
             coursesDiv.innerHTML = '';
+            trackingSection.style.display = 'none';
+            trackingContainer.innerHTML = '';
 
             let courses;
             let error;
 
             try {
                 if (userRole === 'owner') {
-                    // Owners see all their courses
                     ({ data: courses, error } = await supabase
                         .from('courses')
                         .select('id, course_slug, title, is_public, public_token, expires_at')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false }));
-
                 } else {
-                    // Learner: fetch enrollments joined with course info
                     const { data: { session } } = await supabase.auth.getSession();
 
                     const response = await fetch('/api/get-learner-courses', {
@@ -457,7 +486,6 @@
                     const result = await response.json();
 
                     if (response.ok && result.data) {
-                        // Merge enrollment ID and course info for correct launch URLs
                         courses = result.data.map(enrollment => {
                             const c = enrollment.course || {};
                             return {
@@ -498,7 +526,6 @@
                     const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
 
                     if (userRole === 'owner') {
-                        // Owner markup and controls
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -537,7 +564,6 @@
                         </div>
                         `;
                     } else {
-                        // Learner markup – launch with enrollment_id and learner_id for SCORM tracking
                         const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
                         return `
                         <div class="course-item">
@@ -556,25 +582,65 @@
                     }
                 }).join('');
 
+                // SCORM Tracking integration for learners only (hide if no enrollments)
+                if (userRole !== 'owner' && courses.length > 0 && courses[0].enrollment_id) {
+                    const trackingSection = document.getElementById('scorm-tracking-section');
+                    const trackingContainer = document.getElementById('scorm-tracking-container');
+                    trackingSection.style.display = 'block';
+                    trackingContainer.textContent = 'Loading SCORM tracking data...';
+                    await loadScormTracking(courses[0].enrollment_id);
+                } else {
+                    const trackingSection = document.getElementById('scorm-tracking-section');
+                    trackingSection.style.display = 'none';
+                }
+
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
+                const trackingSection = document.getElementById('scorm-tracking-section');
+                trackingSection.style.display = 'none';
+            }
+        }
+
+        async function loadScormTracking(enrollmentId) {
+            const GET_SCORM_TRACKING_URL = "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-scorm-tracking";
+            const trackingContainer = document.getElementById('scorm-tracking-container');
+
+            try {
+                const response = await fetch(`${GET_SCORM_TRACKING_URL}?enrollment_id=${encodeURIComponent(enrollmentId)}`);
+                const result = await response.json();
+
+                if (response.ok && result.success && result.data.length) {
+                    trackingContainer.innerHTML = result.data.map(record => `
+                        <div class="tracking-record">
+                            <strong>Timestamp:</strong> ${new Date(record.timestamp).toLocaleString()}<br/>
+                            <strong>Status:</strong> ${record.cmi_core_lesson_status ?? record.cmi_completion_status ?? 'N/A'}<br/>
+                            <strong>Score:</strong> ${record.cmi_core_score_raw ?? record.cmi_score_raw ?? 'N/A'}<br/>
+                            <hr/>
+                        </div>
+                    `).join('');
+                } else {
+                    trackingContainer.textContent = "No SCORM tracking data available.";
+                }
+            } catch (error) {
+                trackingContainer.textContent = "Failed to load SCORM tracking data.";
+                console.error("Error fetching SCORM tracking data:", error);
             }
         }
 
         window.refreshCourses = async function() {
             await loadCourses(userId, userRole);
-        }
+        };
 
         window.copyURL = function(courseSlug) {
             const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
             navigator.clipboard.writeText(link).then(() => alert('Course link copied to clipboard!'));
-        }
+        };
 
         window.copyPublicLink = function(publicToken) {
             const url = `${window.location.origin}/public-player.html?token=${publicToken}`;
             navigator.clipboard.writeText(url).then(() => alert('Public link copied to clipboard!'));
-        }
+        };
 
         window.generatePublicLink = async function(courseSlug) {
             try {
@@ -592,7 +658,7 @@
             } catch (err) {
                 alert('Error: ' + err.message);
             }
-        }
+        };
 
         window.revokePublicAccess = async function(courseSlug) {
             if (!confirm('Revoke public access?')) return;
@@ -607,7 +673,7 @@
             } catch (err) {
                 alert('Error: ' + err.message);
             }
-        }
+        };
 
         window.deleteCourse = async function(courseSlug) {
             if (!confirm("Are you sure you want to delete this course?")) return;
@@ -633,13 +699,14 @@
             } catch (error) {
                 alert("Delete error: " + error.message);
             }
-        }
+        };
 
         window.logout = async function() {
             const { error } = await supabase.auth.signOut();
             if (error) console.error('Logout error:', error);
             window.location.href = 'login.html';
-        }
+        };
+
     </script>
 </body>
 </html>
