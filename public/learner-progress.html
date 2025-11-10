@@ -119,8 +119,9 @@
   async function fetchEnrollments() {
     const { data, error } = await supabase
       .from('enrollments')
-      .select('id, user_id, user:profiles(email)')
+      .select('id, course_id, learner_id, profiles(email)')
       .eq('course_id', courseId);
+
     if (error) {
       showError(error.message || 'Failed to load enrollments');
       return [];
@@ -148,7 +149,7 @@
       const tr = document.createElement('tr');
       tr.dataset.enrollmentId = enrollment.id;
       tr.innerHTML = `
-        <td>${enrollment.user?.email || 'N/A'}</td>
+        <td>${enrollment.profiles?.email || 'N/A'}</td>
         <td>${enrollment.id}</td>
       `;
       tr.addEventListener('click', () => {
