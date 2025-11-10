@@ -12,7 +12,6 @@
     padding: 20px;
     box-sizing: border-box;
   }
-
   .main-wrapper {
     max-width: 1100px;
     margin: 38px auto 0 auto;
@@ -22,7 +21,6 @@
     padding-bottom: 40px;
     overflow: hidden;
   }
-
   .banner {
     display: flex;
     align-items: center;
@@ -54,9 +52,37 @@
     letter-spacing: 1px;
     color: #fff;
   }
+  .centered-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 34px 0 24px 0;
+  }
+  .centered-title .section-title {
+    color: #00205B;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .course-badge {
+    background: linear-gradient(90deg, #008fd5 0%, #20c997 100%);
+    color: #fff;
+    border-radius: 14px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 0.6em 1.5em;
+    margin: 0;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(60,45,205,0.04);
+    letter-spacing: .5px;
+    margin-bottom: 10px;
+  }
   .back-btn {
     display: inline-block;
-    margin: 34px 0 0 38px;
+    margin-left: 38px;
     color: #0073e6;
     font-weight: 600;
     font-size: 1rem;
@@ -67,25 +93,9 @@
     color: #00857D;
     text-decoration: underline;
   }
-
   .container {
     padding: 0 42px;
   }
-
-  .section-title {
-    color: #00205B;
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 28px 0 24px 0;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-  }
-  .section-title .icon {
-    font-size: 2rem;
-  }
-
-  /* Table styles to match dashboard look */
   table {
     width: 100%;
     border-collapse: separate;
@@ -148,8 +158,6 @@
     color: #721c24;
     border-left: 3px solid #dc3545;
   }
-
-  /* Tracking section cards */
   .tracking-section {
     margin-top: 36px;
   }
@@ -183,13 +191,6 @@
     margin-bottom: 30px;
     margin-top: 32px;
   }
-  #course-info {
-    font-size: 1.13rem;
-    color: #20579D;
-    font-weight: 500;
-    margin-bottom: 16px;
-    margin-top: 16px;
-  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
@@ -197,12 +198,16 @@
 <div class="main-wrapper">
   <div class="banner">
     <img src="logo.png" alt="Logo" class="banner-logo"/>
-    <span class="banner-title">Learner's Progress</span>
+    <span class="banner-title">PlayScorm Dashboard</span>
   </div>
   <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
   <div class="container">
-    
-    <div id="course-info">Loading course info...</div>
+
+    <div class="centered-title">
+      <div class="section-title"><span class="icon">🎓</span> Learner's Progress</div>
+      <div id="course-info" class="course-badge" style="display:inline-block;">Loading course info...</div>
+    </div>
+
     <table id="learners-list" style="display:none;">
       <thead>
         <tr>
@@ -260,8 +265,7 @@
       document.getElementById('course-info').textContent = 'Failed to load course data.';
       throw new Error('Failed to load course data');
     }
-
-    document.getElementById('course-info').textContent = `Course: ${data.title}`;
+    document.getElementById('course-info').textContent = data.title;
   }
 
   async function fetchEnrollments() {
