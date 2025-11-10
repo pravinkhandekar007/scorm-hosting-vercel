@@ -74,7 +74,7 @@
   <div id="course-info"></div>
   <table class="learners-list" id="learners-list" style="display:none;">
     <thead>
-      <tr><th>Learner Email</th><th>Enrollment ID</th></tr>
+      <tr><th>Learner Email</th><th>Name</th><th>Enrollment ID</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -119,7 +119,7 @@
   async function fetchEnrollments() {
     const { data, error } = await supabase
       .from('enrollments')
-      .select('id, course_id, learner_id, profiles(email)')
+      .select('id, course_id, learner_id, learner_email, learner_name')
       .eq('course_id', courseId);
 
     if (error) {
@@ -149,7 +149,8 @@
       const tr = document.createElement('tr');
       tr.dataset.enrollmentId = enrollment.id;
       tr.innerHTML = `
-        <td>${enrollment.profiles?.email || 'N/A'}</td>
+        <td>${enrollment.learner_email || 'N/A'}</td>
+        <td>${enrollment.learner_name || 'N/A'}</td>
         <td>${enrollment.id}</td>
       `;
       tr.addEventListener('click', () => {
