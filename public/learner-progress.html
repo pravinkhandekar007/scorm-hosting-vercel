@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Learner Progress - PlayScorm</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #C0C0C0;
+    padding: 20px;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fdfdfd;
+    border-radius: 12px;
+    padding: 25px 35px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  h1 {
+    color: #0073e6;
+    font-weight: 700;
+  }
+  .learners-list {
+    margin-top: 30px;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .learners-list th, .learners-list td {
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 15px;
+  }
+  .learners-list tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+  }
+  .selected-row {
+    background-color: #d4edda !important;
+  }
+  .tracking-section {
+    margin-top: 30px;
+  }
+  .tracking-record {
+    padding: 15px 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  .tracking-record:last-child {
+    border-bottom: none;
+  }
+  .error {
+    color: #cc0000;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+  a.back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #0073e6;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  a.back-btn:hover {
+    text-decoration: underline;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
+  <h1>Learners Progress</h1>
+  <div id="course-info"></div>
+  <table class="learners-list" id="learners-list" style="display:none;">
+    <thead>
+      <tr><th>Learner Email</th><th>Enrollment ID</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <p id="learners-error" class="error" style="display:none;"></p>
+  <div class="tracking-section" id="tracking-section" style="display:none;">
+    <h2>SCORM Tracking Details</h2>
+    <div id="tracking-container"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
+  const GET_SCORM_TRACKING_URL = "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-scorm-tracking";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const queryParams = new URLSearchParams(window.location.search);
+  const courseId = queryParams.get('course_id');
+
+  if (!courseId) {
+    document.getElementById('course-info').textContent = 'Error: course_id parameter missing in URL.';
+    throw new Error('course_id parameter missing');
+  }
+
+  async function fetchCourseTitle() {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('title')
+      .eq('id', courseId)
+      .single();
+
+    if (error || !data) {
+      document.getElementById('course-info').textContent = 'Failed to load course data.';
+      throw new Error('Failed to load course data');
+    }
+
+    document.getElementById('course-info').textContent = `Course: ${data.title}`;
+  }
+
+  async function fetchEnrollments() {
+    const { data, error } = await supabase
+      .from('enrollments')
+      .select('id, user_id, user:profiles(email)')
+      .eq('course_id', courseId);
+    if (error) {
+      showError(error.message || 'Failed to load enrollments');
+      return [];
+    }
+    return data;
+  }
+
+  function showError(message) {
+    const errorElem = document.getElementById('learners-error');
+    errorElem.textContent = message;
+    errorElem.style.display = 'block';
+  }
+
+  function clearError() {
+    const errorElem = document.getElementById('learners-error');
+    errorElem.textContent = '';
+    errorElem.style.display = 'none';
+  }
+
+  function renderLearners(learners) {
+    const table = document.getElementById('learners-list');
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';
+    learners.forEach(enrollment => {
+      const tr = document.createElement('tr');
+      tr.dataset.enrollmentId = enrollment.id;
+      tr.innerHTML = `
+        <td>${enrollment.user?.email || 'N/A'}</td>
+        <td>${enrollment.id}</td>
+      `;
+      tr.addEventListener('click', () => {
+        selectLearner(enrollment.id, tr);
+      });
+      tbody.appendChild(tr);
+    });
+    table.style.display = 'table';
+  }
+
+  let selectedRow = null;
+
+  async function selectLearner(enrollmentId, row) {
+    if (selectedRow) {
+      selectedRow.classList.remove('selected-row');
+    }
+    row.classList.add('selected-row');
+    selectedRow = row;
+    clearError();
+    document.getElementById('tracking-section').style.display = 'block';
+    document.getElementById('tracking-container').textContent = 'Loading tracking data...';
+    try {
+      const response = await fetch(`${GET_SCORM_TRACKING_URL}?enrollment_id=${encodeURIComponent(enrollmentId)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch tracking data');
+      }
+      const result = await response.json();
+      if (result.success && result.data.length) {
+        renderTrackingData(result.data);
+      } else {
+        renderTrackingData([]);
+      }
+    } catch (error) {
+      showError(error.message);
+      document.getElementById('tracking-section').style.display = 'none';
+    }
+  }
+
+  function renderTrackingData(trackingData) {
+    const container = document.getElementById('tracking-container');
+    if (trackingData.length === 0) {
+      container.innerHTML = '<p>No SCORM tracking data available for this learner.</p>';
+      return;
+    }
+    container.innerHTML = trackingData.map(record => `
+      <div class="tracking-record">
+        <strong>Timestamp:</strong> ${new Date(record.timestamp).toLocaleString()}<br/>
+        <strong>Status:</strong> ${record.cmi_core_lesson_status ?? record.cmi_completion_status ?? 'N/A'}<br/>
+        <strong>Score:</strong> ${record.cmi_core_score_raw ?? record.cmi_score_raw ?? 'N/A'}<br/>
+      </div>
+      <hr/>
+    `).join('');
+  }
+
+  async function init() {
+    await fetchCourseTitle();
+    clearError();
+    const learners = await fetchEnrollments();
+    if (learners.length === 0) {
+      showError('No learners enrolled in this course.');
+    } else {
+      renderLearners(learners);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
