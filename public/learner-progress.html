@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>PlayScorm</title>
+<title>Learner Progress - PlayScorm</title>
 <style>
   body {
     margin: 0;
@@ -33,6 +33,7 @@
     font-weight: 700;
     padding: 28px 34px 24px 34px;
     border-radius: 20px 20px 0 0;
+    position: relative;
   }
   .banner-logo {
     height: 54px;
@@ -43,47 +44,21 @@
     padding: 8px;
     box-sizing: border-box;
   }
-  .banner-title {
+  .banner-title-centered {
     flex: 1;
-    text-align: left;
+    text-align: center;
     margin: 0;
     font-size: 2rem;
     font-weight: 700;
-    line-height: 120%;
     letter-spacing: 1px;
     color: #fff;
   }
-  .centered-title {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 34px 0 24px 0;
-  }
-  .centered-title .section-title {
-    color: #00205B;
-    font-size: 2rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  .course-badge {
-    background: linear-gradient(90deg, #008fd5 0%, #20c997 100%);
-    color: #fff;
-    border-radius: 14px;
-    font-size: 1.08rem;
-    font-weight: 600;
-    padding: 0.6em 1.5em;
-    margin: 0;
-    display: inline-block;
-    box-shadow: 0 2px 8px rgba(60,45,205,0.04);
-    letter-spacing: .5px;
-    margin-bottom: 10px;
+  .spacer {
+    height: 40px;
   }
   .back-btn {
     display: inline-block;
-    margin-left: 38px;
+    margin: 0 0 36px 38px;
     color: #0073e6;
     font-weight: 600;
     font-size: 1rem;
@@ -96,6 +71,19 @@
   }
   .container {
     padding: 0 42px;
+  }
+  .course-badge {
+    background: linear-gradient(90deg, #008fd5 0%, #20c997 100%);
+    color: #fff;
+    border-radius: 14px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 0.6em 1.5em;
+    margin: 0 auto 18px auto;
+    display: block;
+    box-shadow: 0 2px 8px rgba(60,45,205,0.04);
+    text-align: center;
+    letter-spacing: .5px;
   }
   table {
     width: 100%;
@@ -199,16 +187,12 @@
 <div class="main-wrapper">
   <div class="banner">
     <img src="logo.png" alt="Logo" class="banner-logo"/>
-    <span class="banner-title">PlayScorm Dashboard</span>
+    <span class="banner-title-centered">Learner’s Progress</span>
   </div>
+  <div class="spacer"></div>
   <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
   <div class="container">
-
-    <div class="centered-title">
-      <div class="section-title"><span class="icon">🎓</span> Learner's Progress</div>
-      <div id="course-info" class="course-badge" style="display:inline-block;">Loading course info...</div>
-    </div>
-
+    <div id="course-info" class="course-badge">Loading course info...</div>
     <table id="learners-list" style="display:none;">
       <thead>
         <tr>
@@ -223,7 +207,6 @@
       <tbody></tbody>
     </table>
     <p id="learners-error" class="error" style="display:none;"></p>
-
     <div class="tracking-section" id="tracking-section" style="display:none;">
       <h2>Detailed SCORM Tracking</h2>
       <div id="tracking-container"></div>
@@ -235,7 +218,6 @@
   const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
   const GET_SCORM_TRACKING_URL = "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-scorm-tracking";
-
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const queryParams = new URLSearchParams(window.location.search);
