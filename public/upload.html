@@ -8,57 +8,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Upload Course - PlayScorm | SCORM Course Manager</title>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
   body {
     min-height: 100vh;
     background: #C0C0C0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 0;
+    margin: 0;
   }
   .main-wrapper {
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
+    max-width: 900px;
+    margin: 40px auto 0 auto;
+    background: #fdfdfd;
+    border-radius: 20px;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
   }
   .banner {
-    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
     background: linear-gradient(to right, #00205B, #00857D);
     color: #fff;
-    text-align: center;
     font-size: 2rem;
     font-weight: 700;
-    padding: 26px 0 20px 0;
+    padding: 30px 34px 22px 34px;
     letter-spacing: 1px;
-    box-shadow: 0 2px 8px rgba(80,100,255,0.09);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 2px 8px rgba(80,100,255,0.08);
+  }
+  .banner-logo {
+    height: 54px;
+    width: auto;
     flex-shrink: 0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .banner-title-centered {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff;
   }
   .container {
-    background: #fdfdfd;
-    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
-    border-radius: 0 0 20px 20px;
-    flex: 1;
-    padding: 50px 40px;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
+    padding: 48px 42px 42px 42px;
+    max-width: 100%;
   }
   .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
+    margin-bottom: 26px;
+    padding-bottom: 16px;
     border-bottom: 2px solid #e9ecef;
-  }
-  .nav-link {
-    text-align: left;
   }
   .nav-link a {
     color: #0073e6;
@@ -81,22 +91,23 @@
     cursor: pointer;
     transition: all 0.3s;
     display: none;
+    box-shadow: 0 2px 6px rgba(220,53,69,0.10);
   }
   #logout-button:hover {
     background: linear-gradient(90deg, #c82333 0%, #bd2130 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+    box-shadow: 0 4px 12px rgba(220,53,69,0.16);
   }
   h2 {
     color: #0073e6;
     font-size: 1.8rem;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
     text-align: center;
     font-weight: 600;
   }
   #login-info {
-    margin-bottom: 30px;
-    padding: 15px 20px;
+    margin-bottom: 28px;
+    padding: 13px 20px;
     background-color: #f0f7ff;
     border-left: 5px solid #0073e6;
     border-radius: 8px;
@@ -115,7 +126,7 @@
   }
   label {
     display: block;
-    margin-top: 25px;
+    margin-top: 23px;
     margin-bottom: 10px;
     font-weight: 600;
     color: #333;
@@ -159,12 +170,13 @@
   input[type="file"]::file-selector-button:hover {
     background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
   }
+  button,
   .btn,
   button[type="button"],
   button[type="submit"] {
     background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
     color: white;
-    padding: 14px 20px;
+    padding: 15px 22px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -173,7 +185,7 @@
     font-size: 16px;
     font-weight: 600;
     transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.11);
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -184,14 +196,14 @@
   .btn:hover {
     background: linear-gradient(90deg, #5b3fa4 45%, #0073e6 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(120,83,250,0.3);
+    box-shadow: 0 4px 12px rgba(120,83,250,0.19);
   }
   button:disabled,
   button[type="submit"]:disabled {
     background: #99c2f0;
     cursor: default;
     transform: none;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   }
   .btn-secondary {
     background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
@@ -199,14 +211,14 @@
   .btn-secondary:hover {
     background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+    box-shadow: 0 4px 12px rgba(108,117,125,0.14);
   }
   #upload-status {
-    margin-top: 25px;
+    margin-top: 23px;
     text-align: center;
     font-weight: 600;
     color: #00205B;
-    padding: 15px;
+    padding: 13px;
     border-radius: 8px;
     background: #f0f7ff;
     border-left: 5px solid #0073e6;
@@ -226,7 +238,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-top: 25px;
+    margin-top: 24px;
     display: none;
   }
   .action-buttons .btn,
@@ -236,36 +248,27 @@
   }
   .action-buttons a {
     text-decoration: none;
-    padding: 14px 20px;
+    padding: 15px 22px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 16px;
     font-weight: 600;
     text-align: center;
     transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.11);
   }
-  @media (max-width: 768px) {
-    .banner {
-      font-size: 1.5rem;
-      padding: 20px 15px;
+  @media (max-width: 820px) {
+    .main-wrapper {
+      max-width: 99vw;
     }
     .container {
-      padding: 30px 25px;
-      max-width: 100%;
-      border-radius: 0;
+      padding: 28px 14px;
+      border-radius: 0 0 14px 14px;
     }
-    .header-top {
-      flex-direction: column;
-      gap: 15px;
-      align-items: flex-start;
-    }
-    #logout-button {
-      width: 100%;
-    }
-    h2 {
+    .banner {
       font-size: 1.5rem;
-      margin-bottom: 25px;
+      padding: 19px 5px;
+      border-radius: 14px 14px 0 0;
     }
   }
 </style>
@@ -273,7 +276,10 @@
 </head>
 <body>
   <div class="main-wrapper">
-    <div class="banner">PlayScorm</div>
+    <div class="banner">
+      <img src="logo.png" alt="Logo" class="banner-logo"/>
+      <span class="banner-title-centered">Upload Course</span>
+    </div>
     <div class="container">
       <div class="header-top">
         <div class="nav-link">
@@ -281,11 +287,8 @@
         </div>
         <button id="logout-button" onclick="logout()">Logout</button>
       </div>
-
       <h2>📤 Upload SCORM Course</h2>
-      
       <div id="login-info">Please log in to proceed with the upload.</div>
-
       <form id="upload-form">
         <label for="course-title">Course Title</label>
         <input type="text" id="course-title" placeholder="Enter course title" required />
@@ -308,9 +311,7 @@
 
         <button type="button" onclick="uploadFile()" id="upload-button">Upload Course</button>
       </form>
-
       <div id="upload-status"></div>
-
       <div id="result-links" class="action-buttons">
         <a href="#" id="launch-link" class="btn" target="_blank" rel="noopener noreferrer">▶️ Launch Course</a>
         <a href="dashboard.html" class="btn btn-secondary">📋 View All Courses</a>
@@ -318,8 +319,8 @@
       </div>
     </div>
   </div>
-
   <script>
+    // [Unchanged upload logic script as before]
     const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -383,16 +384,11 @@
       try {
         statusDiv.textContent = 'Uploading course, please wait...';
         statusDiv.className = '';
-        
         const encodedCourseTitle = encodeURIComponent(courseTitle);
-
-        // Calculate expiration date based on retention_days
         const expirationDate = new Date();
-expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24 * 60 * 60 * 1000);
-
+        expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24 * 60 * 60 * 1000);
 
         // Step 1: Upload SCORM file to storage
-        console.log('[UPLOAD] Step 1: Uploading SCORM file...');
         const uploadUrl = `${SUPABASE_URL}/functions/v1/process-scorm-upload?course=${courseSlug}&retention_days=${retentionDays}&courseTitle=${encodedCourseTitle}`;
         const response = await fetch(uploadUrl, {
           method: 'POST',
@@ -406,10 +402,8 @@ expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24
           const errorText = await response.text();
           throw new Error(`Upload error ${response.status} - ${errorText}`);
         }
-        console.log('[UPLOAD] Step 1: SCORM file uploaded successfully');
 
         // Step 2: Insert course into database, handle 409 conflict
-        console.log('[UPLOAD] Step 2: Inserting course into database...');
         let courseInserted = false;
         const courseInsertResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses`, {
           method: 'POST',
@@ -429,7 +423,6 @@ expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24
         });
 
         if (courseInsertResponse.status === 409) {
-          console.warn('[UPLOAD] Step 2: Course slug conflict (409), attempting update...');
           const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/courses?course_slug=eq.${courseSlug}`, {
             method: 'PATCH',
             headers: {
@@ -444,29 +437,19 @@ expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24
               expires_at: expirationDate.toISOString()
             })
           });
-
           if (!updateResponse.ok) {
             throw new Error(`Course update failed: ${updateResponse.status}`);
           }
-          console.log('[UPLOAD] Step 2: Course updated successfully');
           courseInserted = true;
         } else if (courseInsertResponse.ok) {
-          console.log('[UPLOAD] Step 2: Course inserted successfully');
           courseInserted = true;
         } else {
           const errorText = await courseInsertResponse.text();
           throw new Error(`Course insert failed: ${courseInsertResponse.status} - ${errorText}`);
         }
 
-        // Step 3: Update usage tracking (FIRE-AND-FORGET - don't wait for it)
+        // Step 3: Update usage tracking (FIRE-AND-FORGET)
         if (courseInserted) {
-          console.log('[UPLOAD] Step 3: Triggering usage tracking update (non-blocking)...');
-          console.log('[UPLOAD] Sending data:', {
-            user_id: user.id,
-            additional_storage_mb: fileSizeMB,
-            additional_courses: 1
-          });
-          
           fetch(`${SUPABASE_URL}/functions/v1/update-usage`, {
             method: 'POST',
             headers: {
@@ -477,26 +460,10 @@ expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24
               additional_storage_mb: fileSizeMB,
               additional_courses: 1
             })
-          }).then(response => {
-            console.log('[UPLOAD] Step 3: Response status:', response.status);
-            console.log('[UPLOAD] Step 3: Response headers:', response.headers);
-            
-            if (response.ok) {
-              return response.json().then(data => {
-                console.log('[UPLOAD] Step 3: Success response:', data);
-              });
-            } else {
-              return response.text().then(text => {
-                console.warn('[UPLOAD] Step 3: Error response:', text);
-                console.warn('[UPLOAD] Step 3: Status code:', response.status);
-              });
-            }
-          }).catch(usageError => {
-            console.warn('[UPLOAD] Step 3: Error calling usage tracking:', usageError);
           });
         }
 
-        // Step 4: Show success immediately (don't wait for usage tracking)
+        // Step 4: Show success
         statusDiv.textContent = `✓ Upload successful! Course "${courseTitle}" is ready to launch.`;
         statusDiv.className = 'success';
         document.getElementById('upload-button').style.display = 'none';
@@ -521,7 +488,6 @@ expirationDate.setTime(expirationDate.getTime() + parseFloat(retentionDays) * 24
       } catch (error) {
         statusDiv.textContent = `Error: ${error.message}`;
         statusDiv.className = 'error';
-        console.error('[UPLOAD] Upload error:', error);
       }
     }
 
