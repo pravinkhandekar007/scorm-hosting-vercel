@@ -1,37 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- [Your head content and styles here] -->
+<meta charset="UTF-8" />
+<title>Learner Progress - PlayScorm</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #C0C0C0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .main-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fdfdfd;
+    border-radius: 20px;
+    padding: 40px 50px;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+  }
+  h1 {
+    color: #0073e6;
+    margin-bottom: 24px;
+    font-weight: 600;
+    font-size: 1.8rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+  }
+  thead {
+    background-color: #00205B;
+    color: white;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+  }
+  tr:hover {
+    background-color: #f1f7ff;
+    cursor: pointer;
+  }
+  .selected-row {
+    background-color: #d4edda !important;
+  }
+  .tracking-section h2 {
+    color: #00205B;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .tracking-record {
+    background-color: #fafafa;
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+  }
+  .tracking-record strong {
+    color: #204060;
+  }
+  .error {
+    background: #ffe6e6;
+    color: #cc0000;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #dc3545;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+  a.back-btn {
+    display: inline-block;
+    margin-bottom: 24px;
+    color: #0073e6;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  a.back-btn:hover {
+    text-decoration: underline;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-<div class="container">
+<div class="main-wrapper">
   <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
   <h1>Learners Progress</h1>
-  <div id="course-info"></div>
-  <table class="learners-list" id="learners-list" style="display:none;">
+  <div id="course-info">Loading course info...</div>
+  <table id="learners-list" style="display:none;">
     <thead>
       <tr>
         <th>Learner Email</th>
         <th>Name</th>
         <th>Status</th>
         <th>Completion %</th>
-        <th>Time Spent (minutes)</th>
+        <th>Time Spent (mins)</th>
         <th>Enrollment ID</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
   <p id="learners-error" class="error" style="display:none;"></p>
-  <div class="tracking-section" id="tracking-section" style="display:none;">
+
+  <div id="tracking-section" style="display:none;">
     <h2>Detailed SCORM Tracking</h2>
     <div id="tracking-container"></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 <script>
   const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-  const SUPABASE_ANON_KEY = '[your anon key here]';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
 
   const GET_SCORM_TRACKING_URL = "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-scorm-tracking";
 
@@ -45,26 +127,36 @@
     throw new Error('course_id parameter missing');
   }
 
-  // Fetch course title for header
   async function fetchCourseTitle() {
-    const { data, error } = await supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('User not authenticated');
+
+    const supabaseWithAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      }
+    });
+
+    const { data, error } = await supabaseWithAuth
       .from('courses')
       .select('title')
       .eq('id', courseId)
       .single();
+
     if (error || !data) {
       document.getElementById('course-info').textContent = 'Failed to load course data.';
       throw new Error('Failed to load course data');
     }
+
     document.getElementById('course-info').textContent = `Course: ${data.title}`;
   }
 
-  // Fetch enrollments
   async function fetchEnrollments() {
     const { data, error } = await supabase
       .from('enrollments')
       .select('id, learner_email, learner_name, status, completion_percentage, time_spent_minutes')
       .eq('course_id', courseId);
+
     if (error) {
       showError(error.message || 'Failed to load enrollments');
       return [];
@@ -72,7 +164,18 @@
     return data;
   }
 
-  // Render learners with summary info
+  function showError(message) {
+    const errorElem = document.getElementById('learners-error');
+    errorElem.textContent = message;
+    errorElem.style.display = 'block';
+  }
+
+  function clearError() {
+    const errorElem = document.getElementById('learners-error');
+    errorElem.textContent = '';
+    errorElem.style.display = 'none';
+  }
+
   function renderLearners(learners) {
     const table = document.getElementById('learners-list');
     const tbody = table.querySelector('tbody');
@@ -96,12 +199,12 @@
 
   let selectedRow = null;
 
-  // On learner selection fetch detailed SCORM tracking from edge function
   async function selectLearner(enrollmentId, row) {
     if (selectedRow) selectedRow.classList.remove('selected-row');
     row.classList.add('selected-row');
     selectedRow = row;
     clearError();
+
     const trackingSection = document.getElementById('tracking-section');
     const trackingContainer = document.getElementById('tracking-container');
     trackingSection.style.display = 'block';
@@ -119,7 +222,6 @@
     }
   }
 
-  // Render detailed tracking records
   function renderTrackingData(data) {
     const container = document.getElementById('tracking-container');
     container.innerHTML = data.map(record => `
@@ -135,24 +237,16 @@
     `).join('');
   }
 
-  function showError(message) {
-    const errorElem = document.getElementById('learners-error');
-    errorElem.textContent = message;
-    errorElem.style.display = 'block';
-  }
-
-  function clearError() {
-    const errorElem = document.getElementById('learners-error');
-    errorElem.textContent = '';
-    errorElem.style.display = 'none';
-  }
-
   async function init() {
-    await fetchCourseTitle();
-    clearError();
-    const learners = await fetchEnrollments();
-    if (learners.length === 0) showError('No learners enrolled in this course.');
-    else renderLearners(learners);
+    try {
+      await fetchCourseTitle();
+      clearError();
+      const learners = await fetchEnrollments();
+      if (learners.length === 0) showError('No learners enrolled in this course.');
+      else renderLearners(learners);
+    } catch (err) {
+      showError(err.message);
+    }
   }
 
   init();
