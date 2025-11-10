@@ -12,56 +12,166 @@
     padding: 20px;
     box-sizing: border-box;
   }
+
   .main-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 1100px;
+    margin: 38px auto 0 auto;
     background: #fdfdfd;
     border-radius: 20px;
-    padding: 40px 50px;
     box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+    padding-bottom: 40px;
+    overflow: hidden;
   }
-  h1 {
+
+  .banner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    background: linear-gradient(to right, #00205B 0%, #00857D 100%);
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 28px 34px 24px 34px;
+    border-radius: 20px 20px 0 0;
+  }
+  .banner-logo {
+    height: 54px;
+    width: auto;
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .banner-title {
+    flex: 1;
+    text-align: left;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 120%;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+  .back-btn {
+    display: inline-block;
+    margin: 34px 0 0 38px;
     color: #0073e6;
-    margin-bottom: 24px;
     font-weight: 600;
-    font-size: 1.8rem;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.2s;
   }
+  .back-btn:hover {
+    color: #00857D;
+    text-decoration: underline;
+  }
+
+  .container {
+    padding: 0 42px;
+  }
+
+  .section-title {
+    color: #00205B;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 28px 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .section-title .icon {
+    font-size: 2rem;
+  }
+
+  /* Table styles to match dashboard look */
   table {
     width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 40px;
+    border-collapse: separate;
+    border-spacing: 0 15px;
+    margin-bottom: 30px;
   }
   thead {
-    background-color: #00205B;
-    color: white;
+    background: none;
   }
-  th, td {
-    text-align: left;
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
+  th {
+    color: #003766;
+    font-weight: 700;
+    font-size: 15px;
+    background: none;
+    border: none;
+    padding: 11px 16px 9px 16px;
   }
-  tr:hover {
-    background-color: #f1f7ff;
+  tbody tr {
+    background: #FAFAFA;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,115,230,0.03);
+    transition: box-shadow 0.2s;
+  }
+  tbody tr:hover {
+    box-shadow: 0 4px 16px rgba(0,115,230,0.13);
     cursor: pointer;
+    background: #f3faff;
   }
-  .selected-row {
-    background-color: #d4edda !important;
+  td {
+    border: none;
+    padding: 15px 16px;
+    border-radius: 14px;
+    color: #204060;
+    font-size: 1rem;
+  }
+  tr.selected-row {
+    background: #d4edda !important;
+    box-shadow: 0 4px 16px rgba(40,167,69,0.16);
+  }
+  .badge {
+    display: inline-block;
+    padding: 7px 17px;
+    border-radius: 9px;
+    font-size: 0.95em;
+    font-weight: 600;
+    margin-right: 3px;
+  }
+  .badge.active {
+    background: #d4edda;
+    color: #155724;
+    border-left: 3px solid #28a745;
+  }
+  .badge.warning {
+    background: #fff3cd;
+    color: #856404;
+    border-left: 3px solid #ffc107;
+  }
+  .badge.expired {
+    background: #fdecea;
+    color: #721c24;
+    border-left: 3px solid #dc3545;
+  }
+
+  /* Tracking section cards */
+  .tracking-section {
+    margin-top: 36px;
   }
   .tracking-section h2 {
     color: #00205B;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 28px;
+    font-size: 1.2rem;
+    letter-spacing: .01em;
   }
   .tracking-record {
     background-color: #fafafa;
-    border-radius: 12px;
-    padding: 20px 25px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 13px;
+    padding: 20px 30px 16px 30px;
     margin-bottom: 18px;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid #0073e6;
   }
   .tracking-record strong {
     color: #204060;
+    font-weight: 700;
   }
   .error {
     background: #ffe6e6;
@@ -71,50 +181,53 @@
     border-left: 4px solid #dc3545;
     font-weight: 600;
     margin-bottom: 30px;
+    margin-top: 32px;
   }
-  a.back-btn {
-    display: inline-block;
-    margin-bottom: 24px;
-    color: #0073e6;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  a.back-btn:hover {
-    text-decoration: underline;
+  #course-info {
+    font-size: 1.13rem;
+    color: #20579D;
+    font-weight: 500;
+    margin-bottom: 16px;
+    margin-top: 16px;
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="main-wrapper">
+  <div class="banner">
+    <img src="logo.png" alt="Logo" class="banner-logo"/>
+    <span class="banner-title">PlayScorm Dashboard</span>
+  </div>
   <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
-  <h1>Learners Progress</h1>
-  <div id="course-info">Loading course info...</div>
-  <table id="learners-list" style="display:none;">
-    <thead>
-      <tr>
-        <th>Learner Email</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Completion %</th>
-        <th>Time Spent (mins)</th>
-        <th>Enrollment ID</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <p id="learners-error" class="error" style="display:none;"></p>
+  <div class="container">
+    <div class="section-title"><span class="icon">🎓</span> Learners Progress</div>
+    <div id="course-info">Loading course info...</div>
+    <table id="learners-list" style="display:none;">
+      <thead>
+        <tr>
+          <th>Learner Email</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Completion %</th>
+          <th>Time Spent (mins)</th>
+          <th>Enrollment ID</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="learners-error" class="error" style="display:none;"></p>
 
-  <div id="tracking-section" style="display:none;">
-    <h2>Detailed SCORM Tracking</h2>
-    <div id="tracking-container"></div>
+    <div class="tracking-section" id="tracking-section" style="display:none;">
+      <h2>Detailed SCORM Tracking</h2>
+      <div id="tracking-container"></div>
+    </div>
   </div>
 </div>
 
 <script>
   const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
-
   const GET_SCORM_TRACKING_URL = "https://mfooewemvofleynanjkb.supabase.co/functions/v1/get-scorm-tracking";
 
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -186,10 +299,14 @@
       tr.innerHTML = `
         <td>${enrollment.learner_email || 'N/A'}</td>
         <td>${enrollment.learner_name || 'N/A'}</td>
-        <td>${enrollment.status || 'N/A'}</td>
+        <td>
+          <span class="badge ${enrollment.status === 'active' ? 'active' : enrollment.status === 'expired' ? 'expired' : enrollment.status === 'warning' ? 'warning' : ''}">
+            ${enrollment.status ? enrollment.status.charAt(0).toUpperCase() + enrollment.status.slice(1) : 'N/A'}
+          </span>
+        </td>
         <td>${enrollment.completion_percentage != null ? enrollment.completion_percentage + '%' : 'N/A'}</td>
         <td>${enrollment.time_spent_minutes != null ? enrollment.time_spent_minutes : 'N/A'}</td>
-        <td>${enrollment.id}</td>
+        <td style="font-size:0.9em;text-wrap:anywhere;">${enrollment.id}</td>
       `;
       tr.addEventListener('click', () => selectLearner(enrollment.id, tr));
       tbody.appendChild(tr);
@@ -233,7 +350,6 @@
         <strong>Time Spent:</strong> ${record.cmi_core_time_spent ?? record.cmi_time_spent ?? 'N/A'}<br/>
         <strong>Location:</strong> ${record.cmi_core_lesson_location ?? record.cmi_location ?? 'N/A'}<br/>
       </div>
-      <hr/>
     `).join('');
   }
 
