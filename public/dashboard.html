@@ -356,7 +356,6 @@
             userId = session.user.id;
 
             try {
-                // Fetch user profile to get full name & role
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('full_name, role')
@@ -372,7 +371,6 @@
 
                 document.getElementById('user-email').textContent = displayName;
 
-                // Show upload button only for owners
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (userRole === 'owner') {
                     uploadBtn.style.display = 'inline-block';
@@ -434,15 +432,12 @@
 
             try {
                 if (userRole === 'owner') {
-                    // Owners see all their courses
                     ({ data: courses, error } = await supabase
                         .from('courses')
                         .select('id, course_slug, title, is_public, public_token, expires_at')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false }));
-
                 } else {
-                    // Learner: fetch enrollments joined with course info
                     const { data: { session } } = await supabase.auth.getSession();
 
                     const response = await fetch('/api/get-learner-courses', {
@@ -457,7 +452,6 @@
                     const result = await response.json();
 
                     if (response.ok && result.data) {
-                        // Merge enrollment ID and course info for correct launch URLs
                         courses = result.data.map(enrollment => {
                             const c = enrollment.course || {};
                             return {
@@ -498,7 +492,6 @@
                     const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
 
                     if (userRole === 'owner') {
-                        // Owner markup and controls
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -512,6 +505,8 @@
                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
                                 <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
                                    class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
+                                <a href="learner-progress.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-secondary btn-small" title="Learner Progress">📊 View Learner Progress</a>
                                 <button class="btn btn-secondary btn-small"
                                         onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
                                 <button class="btn btn-danger btn-small"
@@ -537,8 +532,8 @@
                         </div>
                         `;
                     } else {
-                        // Learner markup – launch with enrollment_id and learner_id for SCORM tracking
                         const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
+                        const progressUrl = `my-progress.html?course_id=${encodeURIComponent(course.id)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}`;
                         return `
                         <div class="course-item">
                             <div class="course-info">
@@ -550,6 +545,8 @@
                             <div class="course-actions">
                                 <a href="${launchUrl}"
                                    target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="${progressUrl}" 
+                                   class="btn btn-secondary btn-small" title="View My Progress">📊 View My Progress</a>
                             </div>
                         </div>
                         `;
