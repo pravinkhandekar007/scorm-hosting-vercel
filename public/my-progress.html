@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>My Course Progress - PlayScorm</title>
+<style>
+  body {
+    margin: 0;
+    background: #C0C0C0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+  }
+  .main-wrapper {
+    max-width: 1000px;
+    margin: 36px auto 0 auto;
+    background: #fdfdfd;
+    border-radius: 20px;
+    box-shadow: 0 6px 32px rgba(60,45,205,0.07);
+    overflow: hidden;
+    padding-bottom: 36px;
+  }
+  .banner {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(to right, #00205B, #00857D);
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 30px 34px 22px 34px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 2px 8px rgba(80,100,255,0.08);
+  }
+  .banner-logo {
+    height: 54px; width: auto; background: #fff; border-radius: 12px; padding: 8px; box-sizing: border-box;
+  }
+  .banner-title-centered { flex: 1; text-align: center; line-height: 120%; font-size: 2rem; font-weight: 700; }
+  .container { padding: 40px; }
+  h2 { margin-top: 0; color: #00857D; text-align: center; font-size: 1.3rem; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 14px; margin-bottom: 32px;}
+  th, td { padding: 13px 16px; border-radius: 14px; font-size: 1rem; }
+  th { color: #003766; background: #f9f9fa; font-weight: 700; }
+  tbody tr { background: #f8fcff; box-shadow: 0 2px 8px rgba(0,115,230,0.03);}
+  .badge { display: inline-block; padding: 7px 17px; border-radius: 9px; font-weight: 600;}
+  .badge.active { background: #d4edda; color: #155724;}
+  .badge.expired { background: #fdecea; color: #721c24;}
+  td .percent { font-weight:600; color: #00857d;}
+  .error { margin: 20px auto 0 auto; background:#ffe6e6; color:#c00; padding:20px; border-radius:12px; border-left:4px solid #dc3545; max-width:700px;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="main-wrapper">
+  <div class="banner">
+    <img src="logo.png" alt="Logo" class="banner-logo"/>
+    <span class="banner-title-centered">My Course Progress</span>
+  </div>
+  <div class="container">
+    <h2>Your Enrolled Courses and Progress</h2>
+    <table id="enrollments-table" style="display:none;">
+      <thead>
+        <tr>
+          <th>Course Title</th>
+          <th>Status</th>
+          <th>Completion %</th>
+          <th>Time Spent (mins)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="progress-error" class="error" style="display:none;"></p>
+  </div>
+</div>
+<script>
+  const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...Z95_c29_ZY'; // use your actual anon key
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function fetchMyProgress() {
+    // Ensure session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      showError("You must be logged in to view your progress.");
+      return;
+    }
+    // 1. Get all enrollments for this learner
+    const { data: enrollments, error } = await supabase
+      .from('enrollments')
+      .select('id, course_id, status, completion_percentage, time_spent_minutes')
+      .eq('learner_id', session.user.id);
+
+    if (error) { showError("Could not load your enrollments. " + error.message); return; }
+    if (!enrollments.length) { showError("No enrollments found."); return; }
+
+    // 2. Load courses metadata in a single query (batch fetch)
+    const courseIds = enrollments.map(e=>e.course_id);
+    const { data: courses, error: courseError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .in('id', courseIds);
+
+    if (courseError) { showError("Could not load course info."); return; }
+    const courseMap = Object.fromEntries(courses.map(c => [c.id, c.title]));
+
+    // 3. Render enrollments
+    const tbody = document.getElementById('enrollments-table').querySelector('tbody');
+    tbody.innerHTML = '';
+    enrollments.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${courseMap[e.course_id] || 'N/A'}</td>
+        <td><span class="badge ${e.status === 'active' ? 'active' : (e.status === 'expired' ? 'expired' : '')}">
+          ${e.status ? e.status.charAt(0).toUpperCase()+e.status.slice(1) : 'N/A'}
+        </span></td>
+        <td><span class="percent">${e.completion_percentage != null ? e.completion_percentage + '%' : 'N/A'}</span></td>
+        <td>${e.time_spent_minutes != null ? e.time_spent_minutes : 'N/A'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('enrollments-table').style.display = 'table';
+  }
+
+  function showError(msg) {
+    const errElem = document.getElementById('progress-error');
+    errElem.textContent = msg;
+    errElem.style.display = 'block';
+    document.getElementById('enrollments-table').style.display = 'none';
+  }
+
+  fetchMyProgress();
+</script>
+</body>
+</html>
