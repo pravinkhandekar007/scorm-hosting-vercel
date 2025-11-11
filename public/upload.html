@@ -19,15 +19,16 @@
       border-radius: 20px;
       box-shadow: 0 8px 40px 0 rgba(23,50,140,0.09);
       background: #fff;
-      overflow: hidden; /* keeps top and bottom joined */
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
     .banner {
       width: 100%;
+      box-sizing: border-box;
       background: linear-gradient(90deg, #00205B, #00857D);
       color: #fff;
-      padding: 32px 0 18px 0;
+      padding: 32px 36px 18px 36px;
       font-size: 2rem;
       font-weight: 700;
       text-align: center;
@@ -35,22 +36,22 @@
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
       margin: 0;
-      box-shadow: none;
     }
     .container {
       width: 100%;
+      box-sizing: border-box;
       background: #fff;
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
       padding: 36px 36px 36px 36px;
       margin: 0;
-      box-shadow: none;
     }
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
+      width: 100%;
     }
     .nav-link a {
       color: #2574ea;
@@ -72,6 +73,10 @@
       cursor: pointer;
       transition: background .2s;
       display: none;
+      /* Prevents overflow on narrow screens */
+      white-space: nowrap;
+      min-width: 86px;
+      text-align: center;
     }
     #logout-button:hover {
       background: #2d343b;
@@ -208,24 +213,28 @@
     .btn-secondary:hover {
       background: linear-gradient(90deg, #5a6268 0%, #495057 100%);
     }
-    @media (max-width: 800px) {
-      .center-card {
-        max-width: 98vw;
-      }
-      .container { padding: 14px 4vw 22px 4vw; }
+    @media (max-width: 900px) {
+      .center-card { max-width: 99vw; }
+      .banner, .container { padding-left: 18px; padding-right: 18px; }
     }
-    @media (max-width: 520px) {
-      .center-card, .banner, .container { max-width: 99vw; }
-      .container { padding: 10px 2vw 16px 2vw; }
-      .action-buttons { flex-direction: column; gap: 12px; }
-      #upload-button { width: 100%; }
+    @media (max-width: 600px) {
+      .banner, .container { padding-left: 8px; padding-right: 8px; }
+      #logout-button { min-width: unset; padding: 8px 12px; font-size: 13px; }
+      .container { padding-top: 18px; padding-bottom: 18px; }
+    }
+    @media (max-width: 430px) {
+      .center-card, .banner, .container { max-width: 100vw; }
+      .header-top { flex-direction: column; align-items: stretch; gap: 10px; }
+      #logout-button { width: 100%; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="center-card">
-    <div class="banner">PlayScorm</div>
+    <div class="banner">
+      PlayScorm
+    </div>
     <div class="container">
       <div class="header-top">
         <div class="nav-link">
