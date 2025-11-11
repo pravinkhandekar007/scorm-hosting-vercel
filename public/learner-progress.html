@@ -315,7 +315,14 @@
     trackingContainer.textContent = 'Loading detailed SCORM tracking...';
 
     try {
-      const response = await fetch(`${GET_SCORM_TRACKING_URL}?enrollment_id=${encodeURIComponent(enrollmentId)}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('User not authenticated');
+
+      const response = await fetch(`${GET_SCORM_TRACKING_URL}?enrollment_id=${encodeURIComponent(enrollmentId)}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch SCORM tracking data');
       const result = await response.json();
       if (result.success && result.data.length) renderTrackingData(result.data);
