@@ -1,28 +1,41 @@
-async function deleteCourse(courseSlug) {
-  if (!confirm("Are you sure you want to delete this course?")) return;
+async function deleteCourseBySlug(courseSlug, supabase) {
+  // 1. Get course info with storage size and user
+  const { data: course, error: courseError } = await supabase
+    .from('courses')
+    .select('id, user_id, storage_mb')
+    .eq('course_slug', courseSlug)
+    .single();
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    alert("Login required to delete courses.");
-    return;
+  if (courseError) throw new Error('Course not found or error fetching');
+
+  // 2. Delete files from storage bucket if needed...
+  // (Your existing logic here)
+
+  // 3. Delete course metadata
+  const { error: deleteError } = await supabase
+    .from('courses')
+    .delete()
+    .eq('course_slug', courseSlug);
+
+  if (deleteError) throw new Error('Failed to delete course metadata');
+
+  // 4. Calculate billing period
+  const now = new Date();
+  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59));
+
+  // 5. Call decrement_usage_tracking RPC
+  const { error: usageError } = await supabase.rpc('decrement_usage_tracking', {
+    p_user_id: course.user_id,
+    p_period_start: periodStart.toISOString(),
+    p_period_end: periodEnd.toISOString(),
+    p_storage: course.storage_mb || 0,
+    p_courses: 1
+  });
+
+  if (usageError) {
+    console.warn('Failed to decrement usage_tracking:', usageError.message);
   }
 
-  try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-course?course=${encodeURIComponent(courseSlug)}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
-    });
-    const result = await response.json();
-
-    if (response.ok) {
-      await loadCourses();  // refresh list before alert
-      alert("Course deleted successfully.");
-    } else {
-      alert(`Delete failed: ${result.error || "Unknown error"}`);
-    }
-  } catch (error) {
-    alert("Delete error: " + error.message);
-  }
+  return true;
 }
