@@ -97,45 +97,25 @@
       showError("You must be logged in to view your progress.");
       return;
     }
-
     const { data: enrollments, error } = await supabase
       .from('enrollments')
-      .select('id, course_id, status, completion_percentage, time_spent_minutes')
+      .select('id, course_title, status, completion_percentage, time_spent_minutes')
       .eq('learner_id', session.user.id);
 
-    console.log('Enrollments:', enrollments, 'Error:', error);
-
     if (error) { showError("Could not load your enrollments. " + error.message); return; }
-    if (!enrollments || enrollments.length === 0) { showError("No enrollments found."); return; }
-
-    const courseIds = enrollments.map(e => String(e.course_id)); // force string just in case
-    const { data: courses, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title')
-      .in('id', courseIds);
-
-    console.log('Courses:', courses, 'Course fetch error:', courseError);
-
-    if (courseError) { showError("Could not load course info."); return; }
-
-    const courseMap = Object.fromEntries(courses.map(c => [String(c.id), c.title]));
-
-    console.log('Course Map:', courseMap);
+    if (!enrollments.length) { showError("No enrollments found."); return; }
 
     const tbody = document.getElementById('enrollments-table').querySelector('tbody');
     tbody.innerHTML = '';
     enrollments.forEach(e => {
-      const title = courseMap[String(e.course_id)] || 'N/A';
-      const status = e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : 'N/A';
-      const completion = e.completion_percentage != null ? e.completion_percentage + '%' : 'N/A';
-      const timeSpent = e.time_spent_minutes != null ? e.time_spent_minutes : 'N/A';
-
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${title}</td>
-        <td><span class="badge ${e.status === 'active' ? 'active' : (e.status === 'expired' ? 'expired' : '')}">${status}</span></td>
-        <td><span class="percent">${completion}</span></td>
-        <td>${timeSpent}</td>
+        <td>${e.course_title || 'N/A'}</td>
+        <td><span class="badge ${e.status === 'active' ? 'active' : (e.status === 'expired' ? 'expired' : '')}">
+          ${e.status ? e.status.charAt(0).toUpperCase()+e.status.slice(1) : 'N/A'}
+        </span></td>
+        <td><span class="percent">${e.completion_percentage != null ? e.completion_percentage + '%' : 'N/A'}</span></td>
+        <td>${e.time_spent_minutes != null ? e.time_spent_minutes : 'N/A'}</td>
       `;
       tbody.appendChild(tr);
     });
