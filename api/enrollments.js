@@ -42,8 +42,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { course_id, learner_email, learner_name } = req.body;
-    if (!course_id || !learner_email || !learner_name) {
+    const { course_id, course_title, learner_email, learner_name } = req.body;
+    if (!course_id || !course_title || !learner_email || !learner_name) {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
@@ -106,11 +106,12 @@ export default async function handler(req, res) {
 
     if (existingEnrollment) return res.status(409).json({ error: "Already enrolled." });
 
-    // Insert enrollment record
+    // Insert enrollment record including the course_title
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("enrollments")
       .insert({
         course_id,
+        course_title,
         learner_id,
         learner_email: learner_email.toLowerCase(),
         learner_name,
