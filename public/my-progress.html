@@ -88,7 +88,7 @@
 </div>
 <script>
   const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY'; // use your actual anon key
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   async function fetchMyProgress() {
@@ -103,29 +103,39 @@
       .select('id, course_id, status, completion_percentage, time_spent_minutes')
       .eq('learner_id', session.user.id);
 
-    if (error) { showError("Could not load your enrollments. " + error.message); return; }
-    if (!enrollments.length) { showError("No enrollments found."); return; }
+    console.log('Enrollments:', enrollments, 'Error:', error);
 
-    const courseIds = enrollments.map(e => e.course_id);
+    if (error) { showError("Could not load your enrollments. " + error.message); return; }
+    if (!enrollments || enrollments.length === 0) { showError("No enrollments found."); return; }
+
+    const courseIds = enrollments.map(e => String(e.course_id)); // force string just in case
     const { data: courses, error: courseError } = await supabase
       .from('courses')
       .select('id, title')
       .in('id', courseIds);
 
+    console.log('Courses:', courses, 'Course fetch error:', courseError);
+
     if (courseError) { showError("Could not load course info."); return; }
-    const courseMap = Object.fromEntries(courses.map(c => [c.id, c.title]));
+
+    const courseMap = Object.fromEntries(courses.map(c => [String(c.id), c.title]));
+
+    console.log('Course Map:', courseMap);
 
     const tbody = document.getElementById('enrollments-table').querySelector('tbody');
     tbody.innerHTML = '';
     enrollments.forEach(e => {
+      const title = courseMap[String(e.course_id)] || 'N/A';
+      const status = e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : 'N/A';
+      const completion = e.completion_percentage != null ? e.completion_percentage + '%' : 'N/A';
+      const timeSpent = e.time_spent_minutes != null ? e.time_spent_minutes : 'N/A';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${courseMap[e.course_id] || 'N/A'}</td>
-        <td><span class="badge ${e.status === 'active' ? 'active' : (e.status === 'expired' ? 'expired' : '')}">
-          ${e.status ? e.status.charAt(0).toUpperCase()+e.status.slice(1) : 'N/A'}
-        </span></td>
-        <td><span class="percent">${e.completion_percentage != null ? e.completion_percentage + '%' : 'N/A'}</span></td>
-        <td>${e.time_spent_minutes != null ? e.time_spent_minutes : 'N/A'}</td>
+        <td>${title}</td>
+        <td><span class="badge ${e.status === 'active' ? 'active' : (e.status === 'expired' ? 'expired' : '')}">${status}</span></td>
+        <td><span class="percent">${completion}</span></td>
+        <td>${timeSpent}</td>
       `;
       tbody.appendChild(tr);
     });
