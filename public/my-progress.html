@@ -36,6 +36,20 @@
   }
   .banner-title-centered { flex: 1; text-align: center; line-height: 120%; font-size: 2rem; font-weight: 700; }
   .container { padding: 40px; }
+  .back-btn {
+    display: inline-block;
+    background: #00857D;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+  }
+  .back-btn:hover {
+    background-color: #005f54;
+  }
   h2 { margin-top: 0; color: #00857D; text-align: center; font-size: 1.3rem; }
   table { width: 100%; border-collapse: separate; border-spacing: 0 14px; margin-bottom: 32px;}
   th, td { padding: 13px 16px; border-radius: 14px; font-size: 1rem; }
@@ -56,6 +70,7 @@
     <span class="banner-title-centered">My Course Progress</span>
   </div>
   <div class="container">
+    <a href="dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
     <h2>Your Enrolled Courses and Progress</h2>
     <table id="enrollments-table" style="display:none;">
       <thead>
@@ -77,13 +92,12 @@
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   async function fetchMyProgress() {
-    // Ensure session
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       showError("You must be logged in to view your progress.");
       return;
     }
-    // 1. Get all enrollments for this learner
+
     const { data: enrollments, error } = await supabase
       .from('enrollments')
       .select('id, course_id, status, completion_percentage, time_spent_minutes')
@@ -92,8 +106,7 @@
     if (error) { showError("Could not load your enrollments. " + error.message); return; }
     if (!enrollments.length) { showError("No enrollments found."); return; }
 
-    // 2. Load courses metadata in a single query (batch fetch)
-    const courseIds = enrollments.map(e=>e.course_id);
+    const courseIds = enrollments.map(e => e.course_id);
     const { data: courses, error: courseError } = await supabase
       .from('courses')
       .select('id, title')
@@ -102,7 +115,6 @@
     if (courseError) { showError("Could not load course info."); return; }
     const courseMap = Object.fromEntries(courses.map(c => [c.id, c.title]));
 
-    // 3. Render enrollments
     const tbody = document.getElementById('enrollments-table').querySelector('tbody');
     tbody.innerHTML = '';
     enrollments.forEach(e => {
