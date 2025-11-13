@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
-        /* Existing styles unchanged */
-        /* Additional styles for plan info section */
+        /* your existing styles unchanged... */
+        
+        /* added styles for plan info */
         .plan-info {
             margin-bottom: 20px;
             padding: 15px 20px;
@@ -52,8 +53,8 @@
             <h1 class="banner-title">PlayScorm Dashboard</h1>
         </div>
         <div class="container">
-
-            <!-- Plan and storage usage display -->
+            
+            <!-- Plan and storage quota display -->
             <div class="plan-info" id="plan-info" style="display:none;">
                 Plan: <span id="plan-name">Loading...</span>
                 Storage Used: <span id="storage-used">-</span> / <span id="storage-quota">-</span> MB
@@ -76,7 +77,7 @@
                 <a href="upload.html" class="btn btn-success" id="upload-course-btn">📤 Upload New Course</a>
                 <button class="btn btn-primary" onclick="refreshCourses()">🔄 Refresh List</button>
             </div>
-
+            
             <div class="courses-section">
                <div id="loading">Loading your courses...</div>
                 <div id="courses-list"></div>
@@ -122,6 +123,7 @@
                 }
 
                 document.getElementById('user-email').textContent = displayName;
+
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (userRole === 'owner') {
                     uploadBtn.style.display = 'inline-block';
@@ -129,7 +131,6 @@
                     uploadBtn.style.display = 'none';
                 }
 
-                // Load and display user's plan usage
                 if (userRole === 'owner') {
                     await loadUserPlanAndUsage(userId);
                 }
@@ -145,11 +146,11 @@
             try {
                 const { data: plan, error: planError } = await supabase
                     .from('user_plans')
-                    .select('plan_name, storage_quota')
+                    .select('tier, storage_limit_mb')
                     .eq('user_id', userId)
                     .single();
 
-                if(planError || !plan) throw planError || new Error('User plan not found');
+                if (planError || !plan) throw planError || new Error('User plan not found');
 
                 const { data: usage, error: usageError } = await supabase
                     .from('usage_tracking')
@@ -157,16 +158,16 @@
                     .eq('owner_id', userId)
                     .single();
 
-                if(usageError || !usage) throw usageError || new Error('Usage data not found');
+                if (usageError || !usage) throw usageError || new Error('Usage data not found');
 
                 const usedMB = (usage.storage_used / (1024 * 1024)).toFixed(2);
-                const quotaMB = (plan.storage_quota / (1024 * 1024)).toFixed(2);
+                const quotaMB = plan.storage_limit_mb; // Assumed already in MB
 
-                document.getElementById('plan-name').textContent = plan.plan_name;
+                document.getElementById('plan-name').textContent = plan.tier;
                 document.getElementById('storage-used').textContent = usedMB;
                 document.getElementById('storage-quota').textContent = quotaMB;
 
-                const percent = (usage.storage_used / plan.storage_quota) * 100;
+                const percent = (usedMB / quotaMB) * 100;
                 const progressBar = document.getElementById('storage-progress');
                 progressBar.value = percent > 100 ? 100 : percent;
 
@@ -174,14 +175,12 @@
                 planInfoDiv.style.display = 'flex';
 
                 const upgradeBtn = document.getElementById('upgrade-btn');
-                // Show upgrade button if over 90% quota
                 if (percent >= 90) {
                     upgradeBtn.style.display = 'inline-block';
                 } else {
                     upgradeBtn.style.display = 'none';
                 }
 
-                // Disable upload button if quota exceeded
                 const uploadBtn = document.getElementById('upload-course-btn');
                 if (percent >= 100) {
                     uploadBtn.disabled = true;
@@ -194,17 +193,149 @@
                     uploadBtn.classList.remove('btn-secondary');
                     uploadBtn.classList.add('btn-success');
                 }
-
             } catch (error) {
                 console.error('Error loading user plan or usage:', error);
             }
         }
 
-        // ... Existing functions unmodified ...
+        // ... your existing functions below unchanged ...
 
         async function loadCourses(userId, userRole) {
-            // Existing loadCourses function code unchanged
-            // ...
+            const loadingDiv = document.getElementById('loading');
+            const coursesDiv = document.getElementById('courses-list');
+            loadingDiv.style.display = 'block';
+            coursesDiv.innerHTML = '';
+
+            let courses;
+            let error;
+
+            try {
+                if (userRole === 'owner') {
+                    ({ data: courses, error } = await supabase
+                        .from('courses')
+                        .select('id, course_slug, title, is_public, public_token, expires_at')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false }));
+                } else {
+                    const { data: { session } } = await supabase.auth.getSession();
+
+                    const response = await fetch('/api/get-learner-courses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ learner_id: userId })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.data) {
+                        courses = result.data.map(enrollment => {
+                            const c = enrollment.course || {};
+                            return {
+                                id: c.id,
+                                course_slug: c.course_slug,
+                                title: c.title,
+                                expires_at: c.expires_at,
+                                is_public: c.is_public,
+                                public_token: c.public_token,
+                                enrollment_id: enrollment.id
+                            };
+                        });
+                        error = null;
+                    } else {
+                        error = new Error(result.error || 'Failed to fetch enrolled courses');
+                        courses = [];
+                    }
+                }
+
+                loadingDiv.style.display = 'none';
+
+                if (error) {
+                    coursesDiv.innerHTML = `<div class="empty-state error-message">Error: ${error.message}</div>`;
+                    return;
+                }
+
+                if (!courses || courses.length === 0) {
+                    coursesDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
+                            <a href="upload.html" class="btn btn-success" style="display:${userRole === 'owner' ? 'inline-block' : 'none'};" id="empty-upload-btn">Upload Your First Course</a>
+                        </div>`;
+                    return;
+                }
+
+                coursesDiv.innerHTML = courses.map(course => {
+                    const timeInfo = calculateTimeRemaining(course.expires_at);
+                    const badgeClass = timeInfo.status === 'active' ? 'active' : timeInfo.status === 'warning' ? 'warning' : 'expiring';
+
+                    if (userRole === 'owner') {
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="player.html?course=${encodeURIComponent(course.course_slug)}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="enrollments.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-info btn-small" title="Manage Enrollments">👥 Enrollments</a>
+                                <a href="learner-progress.html?course_id=${encodeURIComponent(course.id)}"
+                                   class="btn btn-secondary btn-small" title="Learner Progress">📊 View Learner Progress</a>
+                                <button class="btn btn-secondary btn-small"
+                                        onclick="copyURL('${course.course_slug}')">🔗 Copy URL</button>
+                                <button class="btn btn-danger btn-small"
+                                        onclick="deleteCourse('${course.course_slug}')">🗑️ Delete</button>
+                                <div class="public-controls">
+                                    ${course.is_public
+                                        ? `<span class="public-badge">🌐 Public</span>
+                                           <button class="btn btn-small btn-success"
+                                                   onclick="copyPublicLink('${course.public_token}')">
+                                                   Copy Public Link
+                                           </button>
+                                           <button class="btn btn-small btn-danger"
+                                                   onclick="revokePublicAccess('${course.course_slug}')">
+                                                   Revoke Public
+                                           </button>`
+                                        : `<button class="btn btn-small btn-success"
+                                                   onclick="generatePublicLink('${course.course_slug}')">
+                                                   Make Public
+                                           </button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    } else {
+                        const launchUrl = `/player.html?course=${encodeURIComponent(course.course_slug)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}&learner_id=${encodeURIComponent(userId)}`;
+                        const progressUrl = `my-progress.html?course_id=${encodeURIComponent(course.id)}&enrollment_id=${encodeURIComponent(course.enrollment_id)}`;
+                        return `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">${course.title}</div>
+                                <div class="valid-for-badge ${badgeClass}">
+                                    ⏱️ Valid for: ${timeInfo.display}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <a href="${launchUrl}"
+                                   target="_blank" class="btn btn-primary btn-small">▶️ Launch</a>
+                                <a href="${progressUrl}" 
+                                   class="btn btn-secondary btn-small" title="View My Progress">📊 View My Progress</a>
+                            </div>
+                        </div>
+                        `;
+                    }
+                }).join('');
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
+            }
         }
 
         window.refreshCourses = async function() {
