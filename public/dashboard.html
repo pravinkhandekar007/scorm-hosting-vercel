@@ -782,7 +782,9 @@
             alert("Delete error: " + error.message);
         }
     }
-
+window.goToUpgradePage = function() {
+    window.location.href = 'upgrade-plan.html';
+}
     // ===== UPDATED LOGOUT FUNCTION: Unsubscribe from realtime =====
     window.logout = async function() {
         // Unsubscribe from realtime updates before logout
