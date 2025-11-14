@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Dashboard - PlayScorm</title>
   <style>
-    /* Your original CSS styles exactly as provided */
+    /* Your original CSS styles */
     body {
       margin: 0;
       min-height: 100vh;
@@ -432,7 +432,6 @@
         window.location.href = 'login.html';
         return;
       }
-
       userId = session.user.id;
 
       try {
@@ -443,7 +442,6 @@
           .single();
 
         let displayName = session.user.email;
-
         if (profile) {
           displayName = profile.full_name || displayName;
           userRole = profile.role || 'learner';
@@ -458,7 +456,7 @@
           uploadBtn.style.display = 'none';
         }
 
-        if(userRole === 'owner'){
+        if (userRole === 'owner') {
           await refreshStorageUsage();
           subscribeToUsageTracking();
         }
@@ -466,12 +464,12 @@
         console.error('Error loading profile:', error);
         document.getElementById('user-email').textContent = session.user.email;
       }
-
       await loadCourses(userId, userRole);
     }
 
     async function refreshStorageUsage() {
-      if(!userId) return;
+      if (!userId) return;
+
       try {
         const { data: plan, error: planError } = await supabase
           .from('user_plans')
@@ -479,7 +477,7 @@
           .eq('user_id', userId)
           .single();
 
-        if(planError || !plan){
+        if (planError || !plan) {
           document.getElementById('footer-plan-info').style.display = 'none';
           return;
         }
@@ -490,7 +488,7 @@
           .eq('owner_id', userId)
           .single();
 
-        if(usageError && usageError.code !== 'PGRST116'){
+        if (usageError && usageError.code !== 'PGRST116') {
           console.error('Usage fetch error:', usageError);
           return;
         }
@@ -505,7 +503,7 @@
         document.getElementById('footer-plan-info').style.display = 'flex';
 
         const uploadBtn = document.getElementById('upload-course-btn');
-        if(usedMB >= quotaMB){
+        if (usedMB >= quotaMB) {
           uploadBtn.disabled = true;
           uploadBtn.title = 'Storage quota exceeded. Please upgrade your plan to upload more courses.';
           uploadBtn.classList.remove('btn-success');
@@ -517,20 +515,20 @@
           uploadBtn.classList.add('btn-success');
         }
 
+        // Update progress bar
         const progress = document.getElementById('storage-progress');
         const percent = quotaMB > 0 ? Math.min(100, (usedMB / quotaMB) * 100) : 0;
-        if(progress) {
+        if (progress) {
           progress.max = 100;
           progress.value = percent;
         }
-
-      } catch(e){
+      } catch (e) {
         console.error('Error refreshing storage usage:', e);
       }
     }
 
-    function subscribeToUsageTracking(){
-      if(window.usageSubscription){
+    function subscribeToUsageTracking() {
+      if (window.usageSubscription) {
         supabase.removeChannel(window.usageSubscription);
       }
       window.usageSubscription = supabase.channel('usage_tracking_realtime')
@@ -675,15 +673,13 @@
             `;
           }
         }).join('');
-      } catch (error) {
+      } catch(e) {
         loadingDiv.style.display = 'none';
-        document.getElementById('courses-list').innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
+        document.getElementById('courses-list').innerHTML = `<div class="empty-state error-message">Error loading courses: ${e.message}</div>`;
       }
     }
 
-    window.refreshCourses = async function() {
-      await loadCourses(userId, userRole);
-    };
+    window.refreshCourses = async function() { await loadCourses(userId, userRole); };
 
     window.copyURL = function(courseSlug) {
       const link = `${window.location.origin}/player.html?course=${encodeURIComponent(courseSlug)}`;
@@ -708,30 +704,30 @@
         navigator.clipboard.writeText(url);
         alert('Public link copied to clipboard!');
         loadCourses(userId, userRole);
-      } catch (err) {
+      } catch(err) {
         alert('Error: ' + err.message);
       }
     };
 
     window.revokePublicAccess = async function(courseSlug) {
-      if (!confirm('Revoke public access?')) return;
+      if(!confirm('Revoke public access?')) return;
       try {
         const { error } = await supabase
           .from('courses')
           .update({ is_public: false })
           .eq('course_slug', courseSlug);
-        if (error) throw error;
+        if(error) throw error;
         alert('Public access revoked');
         loadCourses(userId, userRole);
-      } catch (err) {
+      } catch(err) {
         alert('Error: ' + err.message);
       }
     };
 
     window.deleteCourse = async function(courseSlug) {
-      if (!confirm("Are you sure you want to delete this course?")) return;
+      if(!confirm("Are you sure you want to delete this course?")) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      if(!session) {
         alert("Login required to delete courses.");
         return;
       }
@@ -741,21 +737,21 @@
           headers: { Authorization: `Bearer ${session.access_token}` }
         });
         const result = await response.json();
-        if (response.ok) {
+        if(response.ok) {
           alert("Course deleted successfully.");
           await loadCourses(userId, userRole);
-          await refreshStorageUsage();
+          await refreshStorageUsage(); // Refresh storage usage after delete
         } else {
           alert(`Delete failed: ${result.error || "Unknown error"}`);
         }
-      } catch (error) {
-        alert("Delete error: " + error.message);
+      } catch(e) {
+        alert("Delete error: " + e.message);
       }
     };
 
     window.logout = async function() {
       const { error } = await supabase.auth.signOut();
-      if (error) console.error('Logout error:', error);
+      if(error) console.error('Logout error:', error);
       window.location.href = 'login.html';
     };
   </script>
