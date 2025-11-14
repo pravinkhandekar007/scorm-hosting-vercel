@@ -269,6 +269,108 @@
             border-left: 4px solid #dc3545;
             font-weight: 500;
         }
+
+        /* NEW: Footer Plan Info Styling */
+        #footer-plan-info {
+            margin-top: 30px;
+            padding: 20px 25px;
+            border-top: 3px solid #e9ecef;
+            background: linear-gradient(135deg, #f7fbff 0%, #e3f2fd 100%);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 131, 141, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer-plan-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-storage-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .footer-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00205B;
+        }
+
+        .footer-divider {
+            width: 2px;
+            height: 50px;
+            background: #ddd;
+            margin: 0 10px;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-actions .btn {
+            padding: 10px 18px;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .storage-bar-container {
+            width: 200px;
+            margin-top: 8px;
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .storage-bar-fill.warning {
+            background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+        }
+
+        .storage-bar-fill.danger {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .storage-info-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
         @media (max-width: 1200px) {
             .course-item {
                 flex-direction: column;
@@ -293,7 +395,15 @@
             .header-actions {
                 width: 100%;
             }
+            .footer-divider {
+                display: none;
+            }
+            #footer-plan-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
+
         @media (max-width: 768px) {
             .container {
                 padding: 30px 25px;
@@ -311,23 +421,17 @@
             .nav-buttons .btn {
                 width: 100%;
             }
-        }
-        /* Footer plan and usage bar styling */
-        #footer-plan-info {
-            margin-top: 30px;
-            padding: 15px 25px;
-            border-top: 2px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: #004681;
-            background-color: #f7fbff;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,131,141,0.15);
-            font-size: 1rem;
-            flex-wrap: wrap;
-            gap: 15px;
+            #footer-plan-info {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .footer-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+            .footer-actions .btn {
+                flex: 1;
+            }
         }
     </style>
 </head>
@@ -359,15 +463,45 @@
                 <div id="courses-list"></div>
             </div>
 
-            <!-- Footer plan and usage display -->
+            <!-- NEW: Enhanced Footer Plan Info with Better Layout -->
             <div id="footer-plan-info" style="display:none;">
-                <div style="flex: 1; display: flex; gap: 20px; align-items: center;">
-                    <div id="footer-plan-tier">Plan: -</div>
-                    <div id="footer-storage-usage">Storage Used: - MB / - MB</div>
+                <!-- Plan Section -->
+                <div class="footer-section">
+                    <div class="footer-plan-section">
+                        <div class="footer-label">📋 Current Plan</div>
+                        <div class="footer-value" id="footer-plan-tier">Free</div>
+                    </div>
                 </div>
-                <button class="btn btn-success" id="upgrade-plan-btn" onclick="goToUpgradePage()" style="display: none;">
-                    ⬆️ Upgrade Plan
-                </button>
+
+                <!-- Divider -->
+                <div class="footer-divider"></div>
+
+                <!-- Storage Section -->
+                <div class="footer-section">
+                    <div class="footer-storage-section">
+                        <div class="footer-label">💾 Storage Usage</div>
+                        <div class="footer-value" id="footer-storage-usage">0.00 MB / 100 MB</div>
+                        <div class="storage-bar-container">
+                            <div class="storage-bar">
+                                <div class="storage-bar-fill" id="storage-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="storage-info-text" id="storage-info-text">0% of quota used</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="footer-divider"></div>
+
+                <!-- Action Buttons -->
+                <div class="footer-actions">
+                    <button class="btn btn-info btn-small" id="view-plans-btn" onclick="goToUpgradePage()">
+                        📊 View Plans
+                    </button>
+                    <button class="btn btn-success btn-small" id="upgrade-plan-btn" onclick="goToUpgradePage()" style="display: none;">
+                        ⬆️ Upgrade Now
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -381,7 +515,7 @@
 
         let userRole = 'learner';
         let userId = null;
-        let realtimeChannel = null; // Global variable to store the realtime channel
+        let realtimeChannel = null;
 
         function calculateTimeRemaining(expiresAt) {
             if (!expiresAt) {
@@ -469,49 +603,42 @@
             await loadCourses(userId, userRole);
         }
 
-        // ===== FUNCTION: Listen to Realtime Updates =====
+        // Listen to Realtime Updates
         async function listenToRealtimeUpdates(userId) {
-            // Unsubscribe from previous channel if exists
             if (realtimeChannel) {
                 await supabase.removeChannel(realtimeChannel);
             }
 
-            // Create a channel for listening to changes
             realtimeChannel = supabase.channel('user-storage-plan-updates');
 
-            // Listen to usage_tracking changes
             realtimeChannel.on(
                 'postgres_changes',
                 {
-                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    event: '*',
                     schema: 'public',
                     table: 'usage_tracking',
-                    filter: `user_id=eq.${userId}` // Using correct column name from your schema
+                    filter: `user_id=eq.${userId}`
                 },
                 (payload) => {
                     console.log('📊 Storage usage changed:', payload);
-                    // Reload the plan and usage display
                     loadUserPlanAndUsage(userId);
                 }
             );
 
-            // Listen to user_plans changes
             realtimeChannel.on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
                     table: 'user_plans',
-                    filter: `user_id=eq.${userId}` // Using correct column name from your schema
+                    filter: `user_id=eq.${userId}`
                 },
                 (payload) => {
                     console.log('📋 User plan changed:', payload);
-                    // Reload the plan and usage display
                     loadUserPlanAndUsage(userId);
                 }
             );
 
-            // Subscribe to the channel
             realtimeChannel.subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('✅ Subscribed to realtime updates for storage and plan');
@@ -523,9 +650,8 @@
             });
         }
 
-        // ===== UPDATED: Load Plan and Usage with Upgrade Button =====
+        // Load Plan and Usage with Storage Bar
         async function loadUserPlanAndUsage(userId) {
-            // Fetch user plan
             let plan = null;
             try {
                 const planRes = await supabase
@@ -539,7 +665,6 @@
                 if (e.code !== 'PGRST116') console.error('Error fetching user plan:', e);
             }
 
-            // Fetch storage usage
             let usage = null;
             try {
                 const usageRes = await supabase
@@ -558,20 +683,46 @@
                 return;
             }
 
-            // Using correct column name and calculation
             const usedMB = usage ? Number(usage.total_storage_mb) : 0;
             const quotaMB = Number(plan.storage_limit_mb);
+            const percentageUsed = (usedMB / quotaMB) * 100;
 
-            document.getElementById('footer-plan-tier').textContent = `Plan: ${plan.tier}`;
-            document.getElementById('footer-storage-usage').textContent = `Storage Used: ${usedMB.toFixed(2)} MB / ${quotaMB.toFixed(2)} MB`;
+            // Update plan tier
+            document.getElementById('footer-plan-tier').textContent = plan.tier;
+
+            // Update storage usage text
+            document.getElementById('footer-storage-usage').textContent = 
+                `${usedMB.toFixed(2)} MB / ${quotaMB.toFixed(2)} MB`;
+
+            // Update storage bar
+            const storageBarFill = document.getElementById('storage-bar-fill');
+            storageBarFill.style.width = Math.min(percentageUsed, 100) + '%';
+            
+            // Change color based on usage
+            storageBarFill.classList.remove('warning', 'danger');
+            if (percentageUsed >= 90) {
+                storageBarFill.classList.add('danger');
+            } else if (percentageUsed >= 70) {
+                storageBarFill.classList.add('warning');
+            }
+
+            // Update info text
+            document.getElementById('storage-info-text').textContent = 
+                `${Math.round(percentageUsed)}% of quota used`;
+
+            // Show footer
             document.getElementById('footer-plan-info').style.display = 'flex';
 
-            // Show upgrade button if not on Free plan
+            // Show upgrade button for paid plans, show view plans button for all
             const upgradeBtn = document.getElementById('upgrade-plan-btn');
+            const viewPlansBtn = document.getElementById('view-plans-btn');
+
             if (plan.tier !== 'Free') {
                 upgradeBtn.style.display = 'inline-block';
+                viewPlansBtn.style.display = 'none';
             } else {
                 upgradeBtn.style.display = 'none';
+                viewPlansBtn.style.display = 'inline-block';
             }
 
             // Disable upload if quota exceeded
@@ -653,7 +804,6 @@
                                 <p>No courses uploaded yet.</p>
                                 <div class="empty-state-actions">
                                     <a href="upload.html" class="btn btn-success">Upload Your First Course</a>
-                                    <a href="upgrade-plan.html" class="btn btn-info">📊 View Plans</a>
                                 </div>
                             </div>`;
                     } else {
@@ -816,7 +966,6 @@
 
         // Logout function with realtime cleanup
         window.logout = async function() {
-            // Unsubscribe from realtime updates before logout
             if (realtimeChannel) {
                 console.log('🔌 Unsubscribing from realtime channel...');
                 await supabase.removeChannel(realtimeChannel);
