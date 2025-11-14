@@ -470,7 +470,7 @@
 
       const {data: usage, error: usageError} = await supabase
         .from('usage_tracking')
-        .select('storage_used')
+        .select('total_storage_mb')
         .eq('owner_id', userId)
         .single();
       
@@ -479,7 +479,7 @@
         return;
       }
 
-      const usedMB = usage ? usage.storage_used/(1024*1024) : 0;
+      const usedMB = usage ? usage.total_storage_mb/(1024*1024) : 0;
       const quotaMB = Number(plan.storage_limit_mb);
 
       document.getElementById('footer-plan-tier').textContent = `Plan: ${plan.tier}`;
