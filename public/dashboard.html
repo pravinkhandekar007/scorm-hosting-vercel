@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
+        /* Original styles unchanged, plus footer plan styles */
         body {
             margin: 0;
             min-height: 100vh;
@@ -51,6 +52,9 @@
             box-shadow: 0 6px 32px rgba(60,45,205,0.07);
             padding: 40px 50px;
             min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 90px);
         }
         .header {
             display: flex;
@@ -152,7 +156,9 @@
             font-size: 14px;
         }
         .courses-section {
+            flex: 1 1 auto;
             margin-top: 20px;
+            overflow-y: auto;
         }
         .courses-section h2 {
             color: #00205B;
@@ -249,6 +255,12 @@
             margin-bottom: 25px;
             color: #555;
         }
+        .empty-state-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
         .error-message {
             background: #ffe6e6;
             color: #cc0000;
@@ -257,6 +269,108 @@
             border-left: 4px solid #dc3545;
             font-weight: 500;
         }
+
+        /* NEW: Footer Plan Info Styling */
+        #footer-plan-info {
+            margin-top: 30px;
+            padding: 20px 25px;
+            border-top: 3px solid #e9ecef;
+            background: linear-gradient(135deg, #f7fbff 0%, #e3f2fd 100%);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 131, 141, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer-plan-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-storage-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .footer-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00205B;
+        }
+
+        .footer-divider {
+            width: 2px;
+            height: 50px;
+            background: #ddd;
+            margin: 0 10px;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-actions .btn {
+            padding: 10px 18px;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .storage-bar-container {
+            width: 200px;
+            margin-top: 8px;
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .storage-bar-fill.warning {
+            background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+        }
+
+        .storage-bar-fill.danger {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .storage-info-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
         @media (max-width: 1200px) {
             .course-item {
                 flex-direction: column;
@@ -281,7 +395,15 @@
             .header-actions {
                 width: 100%;
             }
+            .footer-divider {
+                display: none;
+            }
+            #footer-plan-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
+
         @media (max-width: 768px) {
             .container {
                 padding: 30px 25px;
@@ -298,6 +420,17 @@
             }
             .nav-buttons .btn {
                 width: 100%;
+            }
+            #footer-plan-info {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .footer-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+            .footer-actions .btn {
+                flex: 1;
             }
         }
     </style>
@@ -326,8 +459,49 @@
             </div>
 
             <div class="courses-section">
-               <div id="loading">Loading your courses...</div>
+                <div id="loading">Loading your courses...</div>
                 <div id="courses-list"></div>
+            </div>
+
+            <!-- NEW: Enhanced Footer Plan Info with Better Layout -->
+            <div id="footer-plan-info" style="display:none;">
+                <!-- Plan Section -->
+                <div class="footer-section">
+                    <div class="footer-plan-section">
+                        <div class="footer-label">📋 Current Plan</div>
+                        <div class="footer-value" id="footer-plan-tier">Free</div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="footer-divider"></div>
+
+                <!-- Storage Section -->
+                <div class="footer-section">
+                    <div class="footer-storage-section">
+                        <div class="footer-label">💾 Storage Usage</div>
+                        <div class="footer-value" id="footer-storage-usage">0.00 MB / 100 MB</div>
+                        <div class="storage-bar-container">
+                            <div class="storage-bar">
+                                <div class="storage-bar-fill" id="storage-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="storage-info-text" id="storage-info-text">0% of quota used</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="footer-divider"></div>
+
+                <!-- Action Buttons -->
+                <div class="footer-actions">
+                    <button class="btn btn-info btn-small" id="view-plans-btn" onclick="goToUpgradePage()">
+                        📊 View Plans
+                    </button>
+                    <button class="btn btn-success btn-small" id="upgrade-plan-btn" onclick="goToUpgradePage()" style="display: none;">
+                        ⬆️ Upgrade Now
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -341,49 +515,7 @@
 
         let userRole = 'learner';
         let userId = null;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuthAndLoadData();
-        });
-
-        async function checkAuthAndLoadData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            userId = session.user.id;
-
-            try {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name, role')
-                    .eq('user_id', session.user.id)
-                    .single();
-
-                let displayName = session.user.email;
-
-                if (profile) {
-                    displayName = profile.full_name || displayName;
-                    userRole = profile.role || 'learner';
-                }
-
-                document.getElementById('user-email').textContent = displayName;
-
-                const uploadBtn = document.getElementById('upload-course-btn');
-                if (userRole === 'owner') {
-                    uploadBtn.style.display = 'inline-block';
-                } else {
-                    uploadBtn.style.display = 'none';
-                }
-
-            } catch (error) {
-                document.getElementById('user-email').textContent = session.user.email;
-            }
-
-            await loadCourses(userId, userRole);
-        }
+        let realtimeChannel = null;
 
         function calculateTimeRemaining(expiresAt) {
             if (!expiresAt) {
@@ -419,6 +551,193 @@
             }
 
             return { days, hours, minutes, status, display };
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthAndLoadData();
+        });
+
+        async function checkAuthAndLoadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            userId = session.user.id;
+
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name, role')
+                    .eq('user_id', userId)
+                    .single();
+
+                let displayName = session.user.email;
+
+                if (profile) {
+                    displayName = profile.full_name || displayName;
+                    userRole = profile.role || 'learner';
+                }
+
+                document.getElementById('user-email').textContent = displayName;
+
+                const uploadBtn = document.getElementById('upload-course-btn');
+                if (userRole === 'owner') {
+                    uploadBtn.style.display = 'inline-block';
+                } else {
+                    uploadBtn.style.display = 'none';
+                }
+
+                if (userRole === 'owner') {
+                    await loadUserPlanAndUsage(userId);
+                    // Start listening to realtime updates
+                    await listenToRealtimeUpdates(userId);
+                }
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('user-email').textContent = session.user.email;
+            }
+
+            await loadCourses(userId, userRole);
+        }
+
+        // Listen to Realtime Updates
+        async function listenToRealtimeUpdates(userId) {
+            if (realtimeChannel) {
+                await supabase.removeChannel(realtimeChannel);
+            }
+
+            realtimeChannel = supabase.channel('user-storage-plan-updates');
+
+            realtimeChannel.on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'usage_tracking',
+                    filter: `user_id=eq.${userId}`
+                },
+                (payload) => {
+                    console.log('📊 Storage usage changed:', payload);
+                    loadUserPlanAndUsage(userId);
+                }
+            );
+
+            realtimeChannel.on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'user_plans',
+                    filter: `user_id=eq.${userId}`
+                },
+                (payload) => {
+                    console.log('📋 User plan changed:', payload);
+                    loadUserPlanAndUsage(userId);
+                }
+            );
+
+            realtimeChannel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Subscribed to realtime updates for storage and plan');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Failed to subscribe to realtime updates');
+                } else if (status === 'CLOSED') {
+                    console.log('⚠️ Realtime channel closed');
+                }
+            });
+        }
+
+        // Load Plan and Usage with Storage Bar
+        async function loadUserPlanAndUsage(userId) {
+            let plan = null;
+            try {
+                const planRes = await supabase
+                    .from('user_plans')
+                    .select('tier, storage_limit_mb')
+                    .eq('user_id', userId)
+                    .limit(1)
+                    .single();
+                plan = planRes.data || null;
+            } catch (e) {
+                if (e.code !== 'PGRST116') console.error('Error fetching user plan:', e);
+            }
+
+            let usage = null;
+            try {
+                const usageRes = await supabase
+                    .from('usage_tracking')
+                    .select('total_storage_mb')
+                    .eq('user_id', userId)
+                    .limit(1)
+                    .single();
+                usage = usageRes.data || null;
+            } catch (e) {
+                if (e.code !== 'PGRST116') console.error('Error fetching usage:', e);
+            }
+
+            if (!plan) {
+                document.getElementById('footer-plan-info').style.display = 'none';
+                return;
+            }
+
+            const usedMB = usage ? Number(usage.total_storage_mb) : 0;
+            const quotaMB = Number(plan.storage_limit_mb);
+            const percentageUsed = (usedMB / quotaMB) * 100;
+
+            // Update plan tier
+            document.getElementById('footer-plan-tier').textContent = plan.tier;
+
+            // Update storage usage text
+            document.getElementById('footer-storage-usage').textContent = 
+                `${usedMB.toFixed(2)} MB / ${quotaMB.toFixed(2)} MB`;
+
+            // Update storage bar
+            const storageBarFill = document.getElementById('storage-bar-fill');
+            storageBarFill.style.width = Math.min(percentageUsed, 100) + '%';
+            
+            // Change color based on usage
+            storageBarFill.classList.remove('warning', 'danger');
+            if (percentageUsed >= 90) {
+                storageBarFill.classList.add('danger');
+            } else if (percentageUsed >= 70) {
+                storageBarFill.classList.add('warning');
+            }
+
+            // Update info text
+            document.getElementById('storage-info-text').textContent = 
+                `${Math.round(percentageUsed)}% of quota used`;
+
+            // Show footer
+            document.getElementById('footer-plan-info').style.display = 'flex';
+
+            // Show upgrade button for paid plans, show view plans button for all
+            const upgradeBtn = document.getElementById('upgrade-plan-btn');
+            const viewPlansBtn = document.getElementById('view-plans-btn');
+
+            if (plan.tier !== 'Free') {
+                upgradeBtn.style.display = 'inline-block';
+                viewPlansBtn.style.display = 'none';
+            } else {
+                upgradeBtn.style.display = 'none';
+                viewPlansBtn.style.display = 'inline-block';
+            }
+
+            // Disable upload if quota exceeded
+            const uploadBtn = document.getElementById('upload-course-btn');
+            if (usedMB >= quotaMB) {
+                uploadBtn.disabled = true;
+                uploadBtn.title = 'Storage quota exceeded. Please upgrade your plan to upload more courses.';
+                uploadBtn.classList.remove('btn-success');
+                uploadBtn.classList.add('btn-secondary');
+            } else {
+                uploadBtn.disabled = false;
+                uploadBtn.title = '';
+                uploadBtn.classList.remove('btn-secondary');
+                uploadBtn.classList.add('btn-success');
+            }
         }
 
         async function loadCourses(userId, userRole) {
@@ -479,11 +798,20 @@
                 }
 
                 if (!courses || courses.length === 0) {
-                    coursesDiv.innerHTML = `
-                        <div class="empty-state">
-                            <p>${userRole === 'owner' ? 'No courses uploaded yet.' : 'No courses enrolled yet.'}</p>
-                            <a href="upload.html" class="btn btn-success" style="display:${userRole === 'owner' ? 'inline-block' : 'none'};" id="empty-upload-btn">Upload Your First Course</a>
-                        </div>`;
+                    if (userRole === 'owner') {
+                        coursesDiv.innerHTML = `
+                            <div class="empty-state">
+                                <p>No courses uploaded yet.</p>
+                                <div class="empty-state-actions">
+                                    <a href="upload.html" class="btn btn-success">Upload Your First Course</a>
+                                </div>
+                            </div>`;
+                    } else {
+                        coursesDiv.innerHTML = `
+                            <div class="empty-state">
+                                <p>No courses enrolled yet.</p>
+                            </div>`;
+                    }
                     return;
                 }
 
@@ -552,7 +880,6 @@
                         `;
                     }
                 }).join('');
-
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
@@ -632,7 +959,19 @@
             }
         }
 
+        // Navigate to upgrade plan page
+        window.goToUpgradePage = function() {
+            window.location.href = 'upgrade-plan.html';
+        }
+
+        // Logout function with realtime cleanup
         window.logout = async function() {
+            if (realtimeChannel) {
+                console.log('🔌 Unsubscribing from realtime channel...');
+                await supabase.removeChannel(realtimeChannel);
+                realtimeChannel = null;
+            }
+
             const { error } = await supabase.auth.signOut();
             if (error) console.error('Logout error:', error);
             window.location.href = 'login.html';

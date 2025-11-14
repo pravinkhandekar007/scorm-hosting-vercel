@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Upgrade Plan - PlayScorm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #C0C0C0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: linear-gradient(to right, #00205B, #00857D);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 15px 0 12px 0;
+            letter-spacing: 1px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 2px 8px rgba(80, 100, 255, 0.09);
+        }
+
+        .banner-logo {
+            height: 54px;
+            width: auto;
+            margin-left: 38px;
+            margin-right: 22px;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .banner-title {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+        }
+
+        .container {
+            background: #fdfdfd;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 6px 32px rgba(60, 45, 205, 0.07);
+            padding: 40px 50px;
+            min-height: calc(100vh - 90px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .header h1 {
+            color: #0073e6;
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .back-button {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .plans-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .plan-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            border-color: #0073e6;
+            box-shadow: 0 8px 24px rgba(0, 115, 230, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .plan-card.current {
+            border-color: #28a745;
+            background: #f0f9f5;
+        }
+
+        .plan-card.current::before {
+            content: "CURRENT PLAN";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00205B;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0073e6;
+            margin-bottom: 5px;
+        }
+
+        .plan-price-period {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .plan-description {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 20px;
+            min-height: 40px;
+        }
+
+        .plan-features {
+            flex: 1;
+            margin-bottom: 25px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #e3f2fd;
+            border-radius: 50%;
+            color: #0073e6;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .plan-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .plan-button.primary {
+            background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+            color: white;
+        }
+
+        .plan-button.primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(120, 83, 250, 0.3);
+        }
+
+        .plan-button.success {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .plan-button.success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .plan-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .plan-button.current {
+            background: #e9ecef;
+            color: #666;
+            cursor: default;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #0073e6;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            color: #00205B;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00205B;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-button.primary {
+            background: linear-gradient(90deg, #7853fa 55%, #008fd5 100%);
+            color: white;
+        }
+
+        .modal-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(120, 83, 250, 0.3);
+        }
+
+        .modal-button.secondary {
+            background: #e9ecef;
+            color: #666;
+        }
+
+        .modal-button.secondary:hover {
+            background: #dee2e6;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .plans-container {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-price {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="banner">
+            <img src="logo.png" alt="PlayScorm Logo" class="banner-logo" />
+            <h1 class="banner-title">Choose Your Plan</h1>
+        </div>
+        <div class="container">
+            <div class="header">
+                <h1>💳 Upgrade Your Plan</h1>
+                <button class="back-button" onclick="goBack()">← Back to Dashboard</button>
+            </div>
+
+            <div class="info-box">
+                ℹ️ Upgrade anytime to unlock more storage, courses, and learners. Your payment is secure and processed through Razorpay.
+            </div>
+
+            <div id="loading">Loading pricing plans...</div>
+            <div class="plans-container" id="plans-container" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Confirm Upgrade</span>
+                <button class="close-modal" onclick="closeConfirmModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>You are upgrading from <strong id="currentPlanName"></strong> to <strong id="upgradePlanName"></strong>.</p>
+                <p style="margin-top: 15px;">Amount to be charged: <strong id="upgradeAmount" style="color: #0073e6; font-size: 1.2rem;"></strong></p>
+                <p style="margin-top: 10px; font-size: 13px; color: #666;">Payment will be processed by Razorpay securely.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button class="modal-button primary" id="confirmUpgradeBtn" onclick="proceedToPayment()">
+                    Proceed to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.6.0/dist/umd/supabase.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://mfooewemvofleynanjkb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb29ld2Vtdm9mbGV5bmFuamtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTUwMjYsImV4cCI6MjA3NDg3MTAyNn0.EFvtSe-k-SPDCf1-1py6ev7nBLDJFCrNgZ95_c29_ZY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let userId = null;
+        let currentPlan = null;
+        let selectedUpgradePlan = null;
+        let allPlans = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthAndLoadPlans();
+        });
+
+        async function checkAuthAndLoadPlans() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            userId = session.user.id;
+            await loadPlans();
+        }
+
+        async function loadPlans() {
+            try {
+                // Fetch all available plans
+                const { data: plans, error: plansError } = await supabase
+                    .from('plans')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (plansError) throw plansError;
+
+                allPlans = plans || [];
+
+                // Fetch current user plan
+                const { data: userPlan, error: userPlanError } = await supabase
+                    .from('user_plans')
+                    .select('tier, storage_limit_mb')
+                    .eq('user_id', userId)
+                    .single();
+
+                currentPlan = userPlan || null;
+
+                // Render plans
+                renderPlans();
+            } catch (error) {
+                console.error('Error loading plans:', error);
+                document.getElementById('loading').innerHTML = `<div style="color: #dc3545;">Error loading plans: ${error.message}</div>`;
+            }
+        }
+
+        function renderPlans() {
+            const container = document.getElementById('plans-container');
+            const loading = document.getElementById('loading');
+
+            if (allPlans.length === 0) {
+                loading.innerHTML = '<div style="color: #dc3545;">No plans available</div>';
+                return;
+            }
+
+            container.innerHTML = allPlans.map(plan => {
+                const isCurrentPlan = currentPlan && currentPlan.tier === plan.tier;
+                const canUpgrade = currentPlan && 
+                    plan.storage_limit_mb > currentPlan.storage_limit_mb && 
+                    plan.id > 1; // Only allow upgrade to higher tiers
+
+                return `
+                    <div class="plan-card ${isCurrentPlan ? 'current' : ''}">
+                        <div class="plan-name">${plan.tier}</div>
+                        <div class="plan-price">₹${parseFloat(plan.price_inr).toLocaleString('en-IN', { minimumFractionDigits: 0 })}</div>
+                        <div class="plan-price-period">/month</div>
+                        <div class="plan-description">${plan.description}</div>
+                        
+                        <div class="plan-features">
+                            <div class="feature">
+                                <div class="feature-icon">💾</div>
+                                <div><strong>${(plan.storage_limit_mb / 1024).toFixed(2)} GB</strong> Storage</div>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">📚</div>
+                                <div><strong>${plan.courses_max || '∞'}</strong> Courses</div>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">👥</div>
+                                <div><strong>${plan.learners_max || '∞'}</strong> Learners</div>
+                            </div>
+                        </div>
+
+                        ${isCurrentPlan 
+                            ? `<button class="plan-button current" disabled>✓ Current Plan</button>`
+                            : canUpgrade
+                            ? `<button class="plan-button primary" onclick="initiateUpgrade('${plan.tier}', ${plan.price_inr}, '${plan.id}')">
+                                Upgrade Now
+                              </button>`
+                            : `<button class="plan-button primary" onclick="initiateUpgrade('${plan.tier}', ${plan.price_inr}, '${plan.id}')">
+                                Switch Plan
+                              </button>`
+                        }
+                    </div>
+                `;
+            }).join('');
+
+            loading.style.display = 'none';
+            container.style.display = 'grid';
+        }
+
+        function initiateUpgrade(planTier, planPrice, planId) {
+            if (!currentPlan) {
+                alert('Error: Could not load your current plan');
+                return;
+            }
+
+            selectedUpgradePlan = {
+                tier: planTier,
+                price: planPrice,
+                id: planId
+            };
+
+            // Show confirmation modal
+            document.getElementById('currentPlanName').textContent = currentPlan.tier;
+            document.getElementById('upgradePlanName').textContent = planTier;
+            document.getElementById('upgradeAmount').textContent = `₹${planPrice.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
+            
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            selectedUpgradePlan = null;
+        }
+
+        async function proceedToPayment() {
+            if (!selectedUpgradePlan) return;
+
+            const confirmBtn = document.getElementById('confirmUpgradeBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="loading-spinner"></span>Initiating Payment...';
+
+            try {
+                // TODO: Integrate Razorpay here
+                // For now, we'll show a placeholder message
+                
+                // Step 1: Create payment record in database (pending status)
+                const { data: paymentRecord, error: paymentError } = await supabase
+                    .from('payments')
+                    .insert({
+                        user_id: userId,
+                        plan_tier: selectedUpgradePlan.tier,
+                        amount_inr: selectedUpgradePlan.price,
+                        status: 'initiated',
+                        payment_method: 'razorpay'
+                    })
+                    .select()
+                    .single();
+
+                if (paymentError) throw paymentError;
+
+                console.log('Payment record created:', paymentRecord);
+
+                // Step 2: When Razorpay integration is ready, call Razorpay API here
+                // For now, show alert
+                alert('Payment gateway integration coming soon!\n\nPayment record created with ID: ' + paymentRecord.id);
+                
+                closeConfirmModal();
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Proceed to Payment';
+
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                alert('Error: ' + error.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Proceed to Payment';
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeConfirmModal();
+            }
+        }
+    </script>
+</body>
+</html>
