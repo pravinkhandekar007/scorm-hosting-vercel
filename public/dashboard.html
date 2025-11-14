@@ -302,7 +302,7 @@
             }
         }
 
-        /* Plan info bar styles */
+        /* Plan bar styles */
         #plan-info {
             margin-bottom: 25px;
             padding: 15px 20px;
@@ -378,7 +378,7 @@
             </div>
 
             <div class="courses-section">
-                <div id="loading">Loading your courses...</div>
+               <div id="loading">Loading your courses...</div>
                 <div id="courses-list"></div>
             </div>
         </div>
@@ -394,7 +394,7 @@
         let userRole = 'learner';
         let userId = null;
 
-        // Original calculateTimeRemaining function included
+        // Original calculateTimeRemaining function
         function calculateTimeRemaining(expiresAt) {
             if (!expiresAt) {
                 return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
@@ -478,7 +478,6 @@
             await loadCourses(userId, userRole);
         }
 
-        // Robust plan and usage fetch with error handling and graceful empty data handling
         async function loadUserPlanAndUsage(userId) {
             let plan = null, usage = null;
 
@@ -509,7 +508,7 @@
             }
 
             if (!plan) {
-                // Hide plan info or show default free plan info if no plan record found
+                // Hide plan info or show default free plan if no record found
                 document.getElementById('plan-info').style.display = 'none';
                 return;
             }
@@ -548,8 +547,6 @@
                 uploadBtn.classList.add('btn-success');
             }
         }
-
-        // Your existing loadCourses and other functions remain unchanged (copy them back here)...
 
         async function loadCourses(userId, userRole) {
             const loadingDiv = document.getElementById('loading');
@@ -682,7 +679,6 @@
                         `;
                     }
                 }).join('');
-
             } catch (error) {
                 loadingDiv.style.display = 'none';
                 coursesDiv.innerHTML = `<div class="empty-state error-message">Error loading courses: ${error.message}</div>`;
