@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Sign Up – Playscorm</title>
   <style>
+    /* Your original styles unchanged */
     body {
       margin: 0;
       min-height: 100vh;
@@ -166,7 +167,8 @@
 
         signupBtn.disabled = true;
         try {
-          const { error, data } = await supabase.auth.signUp({
+          // Sign up user with Supabase Auth
+          const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
@@ -177,37 +179,46 @@
           if (error) {
             message.textContent = error.message;
             message.classList.add("error");
-          } else {
-            try {
-              // Create user profile with selected role
-              const createProfileRes = await fetch('/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'create-profile',
-                  user_id: data.user.id,
-                  email: data.user.email,
-                  full_name,
-                  role
-                })
-              });
+          } else if (data.user) {
+            // Add default Free plan to user_plans table
+            const { error: planError } = await supabase
+              .from('user_plans')
+              .insert([{
+                user_id: data.user.id,
+                tier: 'Free',
+                storage_limit_mb: 100,
+              }]);
 
-              if (!createProfileRes.ok) {
-                const err = await createProfileRes.json();
-                throw new Error(err.error || 'Failed to create profile.');
-              }
+            // Create user profile with role
+            const createProfileRes = await fetch('/api/signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create-profile',
+                user_id: data.user.id,
+                email: email,
+                full_name,
+                role
+              })
+            });
 
-              message.textContent = `Signup successful! Please check your email (${email}) to confirm your account.`;
-              message.classList.add("success");
-              form.reset();
-
-            } catch (profileError) {
-              message.textContent = `Signup succeeded, but profile creation failed: ${profileError.message}`;
-              message.classList.add("error");
+            if (!createProfileRes.ok) {
+              const err = await createProfileRes.json();
+              throw new Error(err.error || 'Failed to create profile.');
             }
+
+            if (planError) {
+              console.warn('User plan creation error:', planError.message);
+              message.textContent = `Signup successful! You are on the Free plan with 100 MB storage. However, there was an internal issue setting up your plan. Please contact support.`;
+              message.classList.add("error");
+            } else {
+              message.textContent = `Signup successful! You are on the Free plan with 100 MB storage. Check pricing to upgrade when needed. Please check ${email} to confirm your account.`;
+              message.classList.add("success");
+            }
+            form.reset();
           }
         } catch (err) {
-          message.textContent = 'Unexpected error occurred. Please try again.';
+          message.textContent = `Signup succeeded, but an error occurred: ${err.message}`;
           message.classList.add("error");
         } finally {
           signupBtn.disabled = false;
