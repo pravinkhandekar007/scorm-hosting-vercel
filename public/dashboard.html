@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Dashboard - PlayScorm</title>
     <style>
-        /* Your original styles unchanged... */
+        /* Original styles unchanged, plus footer plan styles */
         body {
             margin: 0;
             min-height: 100vh;
@@ -52,6 +52,9 @@
             box-shadow: 0 6px 32px rgba(60,45,205,0.07);
             padding: 40px 50px;
             min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 90px);
         }
         .header {
             display: flex;
@@ -153,7 +156,9 @@
             font-size: 14px;
         }
         .courses-section {
+            flex: 1 1 auto;
             margin-top: 20px;
+            overflow-y: auto;
         }
         .courses-section h2 {
             color: #00205B;
@@ -301,47 +306,21 @@
                 width: 100%;
             }
         }
-
-        /* Plan bar styles */
-        #plan-info {
-            margin-bottom: 25px;
-            padding: 15px 20px;
-            background: #f0f9ff;
-            border-radius: 12px;
-            color: #004681;
-            font-weight: 600;
+        /* Footer plan and usage bar styling */
+        #footer-plan-info {
+            margin-top: 30px;
+            padding: 15px 25px;
+            border-top: 2px solid #e9ecef;
             display: flex;
-            align-items: center;
-            gap: 25px;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #004681;
+            background-color: #f7fbff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,131,141,0.15);
+            font-size: 1rem;
             flex-wrap: wrap;
-            box-shadow: 0 2px 6px rgb(0 133 164 / 0.3);
-        }
-        #plan-info progress {
-            width: 180px;
-            height: 14px;
-            border-radius: 8px;
-            overflow: hidden;
-            vertical-align: middle;
-        }
-        #upgrade-btn {
-            margin-left: auto;
-            padding: 10px 22px;
-            background-color: #0073e6;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgb(0 115 230 / 0.35);
-            transition: background-color 0.3s ease;
-        }
-        #upgrade-btn:hover {
-            background-color: #005bb5;
-        }
-        #upload-course-btn[disabled] {
-            cursor: not-allowed;
-            opacity: 0.6;
-            pointer-events: none;
+            gap: 15px;
         }
     </style>
 </head>
@@ -352,15 +331,6 @@
             <h1 class="banner-title">PlayScorm Dashboard</h1>
         </div>
         <div class="container">
-
-            <!-- Plan and storage usage display -->
-            <div id="plan-info" style="display:none;">
-                <div>Plan: <span id="plan-name">Loading...</span></div>
-                <div>Storage Used: <span id="storage-used">-</span> / <span id="storage-quota">-</span> MB</div>
-                <progress id="storage-progress" max="100" value="0"></progress>
-                <button id="upgrade-btn" style="display:none;" onclick="alert('Upgrade flow coming soon!')">Upgrade Plan</button>
-            </div>
-
             <div class="header">
                 <h1>🎓 My Courses</h1>
                 <div class="header-actions">
@@ -378,8 +348,14 @@
             </div>
 
             <div class="courses-section">
-               <div id="loading">Loading your courses...</div>
+                <div id="loading">Loading your courses...</div>
                 <div id="courses-list"></div>
+            </div>
+
+            <!-- Footer plan and usage display -->
+            <div id="footer-plan-info" style="display:none;">
+                <div id="footer-plan-tier">Plan: -</div>
+                <div id="footer-storage-usage">Storage Used: - MB / - MB</div>
             </div>
         </div>
     </div>
@@ -394,7 +370,6 @@
         let userRole = 'learner';
         let userId = null;
 
-        // Original calculateTimeRemaining function
         function calculateTimeRemaining(expiresAt) {
             if (!expiresAt) {
                 return { days: 0, hours: 0, minutes: 0, status: 'active', display: 'No expiry' };
@@ -448,7 +423,7 @@
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('full_name, role')
-                    .eq('user_id', session.user.id)
+                    .eq('user_id', userId)
                     .single();
 
                 let displayName = session.user.email;
@@ -479,8 +454,8 @@
         }
 
         async function loadUserPlanAndUsage(userId) {
-            let plan = null, usage = null;
-
+            // Fetch user plan
+            let plan = null;
             try {
                 const planRes = await supabase
                     .from('user_plans')
@@ -488,12 +463,13 @@
                     .eq('user_id', userId)
                     .limit(1)
                     .single();
-
                 plan = planRes.data || null;
             } catch (e) {
                 if (e.code !== 'PGRST116') console.error('Error fetching user plan:', e);
             }
 
+            // Fetch storage usage
+            let usage = null;
             try {
                 const usageRes = await supabase
                     .from('usage_tracking')
@@ -501,41 +477,26 @@
                     .eq('owner_id', userId)
                     .limit(1)
                     .single();
-
                 usage = usageRes.data || null;
             } catch (e) {
                 if (e.code !== 'PGRST116') console.error('Error fetching usage:', e);
             }
 
             if (!plan) {
-                // Hide plan info or show default free plan if no record found
-                document.getElementById('plan-info').style.display = 'none';
+                document.getElementById('footer-plan-info').style.display = 'none';
                 return;
             }
 
             const usedMB = usage ? (usage.storage_used / (1024 * 1024)) : 0;
             const quotaMB = Number(plan.storage_limit_mb);
 
-            document.getElementById('plan-name').textContent = plan.tier;
-            document.getElementById('storage-used').textContent = usedMB.toFixed(2);
-            document.getElementById('storage-quota').textContent = quotaMB.toFixed(2);
+            document.getElementById('footer-plan-tier').textContent = `Plan: ${plan.tier}`;
+            document.getElementById('footer-storage-usage').textContent = `Storage Used: ${usedMB.toFixed(2)} MB / ${quotaMB.toFixed(2)} MB`;
+            document.getElementById('footer-plan-info').style.display = 'flex';
 
-            const percent = (usedMB / quotaMB) * 100;
-            const progressBar = document.getElementById('storage-progress');
-            progressBar.value = percent > 100 ? 100 : percent;
-
-            const planInfoDiv = document.getElementById('plan-info');
-            planInfoDiv.style.display = 'flex';
-
-            const upgradeBtn = document.getElementById('upgrade-btn');
-            if (percent >= 90) {
-                upgradeBtn.style.display = 'inline-block';
-            } else {
-                upgradeBtn.style.display = 'none';
-            }
-
+            // Disable upload if quota exceeded
             const uploadBtn = document.getElementById('upload-course-btn');
-            if (percent >= 100) {
+            if (usedMB >= quotaMB) {
                 uploadBtn.disabled = true;
                 uploadBtn.title = 'Storage quota exceeded. Please upgrade your plan to upload more courses.';
                 uploadBtn.classList.remove('btn-success');
