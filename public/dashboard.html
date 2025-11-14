@@ -354,9 +354,14 @@
 
             <!-- Footer plan and usage display -->
             <div id="footer-plan-info" style="display:none;">
-                <div id="footer-plan-tier">Plan: -</div>
-                <div id="footer-storage-usage">Storage Used: - MB / - MB</div>
-            </div>
+    <div style="flex: 1; display: flex; gap: 20px; align-items: center;">
+        <div id="footer-plan-tier">Plan: -</div>
+        <div id="footer-storage-usage">Storage Used: - MB / - MB</div>
+    </div>
+    <button class="btn btn-success" id="upgrade-plan-btn" onclick="goToUpgradePage()" style="display: none;">
+        ⬆️ Upgrade Plan
+    </button>
+</div>
         </div>
     </div>
 
