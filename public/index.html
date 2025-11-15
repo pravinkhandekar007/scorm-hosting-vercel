@@ -79,34 +79,57 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 100px 20px;
+  width: 100vw;
+  min-height: 80vh;
+  margin: 0;
+  padding: 0;
 }
+
+.hero-image, .hero-container {
+  flex: 1 1 50%;
+  width: 50vw;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .hero-image img {
-  max-width: 400px;
-  width: 100%;
+  width: 90%;
+  max-width: 90%;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  object-fit: cover;
 }
+
 .hero-container {
-  flex: 1;
+  flex-direction: column;
   text-align: left;
-  max-width: 600px;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: none;
 }
+
+/* Responsive fallback for mobile */
 @media (max-width: 900px) {
   .hero-flex {
     flex-direction: column;
-    text-align: center;
-    padding: 60px 10px;
-    gap: 24px;
+    min-height: auto;
+    width: 100vw;
   }
-  .hero-container {
-    max-width: 100%;
+  .hero-image, .hero-container {
+    width: 100vw;
+    flex: none;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+  }
+  .hero-image img {
+    width: 90vw;
+    max-width: 90vw;
   }
 }
+
 
         .nav-container {
             max-width: 1200px;
@@ -793,6 +816,7 @@
     </div>
   </div>
 </section>
+
 
 
     <!-- Features Section -->
