@@ -134,77 +134,85 @@
 
 
         .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-        
-        .logo {
-            color: white;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .logo:hover {
-            opacity: 0.85;
-        }
-        
-        .logo img {
-            height: 50px;
-            width: auto;
-            display: block;
-        }
-        
-        .logo span {
-            font-size: 20px;
-            white-space: nowrap;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-            align-items: center;
-        }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
-        .cta-button {
-            background: white;
-            color: #00857D !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none !important;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-            display: inline-block;
-            border: none;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+    background: #fff; /* white banner background */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); /* optional soft shadow for separation */
+}
+
+/* Make logo royal blue */
+.logo {
+    color: #00205B; /* royal blue */
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Optionally adjust logo on hover for subtle interaction */
+.logo:hover {
+    opacity: 0.85;
+}
+
+.logo img {
+    height: 50px;
+    width: auto;
+    display: block;
+    filter: none; /* ensures no unwanted image inversion */
+}
+
+.logo span {
+    font-size: 20px;
+    white-space: nowrap;
+}
+
+/* Nav links royal blue */
+.nav-links {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #00205B; /* royal blue */
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    opacity: 0.8;
+}
+
+.cta-button {
+    background: #00205B; /* royal blue button for emphasis */
+    color: #fff !important;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: inline-block;
+    border: none;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: #0b318f; /* lighter blue on hover */
+}
+
         
         /* Hero Section */
         .hero {
