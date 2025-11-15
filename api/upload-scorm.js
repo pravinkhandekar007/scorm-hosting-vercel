@@ -31,7 +31,41 @@ export default cors(async (req, res) => {
     if (authError || !user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+    // Calculate total upload size in MB (from rawBody)
+    const uploadSizeMB = rawBody.length / (1024 * 1024);
 
+    // Fetch current used storage and user plan quota
+    const { data: usageData, error: usageError } = await supabase
+      .from('usage_tracking')
+      .select('total_storage_mb')
+      .eq('user_id', user.id)
+      .single();
+
+    if (usageError && usageError.code !== 'PGRST116') {
+      console.error('Supabase usage tracking error', usageError);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    const currentUsageMB = usageData ? Number(usageData.total_storage_mb) : 0;
+
+    const { data: planData, error: planError } = await supabase
+      .from('user_plans')
+      .select('storage_limit_mb')
+      .eq('user_id', user.id)
+      .single();
+
+    if (planError) {
+      console.error('Supabase user plans error', planError);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    const quotaMB = planData ? Number(planData.storage_limit_mb) : 0;
+
+    if (currentUsageMB + uploadSizeMB > quotaMB) {
+      return res.status(400).json({
+        error: `Upload exceeds your storage quota of ${quotaMB.toFixed(2)} MB. Please upgrade your plan.`,
+      });
+    }
     // Read raw multipart body
     const rawBody = await buffer(req);
     // Use JSZip to unzip buffer
