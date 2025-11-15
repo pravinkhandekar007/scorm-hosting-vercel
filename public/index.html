@@ -691,7 +691,49 @@
             color: #666;
             line-height: 1.6;
         }
-        
+        .blog-section {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.blog-section h2 {
+  color: #00205B;
+  text-align: center;
+  margin-bottom: 32px;
+  font-size: 2em;
+  font-weight: 700;
+}
+.blog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.blog-title {
+  background: #00205B;
+  color: #fff;
+  border: none;
+  padding: 14px 22px;
+  font-size: 20px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.2s;
+}
+.blog-title:hover {
+  background: #0051a6;
+}
+.blog-content {
+  background: #f5f8ff;
+  color: #222;
+  margin-top: 8px;
+  padding: 18px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  display: none; /* Hidden by default */
+}
+
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, #00205B 0%, #00857D 100%);
@@ -834,10 +876,32 @@
     </div>
   </div>
 </section>
+<!-- Blog Section -->
+<section class="blog-section" id="blog">
+  <h2>Latest Blogs</h2>
+  <div class="blog-list">
+    <div class="blog-item">
+      <button class="blog-title">How to Get Started With SCORM</button>
+      <div class="blog-content">
+        <p>SCORM (Sharable Content Object Reference Model) is the e-learning standard powering compatibility across learning platforms...</p>
+      </div>
+    </div>
+    <div class="blog-item">
+      <button class="blog-title">5 Tips for LMS Success</button>
+      <div class="blog-content">
+        <p>Success in online learning starts with a robust LMS setup. Here are five actionable tips for trainers and educators...</p>
+      </div>
+    </div>
+    <div class="blog-item">
+      <button class="blog-title">Choosing the Right SCORM Player</button>
+      <div class="blog-content">
+        <p>Picking a SCORM player depends on your feature needs, reporting, and budget. See how PlayScorm stacks up...</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-
-
-    <!-- Features Section -->
+<!-- Features Section -->
     <section class="features" id="features">
         <div class="features-container">
             <div class="section-title">
@@ -1646,6 +1710,17 @@
                 }
             });
         });
+        document.querySelectorAll('.blog-title').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const content = btn.nextElementSibling;
+    // Hide all other blog contents except clicked one
+    document.querySelectorAll('.blog-content').forEach(function(other) {
+      if (other !== content) other.style.display = 'none';
+    });
+    // Toggle the clicked one
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+  });
+});
     </script>
 </body>
 </html>
