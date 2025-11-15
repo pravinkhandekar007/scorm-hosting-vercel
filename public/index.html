@@ -75,7 +75,39 @@
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        
+        .hero-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 20px;
+}
+.hero-image img {
+  max-width: 400px;
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.hero-container {
+  flex: 1;
+  text-align: left;
+  max-width: 600px;
+}
+@media (max-width: 900px) {
+  .hero-flex {
+    flex-direction: column;
+    text-align: center;
+    padding: 60px 10px;
+    gap: 24px;
+  }
+  .hero-container {
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -743,19 +775,25 @@
 
     <!-- Hero Section -->
     <section class="hero" role="banner">
-        <div class="hero-container">
-            <h1>Upload SCORM, Track Progress, Inspire Learners</h1>
-            <p>PlayScorm is the simplest, most affordable SCORM player and learning management system (LMS) for trainers, instructional designers, and businesses. No installation. No complexity. Just upload and go.</p>
-            <div class="hero-buttons">
-                <a href="signup.html?action=signup" class="btn-primary">Start Free Today</a>
-                <a href="#features" class="btn-secondary">Learn More</a>
-            </div>
-            <div class="promo-banner">
-                <strong>🎉 Free for Limited Time!</strong>
-                <span>Get full access to all features. Pricing starts from ₹199/month when beta ends.</span>
-            </div>
-        </div>
-    </section>
+  <div class="hero-flex">
+    <div class="hero-image">
+      <img src="hero-image.jpg" alt="PlayScorm dashboard screenshot" />
+    </div>
+    <div class="hero-container">
+      <h1>Upload SCORM, Track Progress, Inspire Learners</h1>
+      <p>PlayScorm is the simplest, most affordable SCORM LMS for trainers, coaches, and businesses. No installation. No complexity. Just upload and go.</p>
+      <div class="hero-buttons">
+        <a href="signup.html?action=signup" class="btn-primary">Start Free Today</a>
+        <a href="features" class="btn-secondary">Learn More</a>
+      </div>
+      <div class="promo-banner">
+        <strong>Free for Limited Time!</strong>
+        <span>Get full access now. Pricing will be announced soon.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 
     <!-- Features Section -->
     <section class="features" id="features">
