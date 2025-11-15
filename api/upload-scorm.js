@@ -31,6 +31,10 @@ export default cors(async (req, res) => {
     if (authError || !user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    // Read raw multipart body
+    const rawBody = await buffer(req);
+
     // Calculate total upload size in MB (from rawBody)
     const uploadSizeMB = rawBody.length / (1024 * 1024);
 
@@ -66,8 +70,7 @@ export default cors(async (req, res) => {
         error: `Upload exceeds your storage quota of ${quotaMB.toFixed(2)} MB. Please upgrade your plan.`,
       });
     }
-    // Read raw multipart body
-    const rawBody = await buffer(req);
+
     // Use JSZip to unzip buffer
     const zip = await JSZip.loadAsync(rawBody);
     const courseSlug = `course-${Date.now()}-${crypto.randomUUID()}`;
@@ -105,6 +108,21 @@ export default cors(async (req, res) => {
     if (dbError) {
       console.error('DB insert error', dbError);
       return res.status(500).json({ error: 'Database Error' });
+    }
+
+    // Update storage usage in usage_tracking table
+    const newUsageMB = currentUsageMB + uploadSizeMB;
+
+    const { error: usageUpdateError } = await supabase
+      .from('usage_tracking')
+      .upsert(
+        { user_id: user.id, total_storage_mb: newUsageMB },
+        { onConflict: 'user_id' }
+      );
+
+    if (usageUpdateError) {
+      console.error('Supabase usage update error', usageUpdateError);
+      // Not critical - continue
     }
 
     return res.status(200).json({
