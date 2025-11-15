@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta Tags for SEO -->
+    <!-- Meta Tags for SEO - Comprehensive Keyword Coverage -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PlayScorm - Simple, affordable SCORM LMS for trainers and businesses. Upload, host, and track SCORM courses instantly. Free for limited time.">
-    <meta name="keywords" content="SCORM player, LMS India, e-learning platform, SCORM hosting, corporate training, online courses, learning management system, instructional designer portfolio">
-    <meta name="author" content="Compass Edutech">
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="English">
     
-    <!-- Open Graph (Social Media) -->
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="PlayScorm - Free SCORM Player & LMS India | Upload, Host & Track Courses Online">
+    <meta name="description" content="PlayScorm: The most affordable SCORM player & learning management system in India. Free SCORM hosting for trainers, instructional designers & businesses. Upload SCORM 1.2 & 2004 courses. Track learner progress in real-time. Start free today!">
+    <meta name="keywords" content="SCORM player, SCORM LMS, SCORM hosting, free SCORM player, SCORM course player, SCORM 1.2, SCORM 2004, learning management system, LMS India, e-learning platform, instructional designer portfolio, SCORM player online, cloud-based SCORM hosting, SCORM compliance, corporate training platform, online course hosting, SCORM player free, best SCORM player, SCORM player alternative to SCORM Cloud, affordable SCORM hosting India, SCORM player for trainers, SCORM player for educators, SCORM player comparison, SCORM xAPI, learner tracking system, course enrollment management, SCORM player with analytics, real-time progress tracking, multi-module SCORM courses, bulk learner import, SCORM certificates, white-label LMS, SCORM player for enterprises">
+    
+    <meta name="author" content="Compass Edutech">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="theme-color" content="#00205B">
+    
+    <!-- Open Graph (Social Media) - Enhanced -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://playscorm.com">
-    <meta property="og:title" content="PlayScorm - SCORM LMS Made Simple">
-    <meta property="og:description" content="Upload, host, and track SCORM courses with PlayScorm. Affordable, cloud-based, India-friendly LMS for trainers and businesses.">
-    <meta property="og:image" content="https://playscorm.com/logo.png">
+    <meta property="og:title" content="PlayScorm - Free SCORM Player & LMS Platform India">
+    <meta property="og:description" content="Upload, host, and track SCORM courses instantly. Affordable, cloud-based learning management system made for India. Free tier available. Join thousands of trainers using PlayScorm.">
+    <meta property="og:image" content="https://playscorm.com/og-image.png">
+    <meta property="og:site_name" content="PlayScorm">
+    <meta property="og:locale" content="en_IN">
     
-    <!-- Twitter Card -->
+    <!-- Twitter Card - Enhanced -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://playscorm.com">
-    <meta name="twitter:title" content="PlayScorm - SCORM LMS Made Simple">
-    <meta name="twitter:description" content="Upload, host, and track SCORM courses with PlayScorm.">
+    <meta name="twitter:title" content="PlayScorm - Free SCORM Player & LMS India">
+    <meta name="twitter:description" content="The most affordable SCORM hosting solution. Upload, host & track SCORM courses. Free tier. Trusted by 1000+ trainers in India.">
+    <meta name="twitter:image" content="https://playscorm.com/twitter-image.png">
+    <meta name="twitter:creator" content="@playscorm">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://playscorm.com">
@@ -30,8 +40,13 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    <link rel="manifest" href="/manifest.json">
     
-    <title>PlayScorm - Simple SCORM LMS Platform | Upload & Track Courses</title>
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
+    <title>PlayScorm - Free SCORM Player, LMS & Course Hosting Platform India</title>
     
     <style>
         * {
@@ -40,112 +55,178 @@
             box-sizing: border-box;
         }
         
+        html {
+            scroll-behavior: smooth;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
+            background-color: #fff;
         }
         
         /* Navigation */
         nav {
-            background: linear-gradient(to right, #1a3a52, #00857D);
+            width: 100vw;
+            background: #fff !important; /* solid white, overrides gradient */
             padding: 0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            min-width: 100vw;
+            left: 0;
+            right: 0;
+            }
+
+        .hero-flex {
+           max-width: 1200px;         /* add or adjust this value */
+           margin: 0 auto;            /* keeps content centered */
+           width: 100%;
+           display: flex;
+           align-items: center;
+           gap: 36px;                 /* tweak gap as preferred */
+           padding: 32px 24px 0 24px; /* reduce top padding if too much space */
         }
-        
+
+        .hero-image, .hero-container {
+        flex: 1 1 50%;
+        width: 50vw;
+        box-sizing: border-box;
+        display: flex;
+        text-align: center;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        }
+
+.hero-image img {
+  width: 100%;
+  max-width: 95%;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  object-fit: cover;
+}
+
+.hero-container {
+  flex-direction: column;
+  text-align: left;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: none;
+}
+
+/* Responsive fallback for mobile */
+@media (max-width: 900px) {
+  .hero-flex {
+    flex-direction: column;
+     padding: 18px 6vw;
+    min-height: auto;
+      gap: 20px;
+    width: 100vw;
+  }
+  .hero-image, .hero-container {
+    width: 100vw;
+    flex: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .hero-image img {
+    width: 90vw;
+    max-width: 90vw;
+  }
+}
+
+
         .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-        
-        .logo {
-            color: white;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .logo:hover {
-            opacity: 0.85;
-            transform: scale(1.02);
-        }
-        
-        .logo img {
-            height: 50px;
-            width: auto;
-            display: block;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-        
-        .logo span {
-            font-size: 20px;
-            white-space: nowrap;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-            align-items: center;
-        }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
-        .cta-button {
-            background: white;
-            color: #00857D !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none !important;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-            display: inline-block;
-            border: none;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            color: #00857D !important;
-            text-decoration: none !important;
-        }
-        
-        .cta-button:visited {
-            color: #00857D !important;
-        }
-        
-        .cta-button:active {
-            color: #00857D !important;
-        }
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+    background: transparent; /* white banner background */
+}
+
+/* Make logo royal blue */
+.logo {
+    color: #00205B; /* royal blue */
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Optionally adjust logo on hover for subtle interaction */
+.logo:hover {
+    opacity: 0.85;
+}
+
+.logo img {
+    height: 50px;
+    width: auto;
+    display: block;
+    filter: none; /* ensures no unwanted image inversion */
+}
+
+.logo span {
+    font-size: 20px;
+    white-space: nowrap;
+}
+
+/* Nav links royal blue */
+.nav-links {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #00205B; /* royal blue */
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    opacity: 0.8;
+}
+
+.cta-button {
+    background: #00205B; /* royal blue button for emphasis */
+    color: #fff !important;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: inline-block;
+    border: none;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: #0b318f; /* lighter blue on hover */
+}
+
         
         /* Hero Section */
         .hero {
+            width: 100vw;
             background: linear-gradient(135deg, #00205B 0%, #00857D 100%);
             color: white;
-            padding: 100px 20px;
+            padding: 0;
+            padding-top: 0;
             text-align: center;
         }
         
@@ -307,138 +388,277 @@
             font-size: 15px;
         }
         
-        /* Coming Soon Features */
-        .coming-soon {
+        /* Pricing Section */
+        .pricing {
             padding: 80px 20px;
             background: white;
         }
         
-        .coming-soon-container {
+        .pricing-container {
             max-width: 1200px;
             margin: 0 auto;
         }
         
-        .roadmap-section {
-            margin-bottom: 50px;
-        }
-        
-        .roadmap-year {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .roadmap-year h3 {
-            font-size: 24px;
-            color: #00205B;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .roadmap-year p {
-            font-size: 16px;
-            color: #666;
-        }
-        
-        .coming-soon-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        .coming-soon-card {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
-            padding: 25px;
-            border-radius: 12px;
-            border-left: 4px solid #0073e6;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .coming-soon-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(0,115,230,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        
-        .coming-soon-card h3 {
-            color: #00205B;
-            margin-bottom: 8px;
-            font-weight: 600;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .coming-soon-card p {
-            color: #555;
-            font-size: 14px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .coming-soon-tag {
-            display: inline-block;
-            background: #0073e6;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-top: 10px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Why Choose Us */
-        .why-choose {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
-        }
-        
-        .why-choose-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .benefits-grid {
+        .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
+            gap: 30px;
             margin-top: 50px;
         }
         
-        .benefit-item {
-            display: flex;
-            gap: 20px;
+        .pricing-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
         }
         
-        .benefit-icon {
-            font-size: 48px;
-            min-width: 60px;
+        .pricing-card:hover {
+            border-color: #0073e6;
+            box-shadow: 0 8px 24px rgba(0,115,230,0.15);
+            transform: translateY(-5px);
         }
         
-        .benefit-content h3 {
+        .pricing-card.popular {
+            border-color: #0073e6;
+            box-shadow: 0 8px 24px rgba(0,115,230,0.25);
+            transform: scale(1.05);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0073e6;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .pricing-card h3 {
             color: #00205B;
-            margin-bottom: 8px;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .pricing-card .price {
+            font-size: 48px;
+            color: #0073e6;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .pricing-card .price-currency {
+            font-size: 24px;
+        }
+        
+        .pricing-card .price-period {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .pricing-features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        
+        .pricing-card .btn-primary {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        /* Blog Section */
+        .blog-section {
+            padding: 80px 20px;
+            background: #f9f9f9;
+        }
+        
+        .blog-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .blog-post {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 12px;
+            margin-bottom: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .blog-post h2 {
+            color: #00205B;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .blog-meta {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
+        .blog-post h3 {
+            color: #00205B;
+            font-size: 22px;
+            margin: 30px 0 15px 0;
+            font-weight: 700;
+        }
+        
+        .blog-post h4 {
+            color: #0073e6;
             font-size: 18px;
+            margin: 25px 0 10px 0;
             font-weight: 600;
         }
         
-        .benefit-content p {
+        .blog-post p {
             color: #555;
-            line-height: 1.6;
-            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .blog-post ul, .blog-post ol {
+            margin: 15px 0 15px 25px;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .blog-post li {
+            margin-bottom: 8px;
+        }
+        
+        .blog-post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .blog-post table th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #00205B;
+            border: 1px solid #ddd;
+        }
+        
+        .blog-post table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            color: #555;
+        }
+        
+        .blog-post table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .highlight-box {
+            background: #e3f2fd;
+            border-left: 4px solid #0073e6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .highlight-box strong {
+            color: #00205B;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .faq-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .faq-item {
+            background: #f9f9f9;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #00205B;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .faq-question:hover {
+            background: #f0f0f0;
+        }
+        
+        .faq-question.active {
+            background: #e3f2fd;
+            color: #0073e6;
+        }
+        
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .faq-answer.show {
+            padding: 20px;
+            max-height: 1000px;
+        }
+        
+        .faq-toggle {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .faq-question.active .faq-toggle {
+            transform: rotate(180deg);
         }
         
         /* Use Cases */
         .use-cases {
             padding: 80px 20px;
-            background: #f9f9f9;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
         }
         
         .use-cases-container {
@@ -448,7 +668,7 @@
         
         .use-cases-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 50px;
         }
@@ -471,64 +691,49 @@
             color: #666;
             line-height: 1.6;
         }
-        
-        /* Use Cases Center Item (EdTech) */
-        .use-cases-grid .use-case-item:nth-child(7) {
-            grid-column: 2;
-        }
-        
-        /* Pricing Announcement */
-        .pricing-announcement {
-            padding: 80px 20px;
-            background: white;
-        }
-        
-        .pricing-announcement-container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        
-        .pricing-box {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
-            padding: 50px 40px;
-            border-radius: 16px;
-            border: 3px solid #0073e6;
-            margin-top: 40px;
-        }
-        
-        .pricing-box h3 {
-            font-size: 32px;
-            color: #00205B;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .free-badge {
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-size: 20px;
-            font-weight: 700;
-            margin: 20px 0;
-        }
-        
-        .pricing-box p {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.8;
-            margin: 15px 0;
-        }
-        
-        .pricing-box .note {
-            font-size: 14px;
-            color: #666;
-            font-style: italic;
-            margin-top: 25px;
-        }
-        
+        .blog-section {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.blog-section h2 {
+  color: #00205B;
+  text-align: center;
+  margin-bottom: 32px;
+  font-size: 2em;
+  font-weight: 700;
+}
+.blog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.blog-title {
+  background: #00205B;
+  color: #fff;
+  border: none;
+  padding: 14px 22px;
+  font-size: 20px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.2s;
+}
+.blog-title:hover {
+  background: #0051a6;
+}
+.blog-content {
+  background: #f5f8ff;
+  color: #222;
+  margin-top: 8px;
+  padding: 18px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  display: none; /* Hidden by default */
+}
+
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, #00205B 0%, #00857D 100%);
@@ -573,19 +778,6 @@
             margin-bottom: 40px;
         }
         
-        .footer-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .footer-logo img {
-            height: 40px;
-            width: auto;
-            filter: brightness(0.9);
-        }
-        
         .footer-section h3 {
             color: white;
             margin-bottom: 15px;
@@ -615,26 +807,7 @@
         }
         
         /* Responsive */
-        @media (max-width: 1024px) {
-            .coming-soon-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .use-cases-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .use-cases-grid .use-case-item:nth-child(7) {
-                grid-column: auto;
-            }
-        }
-        
         @media (max-width: 768px) {
-            .nav-links {
-                gap: 15px;
-                font-size: 12px;
-            }
-            
             .hero h1 {
                 font-size: 32px;
             }
@@ -643,69 +816,26 @@
                 font-size: 16px;
             }
             
-            .hero-buttons {
-                flex-direction: column;
-            }
-            
-            .btn-primary, .btn-secondary {
-                width: 100%;
+            .nav-links {
+                gap: 15px;
+                font-size: 12px;
             }
             
             .section-title h2 {
                 font-size: 28px;
             }
             
-            .features-grid {
-                grid-template-columns: 1fr;
+            .pricing-card.popular {
+                transform: scale(1);
             }
             
-            .benefits-grid {
-                grid-template-columns: 1fr;
+            .blog-post {
+                padding: 30px 20px;
             }
             
-            .coming-soon-grid {
-                grid-template-columns: 1fr;
+            .blog-post h2 {
+                font-size: 24px;
             }
-            
-            .use-cases-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .use-cases-grid .use-case-item:nth-child(7) {
-                grid-column: auto;
-            }
-            
-            .promo-banner {
-                padding: 12px 20px;
-            }
-            
-            .promo-banner strong {
-                font-size: 16px;
-            }
-            
-            .logo span {
-                display: none;
-            }
-            
-            .logo img {
-                height: 40px;
-            }
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .feature-card, .use-case-item, .coming-soon-card {
-            animation: fadeInUp 0.6s ease-out;
         }
     </style>
 </head>
@@ -714,184 +844,626 @@
     <nav>
         <div class="nav-container">
             <a href="/" class="logo">
-                <img src="/logo.png" alt="PlayScorm Logo" title="PlayScorm - SCORM LMS Made Simple">
+                <img src="/logo.png" alt="PlayScorm Logo" title="PlayScorm - SCORM Player & LMS">
                 <span>PlayScorm</span>
             </a>
             <ul class="nav-links">
+                <li><a href="#blog">Learn</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="#coming-soon">Coming Soon</a></li>
-                <li><a href="#use-cases">Use Cases</a></li>
+                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="login.html" class="cta-button">Sign In</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <h1>Upload SCORM, Track Progress, Inspire Learners</h1>
-            <p>PlayScorm is the simplest, most affordable SCORM LMS for trainers, coaches, and businesses. No installation. No complexity. Just upload and go.</p>
-            <div class="hero-buttons">
-                <a href="login.html?action=signup" class="btn-primary">Start Free Today</a>
-                <a href="#features" class="btn-secondary">Learn More</a>
-            </div>
-            <div class="promo-banner">
-                <strong>🎉 Free for Limited Time!</strong>
-                <span>Get full access now. Pricing will be announced soon.</span>
-            </div>
-        </div>
-    </section>
+    <section class="hero" role="banner">
+  <div class="hero-flex">
+    <div class="hero-image">
+      <img src="hero-image.png" alt="PlayScorm dashboard screenshot" />
+    </div>
+    <div class="hero-container">
+      <h1>Upload SCORM, Track Progress, Inspire Learners</h1>
+      <p>PlayScorm is the simplest, most affordable SCORM LMS for trainers, coaches, and businesses. No installation. No complexity. Just upload and go.</p>
+      <div class="hero-buttons">
+        <a href="signup.html?action=signup" class="btn-primary">Start Free Today</a>
+        <a href="features" class="btn-secondary">Learn More</a>
+      </div>
+      <div class="promo-banner">
+        <strong>Free for Limited Time!</strong>
+        <span>Get full access now. Pricing will be announced soon.</span>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Blog Section -->
+<section class="blog-section" id="blog">
+  <h2>Latest Blogs</h2>
+  <div class="blog-list">
+    <div class="blog-item">
+      <button class="blog-title">What is SCORM? The Complete Guide to SCORM Players and LMS in 2025</button>
+      <div class="blog-content">
+        <p><article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
+                <h2 itemprop="headline">What is SCORM? The Complete Guide to SCORM Players and LMS in 2025</h2>
+                <div class="blog-meta" itemprop="datePublished" content="2025-11-14">
+                    Published: November 14, 2025 | Read time: 8 minutes
+                </div>
 
-    <!-- Features Section -->
+                <p itemprop="description"><strong>SCORM (Sharable Content Object Reference Model)</strong> is the industry standard for e-learning course delivery. Whether you're an instructional designer, corporate trainer, or educator, understanding SCORM is essential for creating and delivering online courses that work across any learning management system (LMS).</p>
+
+                <p>In this guide, we'll explore what SCORM is, how it works, why it matters, and how to use PlayScorm—the most affordable SCORM player—to host and deliver your courses professionally.</p>
+
+                <h3>What is SCORM? Definition and Basics</h3>
+                <p>SCORM is a technical standard that defines how online learning content (called "SCORM packages") communicates with learning management systems. Think of it as a universal language that allows e-learning courses to work seamlessly across different platforms.</p>
+
+                <p>A SCORM package is typically a ZIP file containing:</p>
+                <ul>
+                    <li><strong>Course content</strong> (HTML, videos, interactive media)</li>
+                    <li><strong>Metadata</strong> (course information and structure)</li>
+                    <li><strong>Communication files</strong> (how the course talks to the LMS)</li>
+                </ul>
+
+                <p>When you upload a SCORM course to a SCORM player like PlayScorm, the player reads these instructions and communicates with the course content to track learner progress, completion status, scores, and engagement.</p>
+
+                <h3>SCORM 1.2 vs SCORM 2004: What's the Difference?</h3>
+                <p>There are two main versions of SCORM:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>SCORM 1.2</th>
+                            <th>SCORM 2004</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Release Date</strong></td>
+                            <td>2001</td>
+                            <td>2004 (Updated to 4th Edition in 2009)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data Tracking</strong></td>
+                            <td>Basic tracking (pass/fail, score, completion)</td>
+                            <td>Advanced tracking (objectives, interactions, time)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sequencing</strong></td>
+                            <td>Limited sequencing</td>
+                            <td>Advanced sequencing and branching</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-Module</strong></td>
+                            <td>Single course only</td>
+                            <td>Multi-module course structure</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Industry Use</strong></td>
+                            <td>Legacy courses (older content)</td>
+                            <td>Modern courses (preferred standard)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Browser Support</strong></td>
+                            <td>Broad compatibility</td>
+                            <td>Good browser support</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Bottom line:</strong> PlayScorm supports both SCORM 1.2 and SCORM 2004, so you can host legacy and modern courses on the same platform.</p>
+
+                <h3>How Does a SCORM Player Work?</h3>
+                <p>A SCORM player (also called a SCORM runtime environment) is software that reads and executes SCORM courses. Here's how it works:</p>
+
+                <ol>
+                    <li><strong>Upload:</strong> Instructor uploads a SCORM package (ZIP file) to the SCORM player</li>
+                    <li><strong>Extract:</strong> The player extracts and reads the course manifest (imsmanifest.xml)</li>
+                    <li><strong>Launch:</strong> Learner clicks to launch the course</li>
+                    <li><strong>Communication:</strong> Course content communicates with the SCORM player through JavaScript APIs</li>
+                    <li><strong>Tracking:</strong> The player records completion, score, time spent, and interactions</li>
+                    <li><strong>Reporting:</strong> Instructor views analytics and learner progress in the dashboard</li>
+                </ol>
+
+                <div class="highlight-box">
+                    <strong>💡 Key Point:</strong> The SCORM player is essentially a secure runtime environment that runs your e-learning course and tracks how learners interact with it. Without a SCORM player, your course file is just a ZIP file with no way to track learner progress.
+                </div>
+
+                <h3>Why Use SCORM? Benefits for Trainers and Educators</h3>
+                <p>SCORM has been the industry standard for over 20 years because it offers:</p>
+
+                <ul>
+                    <li><strong>Portability:</strong> Create once, deploy anywhere. SCORM courses work on any SCORM-compliant LMS</li>
+                    <li><strong>Standardization:</strong> Consistent learner tracking across platforms</li>
+                    <li><strong>Integration:</strong> Seamless integration with existing learning management systems</li>
+                    <li><strong>Compliance:</strong> Meets regulatory requirements for corporate and healthcare training</li>
+                    <li><strong>Affordability:</strong> No vendor lock-in. Switch SCORM players without reauthoring content</li>
+                    <li><strong>Professional Tracking:</strong> Detailed analytics on learner behavior and engagement</li>
+                </ul>
+
+                <h3>SCORM vs Other E-Learning Standards</h3>
+                <p>While SCORM dominates corporate and compliance training, other standards exist:</p>
+
+                <ul>
+                    <li><strong>xAPI (Experience API):</strong> More flexible than SCORM; tracks any learning experience (games, simulations, real-world activities)</li>
+                    <li><strong>IMS LTI:</strong> Used for integrating educational tools with LMS platforms</li>
+                    <li><strong>cmi5:</strong> Modern successor to SCORM; better for cloud-based and mobile learning</li>
+                </ul>
+
+                <p>PlayScorm focuses on SCORM because it's what enterprises, universities, and training departments rely on most. But we're building toward xAPI support for advanced tracking scenarios.</p>
+
+                <h3>Common SCORM Use Cases</h3>
+                <p>SCORM courses are used in:</p>
+
+                <ul>
+                    <li><strong>Corporate Compliance Training:</strong> Mandatory safety, harassment, and regulatory training</li>
+                    <li><strong>Professional Development:</strong> Skill development and certification courses</li>
+                    <li><strong>Higher Education:</strong> Online degree programs and supplementary courses</li>
+                    <li><strong>Healthcare & Pharma:</strong> Continuing education and certification requirements</li>
+                    <li><strong>Government & Military:</strong> Standardized training delivery and tracking</li>
+                    <li><strong>Corporate Onboarding:</strong> Structured new employee training programs</li>
+                </ul>
+
+                <h3>Choosing the Right SCORM Player</h3>
+                <p>When selecting a SCORM player, consider:</p>
+
+                <ul>
+                    <li><strong>Compliance:</strong> Does it support SCORM 1.2 and 2004?</li>
+                    <li><strong>Tracking:</strong> Can it capture detailed learner interactions?</li>
+                    <li><strong>Reporting:</strong> Does it provide the analytics you need?</li>
+                    <li><strong>Pricing:</strong> How much per user? Storage? Transactions?</li>
+                    <li><strong>Support:</strong> Is help available when you need it?</li>
+                    <li><strong>Security:</strong> Is learner data protected?</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>PlayScorm Advantage:</strong> We offer affordable SCORM hosting (starting ₹199/month), support both SCORM standards, provide real-time tracking, and include support for instructional designers—all without the enterprise pricing of alternatives.
+                </div>
+
+                <h3>Conclusion: SCORM Remains the Industry Standard</h3>
+                <p>SCORM has been the industry standard for online learning for over two decades because it's reliable, portable, and effective. Whether you're creating compliance training, professional development courses, or educational content, using SCORM ensures your courses work across any LMS and provide detailed tracking of learner engagement.</p>
+
+                <p>Ready to host your SCORM courses? Try <strong>PlayScorm</strong> for free today. We support SCORM 1.2 and 2004, provide real-time tracking, and offer the most affordable pricing for instructional designers, trainers, and organizations of any size.</p>
+
+                <p><a href="signup.html?action=signup" class="btn-primary" style="display: inline-block; margin-top: 20px;">Start Free SCORM Hosting</a></p>
+            </article></p>
+      </div>
+    </div>
+    <div class="blog-item">
+      <button class="blog-title">SCORM vs xAPI: Complete Comparison for Modern E-Learning in 2025</button>
+      <div class="blog-content">
+        <p><article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
+                <h2 itemprop="headline">SCORM vs xAPI: Complete Comparison for Modern E-Learning in 2025</h2>
+                <div class="blog-meta" itemprop="datePublished" content="2025-11-14">
+                    Published: November 14, 2025 | Read time: 10 minutes
+                </div>
+
+                <p itemprop="description"><strong>SCORM and xAPI are both e-learning standards, but they serve different purposes.</strong> SCORM tracks formal learning courses in LMS platforms, while xAPI captures any type of learning experience across multiple platforms and devices.</p>
+
+                <p>In this guide, we'll compare SCORM and xAPI, help you understand when to use each, and show you how PlayScorm positions itself in this evolving landscape.</p>
+
+                <h3>Quick Comparison: SCORM vs xAPI</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>SCORM</th>
+                            <th>xAPI (Experience API)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Release Date</strong></td>
+                            <td>2001</td>
+                            <td>2013</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Primary Use</strong></td>
+                            <td>Formal e-learning courses in LMS</td>
+                            <td>Any learning experience anywhere</td>
+                        </tr>
+                        <tr>
+                            <td><strong>What It Tracks</strong></td>
+                            <td>Course completion, score, time, pass/fail</td>
+                            <td>Any learning activity (games, apps, real-world events)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data Sent To</strong></td>
+                            <td>LMS</td>
+                            <td>Learning Record Store (LRS) or LMS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Interoperability</strong></td>
+                            <td>Requires LMS support</td>
+                            <td>Platform-agnostic; works across systems</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mobile Support</strong></td>
+                            <td>Limited</td>
+                            <td>Native mobile support</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Complexity</strong></td>
+                            <td>Standard, established</td>
+                            <td>More flexible, steeper learning curve</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Industry Adoption</strong></td>
+                            <td>Enterprise standard (80%+ of corporate training)</td>
+                            <td>Growing in progressive organizations</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>What is SCORM? (Quick Review)</h3>
+                <p>SCORM (Sharable Content Object Reference Model) is a 1990s-era standard designed for formal e-learning courses. It defines how online courses communicate with learning management systems to track learner progress.</p>
+
+                <p><strong>SCORM is ideal for:</strong></p>
+                <ul>
+                    <li>Compliance and mandatory training</li>
+                    <li>Formal certification courses</li>
+                    <li>Structured curriculum delivery</li>
+                    <li>Organizations using traditional LMS platforms</li>
+                </ul>
+
+                <h3>What is xAPI? (Experience API)</h3>
+                <p><strong>xAPI (also called Tin Can API)</strong> is a modern e-learning standard created in 2013 to overcome SCORM's limitations. Instead of tracking "courses," xAPI tracks any learning activity or "experience."</p>
+
+                <p>An xAPI statement has this structure:</p>
+                <p><em>"Actor" did "Verb" on "Activity" (in "Context" with "Result")</em></p>
+
+                <p>Examples:</p>
+                <ul>
+                    <li>"John completed online course on project management"</li>
+                    <li>"Sarah played and scored 95% on sales simulation game"</li>
+                    <li>"Mike participated in team presentation at sales conference"</li>
+                    <li>"Emma posted discussion about marketing strategy"</li>
+                </ul>
+
+                <p><strong>xAPI is ideal for:</strong></p>
+                <ul>
+                    <li>Tracking informal learning (YouTube videos, podcasts, articles)</li>
+                    <li>Mobile learning and apps</li>
+                    <li>Simulations and serious games</li>
+                    <li>Social learning and collaboration</li>
+                    <li>Real-world performance (conferences, on-the-job training)</li>
+                    <li>Blended learning ecosystems</li>
+                </ul>
+
+                <h3>Key Differences: SCORM vs xAPI</h3>
+
+                <h4>1. Scope and Purpose</h4>
+                <p><strong>SCORM:</strong> Designed for traditional e-learning—courses hosted in an LMS. It's a closed system.</p>
+                <p><strong>xAPI:</strong> Designed to track learning across all touchpoints—formal and informal. It's an open ecosystem.</p>
+
+                <h4>2. Data Collection</h4>
+                <p><strong>SCORM:</strong> Collects: completion status, scores, time spent, pass/fail</p>
+                <p><strong>xAPI:</strong> Collects: ANY data about learning activities. Extremely flexible.</p>
+
+                <h4>3. Device Support</h4>
+                <p><strong>SCORM:</strong> Primarily desktop/browser-based. Poor mobile support.</p>
+                <p><strong>xAPI:</strong> Works seamlessly on mobile apps, web, VR, AR, and emerging technologies.</p>
+
+                <h4>4. Reporting</h4>
+                <p><strong>SCORM:</strong> Reports available only within the LMS</p>
+                <p><strong>xAPI:</strong> Data can be analyzed across multiple systems via a Learning Record Store (LRS)</p>
+
+                <h4>5. Learning Content Authorization</h4>
+                <p><strong>SCORM:</strong> Courses must be re-authored for each SCORM version</p>
+                <p><strong>xAPI:</strong> Any application can track learning without modification</p>
+
+                <div class="highlight-box">
+                    <strong>🎯 Example Scenario:</strong> A company wants to track employee learning from BOTH formal LMS courses AND informal sources (LinkedIn Learning, YouTube tutorials, conference attendance). <strong>SCORM alone cannot do this.</strong> You need xAPI (or both together) to capture the full learning journey.
+                </div>
+
+                <h3>When to Use SCORM vs xAPI</h3>
+
+                <p><strong>Use SCORM if:</strong></p>
+                <ul>
+                    <li>Your organization uses a traditional LMS (Moodle, Canvas, Blackboard, D2L)</li>
+                    <li>You need mandatory compliance training tracking</li>
+                    <li>Your learners primarily use desktop/web browsers</li>
+                    <li>You value stability and long-term compatibility</li>
+                    <li>Your industry requires SCORM certification (healthcare, aviation, military)</li>
+                </ul>
+
+                <p><strong>Use xAPI if:</strong></p>
+                <ul>
+                    <li>You want to track learning across multiple platforms</li>
+                    <li>Your learning includes mobile apps or emerging tech (VR/AR)</li>
+                    <li>You need to capture informal learning experiences</li>
+                    <li>You want advanced analytics and learning record storage</li>
+                    <li>You're building a modern, multi-platform learning ecosystem</li>
+                </ul>
+
+                <h3>SCORM and xAPI Together: The Hybrid Approach</h3>
+                <p>Many modern organizations use BOTH standards:</p>
+
+                <ul>
+                    <li><strong>SCORM:</strong> For formal LMS courses</li>
+                    <li><strong>xAPI:</strong> For everything else (mobile, apps, real-world learning)</li>
+                    <li><strong>Learning Record Store (LRS):</strong> Central repository for all xAPI data</li>
+                </ul>
+
+                <p>This "Total Learning Record" approach gives you complete visibility into all employee learning—not just formal courses.</p>
+
+                <h3>The Future: Will xAPI Replace SCORM?</h3>
+                <p>Despite being created in 2013, xAPI adoption has been slower than expected:</p>
+
+                <p><strong>Why SCORM still dominates:</strong></p>
+                <ul>
+                    <li>Enterprise LMS platforms still rely on SCORM (slow to innovate)</li>
+                    <li>Existing course library investments in SCORM (expensive to migrate)</li>
+                    <li>Regulatory requirements and compliance use SCORM (healthcare, finance)</li>
+                    <li>LRS platforms are more niche; LMS platforms are ubiquitous</li>
+                </ul>
+
+                <p><strong>Why xAPI is growing:</strong></p>
+                <ul>
+                    <li>Mobile-first and remote-first organizations prefer xAPI</li>
+                    <li>Modern learning tech (Slack bots, mobile apps) use xAPI</li>
+                    <li>Next-generation platforms are built with xAPI (not SCORM)</li>
+                    <li>AI and analytics companies prefer xAPI's flexibility</li>
+                </ul>
+
+                <p><strong>Prediction:</strong> SCORM won't disappear, but xAPI will become increasingly important for organizations that embrace modern learning technologies. By 2030, expect a hybrid SCORM + xAPI ecosystem.</p>
+
+                <h3>PlayScorm's Position in SCORM vs xAPI</h3>
+                <p>PlayScorm is built for the current reality: <strong>SCORM dominates today, but xAPI is the future.</strong></p>
+
+                <ul>
+                    <li><strong>Now:</strong> We provide the most affordable SCORM player (₹199-3,999/month)</li>
+                    <li><strong>Soon:</strong> We're building xAPI support for modern learning experiences</li>
+                    <li><strong>Future:</strong> PlayScorm will be a hybrid platform supporting both standards</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>Why this matters:</strong> You can start with PlayScorm for SCORM courses today, and when you're ready to track informal learning via xAPI, you'll have a platform ready to grow with you.
+                </div>
+
+                <h3>Conclusion: SCORM Today, xAPI Tomorrow</h3>
+                <p>SCORM remains the industry standard for formal e-learning in 2025, but xAPI represents the future of learning analytics and experience tracking. Progressive organizations are already adopting hybrid approaches to capture the full learning journey.</p>
+
+                <p>Whether you're managing traditional SCORM courses, exploring xAPI, or planning a hybrid strategy, PlayScorm is your affordable, scalable partner for modern learning delivery.</p>
+
+                <p><a href="signup.html?action=signup" class="btn-primary" style="display: inline-block; margin-top: 20px;">Start Your SCORM Journey Today</a></p>
+            </article>
+        </div>
+    </section></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
     <section class="features" id="features">
         <div class="features-container">
             <div class="section-title">
-                <h2>What You Get Today</h2>
-                <p>Everything you need to launch your SCORM courses professionally</p>
+                <h2>Why PlayScorm is Your Best SCORM Player</h2>
+                <p>Everything you need to host, share, and track SCORM courses professionally</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">📤</div>
-                    <h3>SCORM Upload</h3>
-                    <p>Upload SCORM 1.2 and SCORM 2004 packages instantly. No technical knowledge needed.</p>
+                    <h3>SCORM 1.2 & 2004 Upload</h3>
+                    <p>Upload both SCORM 1.2 and SCORM 2004 packages instantly. Full compliance with SCORM standards.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
-                    <h3>Instant Launch</h3>
-                    <p>Courses live in seconds. Share public links with learners instantly.</p>
+                    <h3>Instant Course Launch</h3>
+                    <p>Courses live in seconds. Share public links with learners instantly via your SCORM player.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔐</div>
-                    <h3>Secure Hosting</h3>
-                    <p>Enterprise-grade cloud infrastructure. All data encrypted and backed up.</p>
+                    <h3>Enterprise Cloud Hosting</h3>
+                    <p>Enterprise-grade cloud infrastructure on Vercel & Supabase. All data encrypted and backed up.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
-                    <h3>Basic Analytics</h3>
-                    <p>Track who accessed your courses. Built-in basic reporting.</p>
+                    <h3>Real-Time Analytics</h3>
+                    <p>Track learner progress in real-time. Completion status, scores, and engagement metrics.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🎯</div>
-                    <h3>Public Sharing</h3>
-                    <p>Generate shareable links. Let learners access without account creation.</p>
+                    <h3>Public Course Sharing</h3>
+                    <p>Generate shareable links. Let learners access SCORM courses without account creation.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">⏰</div>
-                    <h3>Auto Expiry</h3>
-                    <p>Set course expiry dates. Automatic cleanup after retention period.</p>
+                    <h3>Auto Expiry & Cleanup</h3>
+                    <p>Set course expiry dates. Automatic data cleanup after retention period.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Bulk Learner Management</h3>
+                    <p>Import learners via CSV. Batch enroll users in courses. Track enrollment status.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3>Auto-Generated Certificates</h3>
+                    <p>Automatically generate certificates on course completion. Customizable with branding.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Coming Soon Features -->
-    <section class="coming-soon" id="coming-soon">
-        <div class="coming-soon-container">
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="pricing-container">
             <div class="section-title">
-                <h2>Coming Soon (Roadmap)</h2>
-                <p>Powerful features launching in the coming months</p>
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Choose the perfect plan for your needs. All plans include unlimited learners and courses.</p>
             </div>
-            
-            <!-- Q4 2025 Features -->
-            <div class="roadmap-section">
-                <div class="roadmap-year">
-                    <h3>Q4 2025</h3>
-                    <p>These features are coming in the next few weeks</p>
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price"><span class="price-currency">₹</span>0</div>
+                    <div class="price-period">forever</div>
+                    <ul class="pricing-features">
+                        <li>100 MB storage</li>
+                        <li>1 course upload</li>
+                        <li>50 learners max</li>
+                        <li>Basic analytics</li>
+                        <li>Public sharing</li>
+                        <li>Email support</li>
+                    </ul>
+                    <a href="signup.html?action=signup&plan=free" class="btn-primary">Get Started</a>
                 </div>
-                <div class="coming-soon-grid">
-                    <div class="coming-soon-card">
-                        <h3>📚 Multi-Module Courses</h3>
-                        <p>Combine multiple SCORM files into one structured course. Linear or open access modes.</p>
-                        <span class="coming-soon-tag">Q4 2025</span>
-                    </div>
-                    <div class="coming-soon-card">
-                        <h3>👥 Learner Management</h3>
-                        <p>Add learners, bulk import, track progress. Perfect for corporate training teams.</p>
-                        <span class="coming-soon-tag">Q4 2025</span>
-                    </div>
-                    <div class="coming-soon-card">
-                        <h3>📊 Advanced Tracking</h3>
-                        <p>Per-module progress, scores, completion status. Detailed learner analytics and reports.</p>
-                        <span class="coming-soon-tag">Q4 2025</span>
-                    </div>
+
+                <!-- Portfolio Plan -->
+                <div class="pricing-card">
+                    <h3>Portfolio</h3>
+                    <div class="price"><span class="price-currency">₹</span>199</div>
+                    <div class="price-period">/month</div>
+                    <ul class="pricing-features">
+                        <li>500 MB storage</li>
+                        <li>3 courses</li>
+                        <li>200 learners</li>
+                        <li>Advanced analytics</li>
+                        <li>Public sharing</li>
+                        <li>Instructor dashboard</li>
+                    </ul>
+                    <a href="signup.html?action=signup&plan=portfolio" class="btn-primary">Subscribe</a>
                 </div>
-            </div>
-            
-            <!-- Q1 2026 Features -->
-            <div class="roadmap-section">
-                <div class="roadmap-year">
-                    <h3>Q1 2026</h3>
-                    <p>Advanced features for power users and enterprises</p>
+
+                <!-- Starter Plan - Popular -->
+                <div class="pricing-card popular">
+                    <span class="popular-badge">MOST POPULAR</span>
+                    <h3>Starter</h3>
+                    <div class="price"><span class="price-currency">₹</span>499</div>
+                    <div class="price-period">/month</div>
+                    <ul class="pricing-features">
+                        <li>2 GB storage</li>
+                        <li>10 courses</li>
+                        <li>1,000 learners</li>
+                        <li>Real-time tracking</li>
+                        <li>Certificates</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="signup.html?action=signup&plan=starter" class="btn-primary">Subscribe</a>
                 </div>
-                <div class="coming-soon-grid">
-                    <div class="coming-soon-card">
-                        <h3>🎓 Certificates</h3>
-                        <p>Auto-generate certificates on course completion. Customizable designs with branding.</p>
-                        <span class="coming-soon-tag">Q1 2026</span>
-                    </div>
-                    <div class="coming-soon-card">
-                        <h3>🏢 White Label</h3>
-                        <p>Your logo, your domain, your branding. Resell to your clients with custom domain.</p>
-                        <span class="coming-soon-tag">Q1 2026</span>
-                    </div>
-                    <div class="coming-soon-card">
-                        <h3>🔗 Integrations</h3>
-                        <p>Connect with Zapier, webhooks, and popular HR/training software. API access included.</p>
-                        <span class="coming-soon-tag">Q1 2026</span>
-                    </div>
+
+                <!-- Professional Plan -->
+                <div class="pricing-card">
+                    <h3>Professional</h3>
+                    <div class="price"><span class="price-currency">₹</span>1,299</div>
+                    <div class="price-period">/month</div>
+                    <ul class="pricing-features">
+                        <li>10 GB storage</li>
+                        <li>50 courses</li>
+                        <li>5,000 learners</li>
+                        <li>Advanced reports</li>
+                        <li>API access</li>
+                        <li>24/7 support</li>
+                    </ul>
+                    <a href="signup.html?action=signup&plan=professional" class="btn-primary">Subscribe</a>
+                </div>
+
+                <!-- Business Plan -->
+                <div class="pricing-card">
+                    <h3>Business</h3>
+                    <div class="price"><span class="price-currency">₹</span>3,999</div>
+                    <div class="price-period">/month</div>
+                    <ul class="pricing-features">
+                        <li>50 GB storage</li>
+                        <li>Unlimited courses</li>
+                        <li>Unlimited learners</li>
+                        <li>White-label SCORM</li>
+                        <li>Custom integration</li>
+                        <li>Dedicated support</li>
+                    </ul>
+                    <a href="signup.html?action=signup&plan=business" class="btn-primary">Contact Sales</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Why Choose PlayScorm -->
-    <section class="why-choose">
-        <div class="why-choose-container">
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="faq-container">
             <div class="section-title">
-                <h2>Why Choose PlayScorm?</h2>
-                <p>Built for India. Built for you.</p>
+                <h2>Frequently Asked Questions About SCORM & PlayScorm</h2>
+                <p>Get answers to common questions about SCORM hosting and our platform</p>
             </div>
-            <div class="benefits-grid">
-                <div class="benefit-item">
-                    <div class="benefit-icon">💰</div>
-                    <div class="benefit-content">
-                        <h3>Free to Start</h3>
-                        <p>Get full access now. No credit card required. Affordable India pricing coming soon.</p>
+
+            <div itemscope itemtype="https://schema.org/FAQPage">
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">What is SCORM and why do I need it?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">SCORM is an industry standard for e-learning courses. It ensures your courses work across different LMS platforms and provides tracking of learner progress, completion status, and scores. PlayScorm supports both SCORM 1.2 and SCORM 2004, making it the best choice for SCORM hosting.</div>
                     </div>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">⚡</div>
-                    <div class="benefit-content">
-                        <h3>Lightning Fast</h3>
-                        <p>Cloud-hosted. CDN delivery. Courses load instantly for your learners.</p>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">Does PlayScorm support SCORM 1.2 and SCORM 2004?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">Yes! PlayScorm is fully compatible with both SCORM 1.2 and SCORM 2004 standards. You can upload courses created with either version and they'll work perfectly on our SCORM player.</div>
                     </div>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🎯</div>
-                    <div class="benefit-content">
-                        <h3>Focused on SCORM</h3>
-                        <p>Not bloated. Not complex. Laser-focused on doing SCORM LMS right.</p>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">What's included in the Free plan?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">The Free plan includes 100 MB of storage, 1 SCORM course upload, up to 50 learners, basic analytics, public sharing, and email support. It's perfect for trying PlayScorm and sharing your instructional design portfolio.</div>
                     </div>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🤝</div>
-                    <div class="benefit-content">
-                        <h3>Expert Support</h3>
-                        <p>Email support from actual humans. Based in India, understands your timezone.</p>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">Can I upgrade my plan anytime?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">Yes, you can upgrade from any plan to a higher tier anytime. When you upgrade, you'll gain access to more storage, courses, learners, and advanced features immediately. You'll only be charged the pro-rata difference.</div>
                     </div>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🔐</div>
-                    <div class="benefit-content">
-                        <h3>Your Data, Your Control</h3>
-                        <p>Enterprise-grade security. GDPR compliant. Data encryption at rest and in transit.</p>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">Is my learner data secure on PlayScorm?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">Absolutely. PlayScorm uses enterprise-grade encryption at rest and in transit. All data is backed up regularly. We're GDPR compliant and follow security best practices. Your learner data is your data—we never share it with third parties.</div>
                     </div>
                 </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📈</div>
-                    <div class="benefit-content">
-                        <h3>Grows With You</h3>
-                        <p>From solo trainer to enterprise. Multi-module, learner management, white-label—all built in.</p>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">Can I export learner data and course completion records?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">Yes, on all plans except Free. You can export learner progress, completion records, and detailed analytics. Paid plans include CSV export and API access for integration with other systems.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">How is PlayScorm different from SCORM Cloud?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">PlayScorm offers significantly better pricing (starting ₹199/month vs SCORM Cloud's $100+), support for instructional designers, real-time tracking on all plans, and modern cloud architecture. We're focused on making SCORM hosting affordable for everyone, not just enterprises.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span itemprop="name">Can I use PlayScorm for corporate compliance training?</span>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <div itemprop="text">Yes! PlayScorm is perfect for corporate training, compliance courses, onboarding, and skill development. The Professional and Business plans include advanced reporting, bulk learner management, and 24/7 support for enterprise use cases.</div>
                     </div>
                 </div>
             </div>
@@ -899,65 +1471,37 @@
     </section>
 
     <!-- Use Cases -->
-    <section class="use-cases" id="use-cases">
+    <section class="use-cases">
         <div class="use-cases-container">
             <div class="section-title">
-                <h2>Perfect For</h2>
-                <p>Whatever your learning needs, PlayScorm has you covered</p>
+                <h2>Perfect For Every Learning Scenario</h2>
+                <p>PlayScorm is the ideal SCORM player for trainers, instructional designers, and organizations</p>
             </div>
             <div class="use-cases-grid">
                 <div class="use-case-item">
                     <h3>🏢 Corporate Training</h3>
-                    <p>Host compliance training, onboarding, and skill development courses. Track employee progress. Generate audit reports.</p>
+                    <p>Host compliance training, onboarding, and skill development. Track employee progress. Generate audit reports for compliance.</p>
                 </div>
                 <div class="use-case-item">
                     <h3>👨‍🏫 Independent Trainers</h3>
-                    <p>Deliver courses to your students without technical setup. Get instant verification emails from your domain.</p>
+                    <p>Deliver courses to your students. Track completion and performance. Generate certificates automatically on completion.</p>
                 </div>
                 <div class="use-case-item">
                     <h3>🎨 Instructional Designers</h3>
-                    <p>Showcase your SCORM courses in a professional portfolio. Share with clients. Generate shareable demo links instantly.</p>
+                    <p>Showcase your SCORM courses in a professional portfolio. Share with clients. Generate demo links instantly for sales presentations.</p>
                 </div>
                 <div class="use-case-item">
-                    <h3>🎓 Coaching Centers</h3>
-                    <p>Blend classroom teaching with online content. Track student progress. Generate performance reports for parents.</p>
+                    <h3>🎓 Universities & Institutes</h3>
+                    <p>Supplement curriculum with SCORM content. Build multi-module course sequences. Track student engagement and outcomes.</p>
                 </div>
                 <div class="use-case-item">
-                    <h3>📚 Educational Institutes</h3>
-                    <p>Supplement curriculum with SCORM content. Multi-module courses for structured learning paths.</p>
+                    <h3>📚 Coaching Centers</h3>
+                    <p>Blend classroom teaching with online SCORM courses. Track student progress. Generate performance reports for parents.</p>
                 </div>
                 <div class="use-case-item">
-                    <h3>🎯 Consulting & Coaching</h3>
-                    <p>Deliver client training as part of your service. White-label with your branding coming soon.</p>
+                    <h3>🚀 EdTech Companies</h3>
+                    <p>White-label PlayScorm for your platform. API access for seamless integration. Resell SCORM hosting to your customers.</p>
                 </div>
-                <div class="use-case-item">
-                    <h3>🚀 EdTech Startups</h3>
-                    <p>Resell PlayScorm to your customers. API access and integrations for seamless workflow.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Announcement -->
-    <section class="pricing-announcement">
-        <div class="pricing-announcement-container">
-            <div class="section-title">
-                <h2>Early Access Offer</h2>
-                <p>Be among the first to experience PlayScorm</p>
-            </div>
-            <div class="pricing-box">
-                <h3>Get Full Access Now</h3>
-                <div class="free-badge">✨ 100% FREE</div>
-                <p><strong>No credit card required.</strong> No hidden fees. No tricks.</p>
-                <p>We're offering full access to PlayScorm for a limited time as we finalize our pricing plans.</p>
-                <p><strong>What you get:</strong></p>
-                <p>✓ Unlimited SCORM uploads<br>
-                ✓ Unlimited learners<br>
-                ✓ All current features<br>
-                ✓ Priority support<br>
-                ✓ Early access to new features</p>
-                <p class="note"><em>Pricing will be announced in the coming weeks. Early users will receive special discounts and grandfathered pricing.</em></p>
-                <a href="login.html?action=signup" class="btn-primary" style="margin-top: 25px;">Create Free Account Now</a>
             </div>
         </div>
     </section>
@@ -965,32 +1509,36 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="cta-section-container">
-            <h2>Ready to Transform Your Training?</h2>
-            <p>Join early adopters already using PlayScorm</p>
-            <a href="login.html?action=signup" class="btn-primary">Get Started - It's Free!</a>
+            <h2>Ready to Host Your SCORM Courses?</h2>
+            <p>Join thousands of trainers, instructional designers, and organizations using PlayScorm</p>
+            <a href="signup.html?action=signup" class="btn-primary">Get Started Free - No Credit Card Required</a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer>
+    <footer role="contentinfo">
         <div class="footer-container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <div class="footer-logo">
-                        <img src="/logo.png" alt="PlayScorm Logo">
-                        <h3>PlayScorm</h3>
-                    </div>
+                    <h3>PlayScorm</h3>
                     <a href="/">Home</a>
                     <a href="#features">Features</a>
-                    <a href="#coming-soon">Roadmap</a>
-                    <a href="#use-cases">Use Cases</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#blog">Learn</a>
                 </div>
                 <div class="footer-section">
-                    <h3>Company</h3>
+                    <h3>Platform</h3>
                     <a href="login.html">Dashboard</a>
-                    <a href="login.html?action=signup">Sign Up</a>
+                    <a href="signup.html?action=signup">Sign Up</a>
                     <a href="login.html">Sign In</a>
+                    <a href="upload.html">Upload Course</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Learn More</h3>
+                    <a href="#blog">SCORM Guide</a>
+                    <a href="#blog">SCORM vs xAPI</a>
                     <a href="mailto:info@compassedutech.com">Email Us</a>
+                    <a href="https://twitter.com/playscorm">Follow Us</a>
                 </div>
                 <div class="footer-section">
                     <h3>Legal</h3>
@@ -998,16 +1546,9 @@
                     <a href="/terms">Terms of Service</a>
                     <a href="/cookies">Cookie Policy</a>
                 </div>
-                <div class="footer-section">
-                    <h3>Connect</h3>
-                    <a href="https://twitter.com/playscorm" target="_blank">Twitter</a>
-                    <a href="https://linkedin.com/company/playscorm" target="_blank">LinkedIn</a>
-                    <a href="https://youtube.com/@playscorm" target="_blank">YouTube</a>
-                </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 PlayScorm by Compass Edutech. All rights reserved.</p>
-                <p>Built with ❤️ for trainers and educators | Hosted on secure cloud infrastructure</p>
+                <p>&copy; 2025 PlayScorm by Compass Edutech. All rights reserved. | The most affordable SCORM player & LMS for India</p>
             </div>
         </div>
     </footer>
@@ -1018,17 +1559,55 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "PlayScorm",
-        "description": "Simple, affordable SCORM LMS platform for trainers and businesses",
+        "description": "The most affordable SCORM player and learning management system (LMS) for trainers, instructional designers, and businesses. Host, track, and deliver SCORM courses online.",
         "url": "https://playscorm.com",
         "applicationCategory": "EducationalApplication",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "INR"
-        },
+        "operatingSystem": "Web",
+        "offers": [
+            {
+                "@type": "Offer",
+                "name": "Free Plan",
+                "price": "0",
+                "priceCurrency": "INR",
+                "description": "100 MB storage, 1 SCORM course, 50 learners"
+            },
+            {
+                "@type": "Offer",
+                "name": "Portfolio Plan",
+                "price": "199",
+                "priceCurrency": "INR",
+                "description": "500 MB storage, 3 courses, 200 learners"
+            },
+            {
+                "@type": "Offer",
+                "name": "Starter Plan",
+                "price": "499",
+                "priceCurrency": "INR",
+                "description": "2 GB storage, 10 courses, 1000 learners"
+            },
+            {
+                "@type": "Offer",
+                "name": "Professional Plan",
+                "price": "1299",
+                "priceCurrency": "INR",
+                "description": "10 GB storage, 50 courses, 5000 learners"
+            },
+            {
+                "@type": "Offer",
+                "name": "Business Plan",
+                "price": "3999",
+                "priceCurrency": "INR",
+                "description": "50 GB storage, unlimited courses, unlimited learners"
+            }
+        ],
         "author": {
             "@type": "Organization",
             "name": "Compass Edutech"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "234"
         }
     }
     </script>
@@ -1047,10 +1626,87 @@
         "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "Customer Support",
-            "email": "info@compassedutech.com"
-        }
+            "email": "info@compassedutech.com",
+            "availableLanguage": ["en"]
+        },
+        "areaServed": "IN",
+        "knowsAbout": ["SCORM", "SCORM 1.2", "SCORM 2004", "LMS", "Learning Management System", "E-learning", "SCORM Player", "SCORM Hosting"]
     }
     </script>
 
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://playscorm.com"
+            },
+        {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Learn About SCORM",
+                "item": "https://playscorm.com#blog"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Features",
+                "item": "https://playscorm.com#features"
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Pricing",
+                "item": "https://playscorm.com#pricing"
+            }
+            
+        ]
+    }
+    </script>
+
+    <script>
+        function toggleFAQ(element) {
+            const question = element;
+            const answer = element.nextElementSibling;
+            
+            // Close all other FAQs
+            document.querySelectorAll('.faq-answer.show').forEach(item => {
+                if (item !== answer) {
+                    item.classList.remove('show');
+                    item.previousElementSibling.classList.remove('active');
+                }
+            });
+            
+            // Toggle current FAQ
+            question.classList.toggle('active');
+            answer.classList.toggle('show');
+        }
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        document.querySelectorAll('.blog-title').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const content = btn.nextElementSibling;
+    // Hide all other blog contents except clicked one
+    document.querySelectorAll('.blog-content').forEach(function(other) {
+      if (other !== content) other.style.display = 'none';
+    });
+    // Toggle the clicked one
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+  });
+});
+    </script>
 </body>
 </html>
