@@ -68,13 +68,17 @@
         
         /* Navigation */
         nav {
-    background: #fff !important; /* solid white, overrides gradient */
-    padding: 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
+            width: 100vw;
+            background: #fff !important; /* solid white, overrides gradient */
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            min-width: 100vw;
+            left: 0;
+            right: 0;
+            }
 
         .hero-flex {
   display: flex;
@@ -142,8 +146,7 @@
     justify-content: space-between;
     align-items: center;
     height: 70px;
-    background: #fff; /* white banner background */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07); /* optional soft shadow for separation */
+    background: transparent; /* white banner background */
 }
 
 /* Make logo royal blue */
